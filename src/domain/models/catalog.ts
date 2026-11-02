@@ -65,7 +65,7 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 4;
+  schemaVersion: 5;
   workspaceId: string;
   workspace: Workspace;
   revision: number;
@@ -83,6 +83,7 @@ export interface CatalogSnapshot {
   fields: CustomField[];
   locations: NamedRecord[];
   movements: InventoryMovement[];
+  onlineListings: OnlineListing[];
 }
 export interface ProductInput {
   name: string;
@@ -128,4 +129,22 @@ export interface MovementInput {
   fromLocationId: string;
   toLocationId: string;
   reason: string;
+}
+
+export interface OnlineListing extends NamedRecord {
+  productId: string;
+  locationId: string;
+  url: string;
+  quantity: number;
+  checkedAt: string;
+  notes: string;
+  archived: boolean;
+}
+export interface OnlineListingInput {
+  name: string;
+  productId: string;
+  locationId: string;
+  url: string;
+  quantity: number;
+  notes: string;
 }

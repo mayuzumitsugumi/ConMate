@@ -1,4 +1,9 @@
 import {
+  putOnlineListing,
+  toggleOnlineListing,
+} from "../domain/inventory/online";
+import type { OnlineListingInput } from "../domain/models/catalog";
+import {
   addLocation,
   addMovement,
   reverseMovement,
@@ -121,7 +126,17 @@ export const useCatalogStore = defineStore("catalog", () => {
     mutate((s) => {
       reverseMovement(s, id, reason);
     });
+  const saveOnlineListing = (input: OnlineListingInput, id?: string) =>
+    mutate((s) => {
+      putOnlineListing(s, input, id);
+    });
+  const archiveOnlineListing = (id: string) =>
+    mutate((s) => {
+      toggleOnlineListing(s, id);
+    });
   return {
+    saveOnlineListing,
+    archiveOnlineListing,
     saveLocation,
     saveMovement,
     cancelMovement,

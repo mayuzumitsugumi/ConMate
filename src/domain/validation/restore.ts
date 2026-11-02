@@ -1,3 +1,4 @@
+import { safeShopUrl } from "../inventory/online";
 import type { CatalogSnapshot } from "../models/catalog";
 const fail = (message: string): never => {
   throw new Error(message);
@@ -58,15 +59,20 @@ const keys = [
   "fields",
   "locations",
   "movements",
+  "onlineListings",
 ] as const;
 export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   // Older backups gain empty inventory; never invent physical stock.
   const original = obj(input);
-  const s =
+  const inventory =
     original.schemaVersion === 3
       ? { ...original, schemaVersion: 4, locations: [], movements: [] }
       : original;
-  if (s.schemaVersion !== 4) fail("目前僅支援網站資料版本 3、4。");
+  const s =
+    inventory.schemaVersion === 4
+      ? { ...inventory, schemaVersion: 5, onlineListings: [] }
+      : inventory;
+  if (s.schemaVersion !== 5) fail("目前僅支援網站資料版本 3、4、5。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -278,6 +284,23 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     apply(m.productId, m.toLocationId, m.quantity);
     seenMovements.set(m.id, m);
     if (m.reversesId) reversed.add(m.reversesId);
+  }
+  const onlineTotals = new Map<string, number>();
+  for (const listing of s.onlineListings) {
+    ref("products", listing.productId);
+    ref("locations", listing.locationId);
+    str(listing.url, "通販網址", 2000, true);
+    safeShopUrl(listing.url);
+    integer(listing.quantity);
+    time(listing.checkedAt);
+    str(listing.notes, "通販備註");
+    bool(listing.archived);
+    if (!listing.archived) {
+      const key = JSON.stringify([listing.productId, listing.locationId]);
+      const total = (onlineTotals.get(key) || 0) + listing.quantity;
+      if (!Number.isSafeInteger(total)) fail("網店合計數量超過安全範圍。");
+      onlineTotals.set(key, total);
+    }
   }
   return s as unknown as CatalogSnapshot;
 }

@@ -2,7 +2,7 @@ import { balance, movementLabels } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.2.0";
+export const PROJECT_VERSION = "2.3.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -262,6 +262,30 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
       ]);
       row.getCell(4).numFmt = "0";
     }
+  }
+  if (snapshot.onlineListings.length) {
+    const ws = sheet("07_通販對照", [
+      "商店／通路",
+      "商品",
+      "出貨庫位",
+      "通販連結",
+      "記錄的網店數量",
+      "最後手動核對",
+      "備註",
+      "狀態",
+    ]);
+    for (const l of snapshot.onlineListings)
+      ws.addRow([
+        l.name,
+        snapshot.products.find((p) => p.id === l.productId)?.name || "",
+        snapshot.locations.find((p) => p.id === l.locationId)?.name || "",
+        l.url,
+        l.quantity,
+        l.checkedAt,
+        l.notes,
+        l.archived ? "已封存" : "使用中",
+      ]);
+    ws.getColumn(5).numFmt = "0";
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);
   raw.state = "hidden";

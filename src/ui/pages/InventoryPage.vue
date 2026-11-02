@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
+import OnlineStockPanel from "../components/OnlineStockPanel.vue";
 import { useWorkspaceStore } from "../../app/workspace-store";
 import { useCatalogStore } from "../../app/catalog-store";
 import { balance, movementLabels } from "../../domain/inventory/operations";
@@ -162,6 +163,7 @@ const when = (time: string) =>
       </button>
     </p>
     <template v-if="catalog.snapshot">
+      <OnlineStockPanel />
       <section class="inventory-panel section-block">
         <h2>新增庫位</h2>
         <p>
