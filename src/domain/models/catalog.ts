@@ -65,7 +65,7 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 7;
+  schemaVersion: 8;
   workspaceId: string;
   workspace: Workspace;
   revision: number;
@@ -86,6 +86,7 @@ export interface CatalogSnapshot {
   movementTypes: InventoryMovementType[];
   onlineListings: OnlineListing[];
   sales: SaleRecord[];
+  salePlans: SalePlan[];
   costs: CostRecord[];
   advances: AdvanceRecord[];
 }
@@ -163,7 +164,22 @@ export interface InventoryMovementType extends NamedRecord {
   archived: boolean;
 }
 
+export interface SalePlanInput {
+  name: string;
+  mode: "direct" | "draw";
+  unitPrice: number;
+  productIds: string[];
+  eventIds: string[];
+}
+export interface SalePlan extends NamedRecord, SalePlanInput {
+  version: number;
+  archived: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 export interface SaleLineInput {
+  planId?: string;
+  planVersion?: number;
   productId: string;
   mode: "direct" | "draw";
   quantity: number;
@@ -181,6 +197,7 @@ export interface SaleInput {
 export interface SaleLine extends SaleLineInput {
   id: string;
   productName: string;
+  planName?: string;
   movementId: string;
 }
 export interface SaleRecord extends NamedRecord {

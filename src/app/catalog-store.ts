@@ -1,3 +1,5 @@
+import { putSalePlan, toggleSalePlanArchive } from "../domain/sales/plans";
+import type { SalePlanInput } from "../domain/models/catalog";
 import { completeSale, cancelSale } from "../domain/sales/operations";
 import {
   putCost,
@@ -177,7 +179,17 @@ export const useCatalogStore = defineStore("catalog", () => {
     mutate((s) => undoRepayment(s, id, repaymentId, reason));
   const voidAdvance = (id: string, reason: string) =>
     mutate((s) => cancelAdvance(s, id, reason));
+  const saveSalePlan = (input: SalePlanInput, id?: string) =>
+    mutate((s) => {
+      putSalePlan(s, input, id);
+    });
+  const archiveSalePlan = (id: string) =>
+    mutate((s) => {
+      toggleSalePlanArchive(s, id);
+    });
   return {
+    saveSalePlan,
+    archiveSalePlan,
     finishSale,
     refundSale,
     saveCost,

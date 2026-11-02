@@ -35,7 +35,9 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
           l.productId === next.productId &&
           l.mode === next.mode &&
           l.quantity === next.quantity &&
-          l.unitPrice === next.unitPrice
+          l.unitPrice === next.unitPrice &&
+          l.planId === next.planId &&
+          l.planVersion === next.planVersion
         );
       });
     if (!same)
@@ -79,6 +81,20 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
     if (!p) throw new Error("請選擇未封存的商品。");
     if (!["direct", "draw"].includes(line.mode))
       throw new Error("販售方式不正確。");
+    const plan = line.planId
+      ? s.salePlans.find((p) => p.id === line.planId)
+      : undefined;
+    if (line.planId !== undefined || line.planVersion !== undefined) {
+      if (!plan || plan.archived || plan.version !== line.planVersion)
+        throw new Error("販售方案已更新或停用，請重新選擇方案。");
+      if (
+        plan.mode !== line.mode ||
+        plan.unitPrice !== line.unitPrice ||
+        !plan.productIds.includes(p.id) ||
+        (plan.eventIds.length && !plan.eventIds.includes(input.eventId))
+      )
+        throw new Error("商品、價格或場次與販售方案不符。");
+    }
     const movement = addMovement(s, {
       productId: p.id,
       kind: "adjust-out",
@@ -94,6 +110,9 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
       id: crypto.randomUUID(),
       productId: p.id,
       productName: p.name,
+      ...(plan
+        ? { planId: plan.id, planVersion: plan.version, planName: plan.name }
+        : {}),
       quantity: line.quantity,
       unitPrice: line.unitPrice,
       mode: line.mode,

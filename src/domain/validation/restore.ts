@@ -64,6 +64,7 @@ const keys = [
   "movementTypes",
   "onlineListings",
   "sales",
+  "salePlans",
   "costs",
   "advances",
 ] as const;
@@ -82,11 +83,15 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     online.schemaVersion === 5
       ? { ...online, schemaVersion: 6, movementTypes: [] }
       : online;
-  const s =
+  const business =
     customized.schemaVersion === 6
       ? { ...customized, schemaVersion: 7, sales: [], costs: [], advances: [] }
       : customized;
-  if (s.schemaVersion !== 7) fail("目前僅支援網站資料版本 3 至 7。");
+  const s =
+    business.schemaVersion === 7
+      ? { ...business, schemaVersion: 8, salePlans: [] }
+      : business;
+  if (s.schemaVersion !== 8) fail("目前僅支援網站資料版本 3 至 8。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -345,6 +350,31 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     }
   }
 
+  for (const p of s.salePlans) {
+    str(p.name, "方案名稱", 80, true);
+    if (!["direct", "draw"].includes(p.mode)) fail("販售方案售法不正確。");
+    integer(p.unitPrice);
+    integer(p.version);
+    if (!p.version) fail("方案版本必須大於零。");
+    bool(p.archived);
+    time(p.createdAt);
+    time(p.updatedAt);
+    if (
+      !Array.isArray(p.productIds) ||
+      !p.productIds.length ||
+      p.productIds.length > 10000 ||
+      new Set(p.productIds).size !== p.productIds.length
+    )
+      fail("方案商品清單不正確。");
+    if (
+      !Array.isArray(p.eventIds) ||
+      new Set(p.eventIds).size !== p.eventIds.length
+    )
+      fail("方案場次清單不正確。");
+    p.productIds.forEach((id: unknown) => ref("products", id));
+    p.eventIds.forEach((id: unknown) => ref("events", id));
+  }
+
   const nestedId = (id: unknown) => {
     str(id, "明細ID", 100, true);
     if (allIds.has(id)) fail("明細ID重複。");
@@ -397,6 +427,20 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
       integer(line.unitPrice);
       if (!line.quantity || !["direct", "draw"].includes(line.mode))
         fail("交易數量或售法不正確。");
+      if (
+        line.planId !== undefined ||
+        line.planVersion !== undefined ||
+        line.planName !== undefined
+      ) {
+        ref("salePlans", line.planId);
+        integer(line.planVersion);
+        str(line.planName, "成交方案名稱", 80, true);
+        if (
+          !line.planVersion ||
+          line.planVersion > maps.salePlans!.get(line.planId).version
+        )
+          fail("成交方案版本不正確。");
+      }
       ref("movements", line.movementId);
       const m = maps.movements!.get(line.movementId);
       if (

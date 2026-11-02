@@ -3,7 +3,7 @@ import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.5.0";
+export const PROJECT_VERSION = "2.6.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -325,6 +325,8 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
       "單價",
       "金額",
       "出庫編號",
+      "成交方案名稱",
+      "成交方案版本",
     ]);
     for (const sale of snapshot.sales) {
       ws.addRow([
@@ -351,6 +353,8 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
           l.unitPrice,
           Number(BigInt(l.quantity) * BigInt(l.unitPrice)),
           snapshot.movements.find((m) => m.id === l.movementId)?.code || "",
+          l.planName || "",
+          l.planVersion ?? null,
         ]);
     }
     for (const col of [6, 7, 8]) ws.getColumn(col).numFmt = "0";
@@ -447,6 +451,35 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
     }
     for (const col of [5, 6, 7]) ws.getColumn(col).numFmt = "0";
     payments.getColumn(4).numFmt = "0";
+  }
+  if (snapshot.salePlans.length) {
+    const ws = sheet("14_販售方案", [
+      "方案名稱",
+      "售法",
+      "單價",
+      "商品",
+      "適用場次",
+      "版本",
+      "狀態",
+    ]);
+    for (const p of snapshot.salePlans)
+      ws.addRow([
+        p.name,
+        p.mode === "draw" ? "抽選" : "指定",
+        p.unitPrice,
+        p.productIds
+          .map((id) => snapshot.products.find((r) => r.id === id)?.name || "")
+          .join("、"),
+        p.eventIds.length
+          ? p.eventIds
+              .map((id) => snapshot.events.find((r) => r.id === id)?.name || "")
+              .join("、")
+          : "不限場次",
+        p.version,
+        p.archived ? "已封存" : "啟用",
+      ]);
+    ws.getColumn(3).numFmt = "0";
+    ws.getColumn(6).numFmt = "0";
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);
   raw.state = "hidden";

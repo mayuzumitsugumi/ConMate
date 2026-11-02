@@ -114,7 +114,7 @@ it("upgrades schema5 installed data and backups without changing stock, IDs or h
   const upgraded = new ConMateDatabase(name);
   try {
     const data = (await upgraded.catalogs.get(s.workspaceId))!;
-    expect(data.schemaVersion).toBe(7);
+    expect(data.schemaVersion).toBe(8);
     expect(data.movements).toEqual(s.movements);
     expect(balance(data, p.id, a.id)).toBe(3);
     expect(data.movementTypes).toEqual([]);

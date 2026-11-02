@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SalePlansPanel from "../components/SalePlansPanel.vue";
 import { computed, reactive, ref, watch } from "vue";
 import { useWorkspaceStore } from "../../app/workspace-store";
 import { useCatalogStore } from "../../app/catalog-store";
@@ -11,6 +12,18 @@ const notice = ref(""),
   error = ref(""),
   search = ref(""),
   confirming = ref(false);
+const selectedPlanId = ref("");
+const availablePlans = computed(
+  () =>
+    catalog.snapshot?.salePlans.filter(
+      (p) =>
+        !p.archived &&
+        (!p.eventIds.length || p.eventIds.includes(context.eventId)),
+    ) || [],
+);
+const selectedPlan = computed(() =>
+  availablePlans.value.find((p) => p.id === selectedPlanId.value),
+);
 const operationId = ref<string>(crypto.randomUUID());
 const context = reactive({
   locationId: "",
@@ -32,7 +45,10 @@ const cancelId = ref(""),
 const products = computed(
   () =>
     catalog.snapshot?.products.filter(
-      (p) => !p.archived && (!search.value || p.name.includes(search.value)),
+      (p) =>
+        !p.archived &&
+        (!selectedPlan.value || selectedPlan.value.productIds.includes(p.id)) &&
+        (!search.value || p.name.includes(search.value)),
     ) || [],
 );
 const recent = computed(() => [...(catalog.snapshot?.sales || [])].reverse());
@@ -68,6 +84,7 @@ watch(
   () => workspaces.activeWorkspaceId,
   async (id) => {
     cart.value = [];
+    selectedPlanId.value = "";
     confirming.value = false;
     cancelId.value = "";
     notice.value = "";
@@ -93,8 +110,15 @@ function clearCart() {
 function add(productId: string, mode: "direct" | "draw") {
   const p = catalog.snapshot?.products.find((p) => p.id === productId);
   if (!p || catalog.busy) return;
+  const plan = selectedPlan.value;
+  if (selectedPlanId.value && !plan) return;
+  if (plan) mode = plan.mode;
   const line = cart.value.find(
-    (l) => l.productId === productId && l.mode === mode,
+    (l) =>
+      l.productId === productId &&
+      l.mode === mode &&
+      l.planId === plan?.id &&
+      l.planVersion === plan?.version,
   );
   if (line) line.quantity++;
   else
@@ -104,7 +128,8 @@ function add(productId: string, mode: "direct" | "draw") {
       productName: p.name,
       mode,
       quantity: 1,
-      unitPrice: null,
+      unitPrice: plan?.unitPrice ?? null,
+      ...(plan ? { planId: plan.id, planVersion: plan.version } : {}),
     });
   confirming.value = false;
 }
@@ -122,12 +147,15 @@ async function submit() {
       ...context,
       cashReceived: context.cashReceived!,
       operationId: operationId.value,
-      lines: cart.value.map(({ productId, mode, quantity, unitPrice }) => ({
-        productId,
-        mode,
-        quantity,
-        unitPrice: unitPrice!,
-      })),
+      lines: cart.value.map(
+        ({ productId, mode, quantity, unitPrice, planId, planVersion }) => ({
+          ...(planId ? { planId, planVersion } : {}),
+          productId,
+          mode,
+          quantity,
+          unitPrice: unitPrice!,
+        }),
+      ),
     } satisfies SaleInput);
     cart.value = [];
     context.cashReceived = null;
@@ -175,7 +203,7 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
     <div>
       <strong>先開放指定購買與已知款式的抽選記錄。</strong>
       <p>
-        抽選按實際交付商品逐筆登記，不替你抽獎。每項價格自行填寫，同商品的指定與抽選共用實物庫存。尚未提供抽選池設定、部分退款、換貨或損壞退貨。取消交易僅適用「已全額退款且商品全數回到原庫位」。
+        抽選按實際交付商品逐筆登記，不替你抽獎。可先建立指定價或混合抽選池，也能手動填寫價格；同商品共用實物庫存。尚未提供部分退款、換貨或損壞退貨。取消交易僅適用「已全額退款且商品全數回到原庫位」。
       </p>
     </div>
   </aside>
@@ -233,7 +261,7 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
             ><select
               id="sales-event"
               v-model="context.eventId"
-              :disabled="catalog.busy"
+              :disabled="catalog.busy || cart.length > 0"
             >
               <option value="">未指定</option>
               <option
@@ -267,6 +295,28 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
           >先建立庫位並登記入庫 →</RouterLink
         >
       </section>
+      <SalePlansPanel />
+      <section class="business-panel section-block">
+        <div class="field">
+          <label for="sales-plan">目前販售方案</label
+          ><select
+            id="sales-plan"
+            v-model="selectedPlanId"
+            :disabled="catalog.busy"
+          >
+            <option value="">手動售價（不套用方案）</option>
+            <option v-for="p in availablePlans" :key="p.id" :value="p.id">
+              {{ p.name }} · {{ p.unitPrice }} 元 ·
+              {{ p.mode === "draw" ? "抽選" : "指定" }}
+            </option></select
+          ><small
+            >只顯示適用目前場次的啟用方案。切換方案可將不同售法加入同一購物車；既有品項保留加入時的版本。</small
+          >
+        </div>
+        <p v-if="selectedPlanId && !selectedPlan" class="error-notice">
+          目前方案已不適用，請重新選擇。
+        </p>
+      </section>
       <div class="sales-layout">
         <section class="section-block">
           <h2>選擇交付商品</h2>
@@ -288,6 +338,7 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
                   :disabled="
                     catalog.busy || !context.locationId || stock(p.id) === 0
                   "
+                  v-if="!selectedPlan || selectedPlan.mode === 'direct'"
                   @click="add(p.id, 'direct')"
                 >
                   指定購買</button
@@ -297,6 +348,7 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
                   :disabled="
                     catalog.busy || !context.locationId || stock(p.id) === 0
                   "
+                  v-if="!selectedPlan || selectedPlan.mode === 'draw'"
                   @click="add(p.id, 'draw')"
                 >
                   抽選結果
@@ -316,6 +368,10 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
                 {{ line.productName }} ·
                 {{ line.mode === "draw" ? "抽選" : "指定" }}
               </h3>
+              <p v-if="line.planId">
+                方案版本
+                {{ line.planVersion }}（價格固定；需改價請移除此項再選方案）
+              </p>
               <div class="form-grid">
                 <div class="field">
                   <label :for="'qty-' + line.key">數量</label
@@ -338,6 +394,7 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
                     min="0"
                     step="1"
                     required
+                    :readonly="Boolean(line.planId)"
                     placeholder="請輸入售價"
                     @input="confirming = false"
                   />
@@ -430,9 +487,7 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
       <section class="section-block">
         <h2>交易紀錄（{{ recent.length }}）</h2>
         <p>
-          工作區有效交易營收：{{
-            netRevenue
-          }}
+          工作區有效交易營收：{{ netRevenue }}
           元（不含已全額退款交易；不是利潤）。
         </p>
         <article v-for="sale in recent" :key="sale.id" class="business-panel">
@@ -453,7 +508,9 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
           <ul>
             <li v-for="l in sale.lines" :key="l.id">
               {{ l.productName }} · {{ l.mode === "draw" ? "抽選" : "指定" }} ×
-              {{ l.quantity }} · 單價 {{ l.unitPrice }} 元
+              {{ l.quantity }} · 單價 {{ l.unitPrice }} 元<span v-if="l.planId">
+                · {{ l.planName }}（版本 {{ l.planVersion }}）</span
+              >
             </li>
           </ul>
           <p v-if="sale.notes">{{ sale.notes }}</p>
@@ -480,9 +537,7 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
             <h4>確認整筆取消</h4>
             <p>
               此操作記錄全額退款
-              {{
-                sale.total
-              }}
+              {{ sale.total }}
               元，並把全部商品回到原庫位；尚未退款、部分退款或損壞退貨不適用。
             </p>
             <div class="field">

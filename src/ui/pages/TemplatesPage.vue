@@ -46,7 +46,7 @@ function showGuide() {
   <div class="info-banner">
     <AppIcon name="info" />
     <div>
-      <strong>目前開放模板下載，匯入與完整備份尚未開放。</strong>
+      <strong>這是舊版進階模板，尚不支援匯入此格式。</strong>
       <p>
         可以先在 Excel 或 LibreOffice
         整理資料。這些模板沒有公式，網站也還不會匯入或計算你填入的內容；請保留原始檔案。
@@ -224,7 +224,7 @@ function showGuide() {
     <div>
       <strong>模板下載 ≠ 已備份工作區</strong>
       <p>
-        模板是建檔起點，不含你在網站建立的工作區名稱。完整備份與驗證匯入將在後續版本開放，請勿把唯一重要資料只存進瀏覽器。
+        這些模板不含目前工作區資料。請到「專案檔與備份」匯出目前工作區；該頁已支援網站專案檔的檢查與還原，與這裡的舊版模板格式不同。
       </p>
     </div>
   </aside>
