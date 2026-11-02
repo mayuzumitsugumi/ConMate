@@ -1,0 +1,224 @@
+import type { CatalogSnapshot } from "../models/catalog";
+const fail = (message: string): never => {
+  throw new Error(message);
+};
+const obj = (v: unknown): Record<string, any> =>
+  v !== null && typeof v === "object" && !Array.isArray(v)
+    ? v
+    : fail("資料必須是物件。");
+function str(
+  v: unknown,
+  label: string,
+  max = 2000,
+  required = false,
+): asserts v is string {
+  if (
+    typeof v !== "string" ||
+    v.length > max ||
+    (required && !v.trim()) ||
+    /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(v)
+  )
+    fail(`${label}文字格式不正確。`);
+}
+function bool(v: unknown) {
+  if (typeof v !== "boolean") fail("封存狀態必須是布林值。");
+}
+function integer(v: unknown) {
+  if (typeof v !== "number" || !Number.isSafeInteger(v) || v < 0)
+    fail("修訂或流水號必須是非負安全整數。");
+}
+function date(v: unknown) {
+  str(v, "日期", 10);
+  if (
+    v !== "" &&
+    (!/^\d{4}-\d{2}-\d{2}$/.test(v) ||
+      new Date(v + "T00:00:00Z").toISOString().slice(0, 10) !== v)
+  )
+    fail("日期格式不正確。");
+}
+function time(v: unknown) {
+  str(v, "時間", 40, true);
+  if (
+    !/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(v) ||
+    !Number.isFinite(Date.parse(v))
+  )
+    fail("時間格式不正確。");
+}
+const keys = [
+  "parties",
+  "projects",
+  "events",
+  "projectEvents",
+  "productTypes",
+  "specs",
+  "series",
+  "artworks",
+  "products",
+  "tags",
+  "fields",
+] as const;
+export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
+  const s = obj(input);
+  if (s.schemaVersion !== 3) fail("目前僅支援網站資料版本 3。");
+  str(s.workspaceId, "工作區ID", 100, true);
+  const w = obj(s.workspace);
+  if (
+    w.id !== s.workspaceId ||
+    w.currency !== "TWD" ||
+    w.timezone !== "Asia/Taipei"
+  )
+    fail("工作區資料不一致。");
+  str(w.name, "工作區名稱", 80, true);
+  time(w.createdAt);
+  integer(s.revision);
+  const counters = obj(s.counters);
+  for (const [key, value] of Object.entries(counters)) {
+    if (!/^[A-Z]+$/.test(key)) fail("流水號類型不正確。");
+    integer(value);
+  }
+  const allIds = new Set<string>(),
+    maps: Record<string, Map<string, any>> = {};
+  for (const key of keys) {
+    if (!Array.isArray(s[key]) || s[key].length > 100000)
+      fail(`${key}資料清單不正確或過大。`);
+    const map = new Map<string, any>();
+    const codes = new Set<string>();
+    maps[key] = map;
+    for (const item of s[key]) {
+      const r = obj(item);
+      str(r.id, "ID", 100, true);
+      if (allIds.has(r.id)) fail(`${key}出現重複ID。`);
+      allIds.add(r.id);
+      if (r.workspaceId !== s.workspaceId) fail(`${key}含其他工作區資料。`);
+      str(r.code, "顯示編號", 100, true);
+      if (codes.has(r.code)) fail(`${key}顯示編號重複。`);
+      codes.add(r.code);
+      const match = /^([A-Z]+)-(\d+)$/.exec(r.code);
+      if (
+        !match ||
+        !Number.isSafeInteger(Number(match[2])) ||
+        Number(match[2]) < 1 ||
+        (counters[match[1]!] ?? 0) < Number(match[2])
+      )
+        fail("流水號計數與資料不一致。");
+      str(r.name, "名稱", 200, true);
+      map.set(r.id, r);
+    }
+  }
+  const ref = (key: string, id: unknown, optional = false) => {
+    if (optional && id === "") return;
+    str(id, "參照ID", 100, true);
+    if (!maps[key]!.has(id)) fail(`${key}關聯不存在。`);
+  };
+  for (const p of s.projects) {
+    str(p.description, "企劃說明");
+    bool(p.archived);
+  }
+  for (const e of s.events) {
+    date(e.startDate);
+    date(e.endDate);
+    if (e.endDate && (!e.startDate || e.endDate < e.startDate))
+      fail("場次日期順序不正確。");
+    str(e.venue, "地點", 200);
+    str(e.notes, "備註");
+    bool(e.archived);
+  }
+  const pairs = new Set<string>();
+  for (const r of s.projectEvents) {
+    ref("projects", r.projectId);
+    ref("events", r.eventId);
+    const pair = JSON.stringify([r.projectId, r.eventId]);
+    if (pairs.has(pair)) fail("重複企劃場次關聯。");
+    pairs.add(pair);
+  }
+  for (const r of s.specs) ref("productTypes", r.typeId, true);
+  for (const r of s.series) {
+    ref("projects", r.projectId, true);
+    ref("productTypes", r.typeId, true);
+  }
+  for (const r of s.artworks) ref("projects", r.projectId, true);
+  for (const t of s.tags) bool(t.archived);
+  for (const f of s.fields) {
+    bool(f.archived);
+    if (
+      !["text", "number", "single", "multi", "boolean", "date"].includes(
+        f.type,
+      ) ||
+      !Array.isArray(f.options)
+    )
+      fail("自訂欄位格式不正確。");
+    const ids = new Set();
+    for (const option of f.options) {
+      const o = obj(option);
+      str(o.id, "選項ID", 100, true);
+      str(o.label, "選項", 80, true);
+      bool(o.archived);
+      if (ids.has(o.id)) fail("選項ID重複。");
+      ids.add(o.id);
+    }
+  }
+  for (const p of s.products) {
+    bool(p.archived);
+    time(p.createdAt);
+    time(p.updatedAt);
+    str(p.specification, "規格", 120);
+    str(p.artwork, "柄圖", 120);
+    str(p.notes, "備註");
+    ref("parties", p.creatorId, true);
+    ref("projects", p.projectId, true);
+    ref("productTypes", p.typeId, true);
+    ref("series", p.seriesId, true);
+    ref("specs", p.specId, true);
+    if (p.artworkId !== undefined) ref("artworks", p.artworkId, true);
+    if (p.specId && maps.specs!.get(p.specId).typeId !== p.typeId)
+      fail("規格與商品種類不符。");
+    if (p.seriesId) {
+      const r = maps.series!.get(p.seriesId);
+      if (r.projectId !== p.projectId || r.typeId !== p.typeId)
+        fail("商品系列關聯不符。");
+    }
+    if (
+      p.artworkId &&
+      maps.artworks!.get(p.artworkId).projectId !== p.projectId
+    )
+      fail("柄圖企劃不符。");
+    if (!Array.isArray(p.tagIds) || new Set(p.tagIds).size !== p.tagIds.length)
+      fail("商品標記重複或格式不正確。");
+    for (const id of p.tagIds) ref("tags", id);
+    for (const [id, v] of Object.entries(obj(p.customValues))) {
+      ref("fields", id);
+      const f = maps.fields!.get(id);
+      if (v === null) continue;
+      switch (f.type) {
+        case "number":
+          if (
+            typeof v !== "number" ||
+            !Number.isFinite(v) ||
+            Math.abs(v) > Number.MAX_SAFE_INTEGER
+          )
+            fail("自訂數值不正確。");
+          break;
+        case "boolean":
+          bool(v);
+          break;
+        case "single":
+        case "multi": {
+          const values = f.type === "single" ? [v] : v;
+          if (
+            !Array.isArray(values) ||
+            new Set(values).size !== values.length ||
+            values.some((x) => !f.options.some((o: any) => o.id === x))
+          )
+            fail("自訂選項不存在。");
+          break;
+        }
+        case "date":
+          date(v);
+          break;
+        default:
+          str(v, "自訂文字", 2000);
+      }
+    }
+  }
+  return input as CatalogSnapshot;
+}
