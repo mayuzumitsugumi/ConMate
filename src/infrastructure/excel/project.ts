@@ -1,7 +1,7 @@
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.0.0";
+export const PROJECT_VERSION = "2.1.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -88,7 +88,7 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
     ],
     [
       "資料範圍",
-      "本檔包含此工作區目前可建立的商品、創作者、企劃、標記與自訂欄位；尚不包含未開放的銷售、庫存及財務功能。",
+      "本檔包含此工作區目前可建立的商品、創作者、企劃、場次、參場關聯、標記與自訂欄位；尚不包含未開放的銷售、庫存及財務功能。",
     ],
     [
       "格式",
@@ -174,6 +174,48 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
         f.archived ? "已封存" : "使用中",
       ]),
     );
+  }
+  if (snapshot.projects.length) {
+    const ws = sheet("03_企劃", ["企劃名稱", "企劃說明", "參加場次", "狀態"]);
+    for (const p of snapshot.projects)
+      ws.addRow([
+        p.name,
+        p.description,
+        snapshot.projectEvents
+          .filter((r) => r.projectId === p.id)
+          .map(
+            (r) => snapshot.events.find((e) => e.id === r.eventId)?.name || "",
+          )
+          .join("、"),
+        p.archived ? "已封存" : "使用中",
+      ]);
+  }
+  if (snapshot.events.length) {
+    const ws = sheet("04_場次", [
+      "場次名稱",
+      "開始日期",
+      "結束日期",
+      "地點",
+      "參加企劃",
+      "備註",
+      "狀態",
+    ]);
+    for (const e of snapshot.events)
+      ws.addRow([
+        e.name,
+        e.startDate,
+        e.endDate,
+        e.venue,
+        snapshot.projectEvents
+          .filter((r) => r.eventId === e.id)
+          .map(
+            (r) =>
+              snapshot.projects.find((p) => p.id === r.projectId)?.name || "",
+          )
+          .join("、"),
+        e.notes,
+        e.archived ? "已封存" : "使用中",
+      ]);
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);
   raw.state = "hidden";

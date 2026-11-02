@@ -1,3 +1,9 @@
+import {
+  putProject,
+  putEvent,
+  toggleProjectArchive,
+  toggleEventArchive,
+} from "../domain/catalog/projects";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { catalogRepository } from "../infrastructure/storage/catalog";
@@ -11,6 +17,8 @@ import type {
   CatalogSnapshot,
   FieldInput,
   ProductInput,
+  ProjectInput,
+  EventInput,
 } from "../domain/models/catalog";
 export const useCatalogStore = defineStore("catalog", () => {
   const snapshot = ref<CatalogSnapshot | null>(null),
@@ -84,7 +92,22 @@ export const useCatalogStore = defineStore("catalog", () => {
       for (const name of SUGGESTED_TAGS)
         if (!s.tags.some((t) => t.name === name)) putTag(s, name);
     });
+  const saveProject = (input: ProjectInput, id?: string) =>
+    mutate((s) => {
+      putProject(s, input, id);
+    });
+  const saveEvent = (input: EventInput, id?: string) =>
+    mutate((s) => {
+      putEvent(s, input, id);
+    });
+  const archiveProject = (id: string) =>
+    mutate((s) => toggleProjectArchive(s, id));
+  const archiveEvent = (id: string) => mutate((s) => toggleEventArchive(s, id));
   return {
+    saveProject,
+    saveEvent,
+    archiveProject,
+    archiveEvent,
     snapshot,
     busy,
     error,

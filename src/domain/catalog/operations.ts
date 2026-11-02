@@ -62,7 +62,9 @@ function named(
   if (matches.length > 1) throw new Error("有同名資料，請從既有清單選擇。");
   if (matches[0]) return matches[0].id;
   const created = record(s, kind, clean);
-  s[key].push(created);
+  if (key === "projects")
+    s.projects.push({ ...created, description: "", archived: false });
+  else s[key].push(created);
   return created.id;
 }
 export function putTag(s: CatalogSnapshot, name: string, id?: string) {
@@ -141,6 +143,12 @@ export function putProduct(
     input.projectId || input.projectName?.trim()
       ? named(s, "projects", "PRJ", input.projectId, input.projectName)
       : "";
+  if (
+    projectId &&
+    s.projects.find((p) => p.id === projectId)?.archived &&
+    old?.projectId !== projectId
+  )
+    throw new Error("不能將商品新增至已封存企劃，請先恢復企劃。");
   const typeId = input.productType.trim()
     ? named(s, "productTypes", "TYP", undefined, input.productType)
     : "";

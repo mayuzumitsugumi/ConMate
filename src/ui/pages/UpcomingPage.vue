@@ -33,7 +33,7 @@ const description = computed(() =>
       ><RouterLink class="button secondary" to="/">回到總覽</RouterLink>
     </div>
     <div class="upcoming-note">
-      目前可使用：網站商品建檔、自訂標記與欄位、單檔匯出。<br />此頁尚無資料輸入或記帳功能，不會產生交易。
+      目前可使用：企劃與場次、網站商品建檔、自訂標記與欄位、單檔匯出。<br />此頁尚無資料輸入或記帳功能，不會產生交易。
     </div>
   </section>
 </template>

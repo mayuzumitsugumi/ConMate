@@ -34,7 +34,7 @@ async function download() {
   <section class="catalog-panel section-block">
     <h2>一個工作區，一份專案檔</h2>
     <p>
-      日常表只呈現你已建立的商品與自訂設定。沒有使用的成本、代墊、抽選等功能，不會先放一堆空白表；不用為每個功能管理不同檔案。
+      日常表只呈現你已建立的商品、企劃、場次與自訂設定。沒有使用的成本、代墊、抽選等功能，不會先放一堆空白表；不用為每個功能管理不同檔案。
     </p>
     <template v-if="workspaces.activeWorkspaceId"
       ><label for="export-workspace">要匯出的工作區</label

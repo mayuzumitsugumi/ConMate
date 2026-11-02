@@ -237,11 +237,13 @@ async function archive() {
                 >
                   <option value="">輸入新企劃／未指定</option>
                   <option
-                    v-for="project in catalog.snapshot.projects"
+                    v-for="project in catalog.snapshot.projects.filter(
+                      (p) => !p.archived || p.id === form.projectId,
+                    )"
                     :key="project.id"
                     :value="project.id"
                   >
-                    {{ project.name }}
+                    {{ project.name }}{{ project.archived ? "（已封存）" : "" }}
                   </option></select
                 ><label v-if="!form.projectId" for="project-name"
                   >新企劃名稱</label

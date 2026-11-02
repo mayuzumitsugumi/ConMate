@@ -12,6 +12,27 @@ export class ConMateDatabase extends Dexie {
       workspaces: "id, createdAt",
       catalogs: "workspaceId",
     });
+    this.version(3)
+      .stores({ workspaces: "id, createdAt", catalogs: "workspaceId" })
+      .upgrade(async (tx) => {
+        await tx
+          .table("catalogs")
+          .toCollection()
+          .modify((data) => {
+            if (data.schemaVersion !== 2)
+              throw new Error("無法升級未知資料版本，原資料未刪除。");
+            data.projects = data.projects.map(
+              (p: { id: string; name: string }) => ({
+                ...p,
+                description: "",
+                archived: false,
+              }),
+            );
+            data.events = [];
+            data.projectEvents = [];
+            data.schemaVersion = 3;
+          });
+      });
   }
 }
 export const database = new ConMateDatabase();

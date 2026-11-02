@@ -24,7 +24,7 @@ test("overview, local workspace and responsive navigation", async ({
   expect(overflow).toBe(false);
   await page
     .getByRole("navigation")
-    .getByRole("link", { name: "企劃與場次" })
+    .getByRole("link", { name: "攤位販售" })
     .click();
   await expect(
     page.getByRole("heading", { name: "小秘書正在準備這一頁" }),

@@ -64,6 +64,7 @@ describe("single-file website project export", () => {
       "00_專案說明",
       "01_商品",
       "02_自訂設定",
+      "03_企劃",
       "_ConMate資料",
     ]);
     expect(b.getWorksheet("_ConMate資料")!.state).toBe("hidden");

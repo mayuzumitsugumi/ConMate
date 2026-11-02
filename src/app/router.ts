@@ -3,6 +3,7 @@ import OverviewPage from "../ui/pages/OverviewPage.vue";
 import TemplatesPage from "../ui/pages/TemplatesPage.vue";
 import ProductsPage from "../ui/pages/ProductsPage.vue";
 import CustomizationPage from "../ui/pages/CustomizationPage.vue";
+import ProjectsPage from "../ui/pages/ProjectsPage.vue";
 import DataPage from "../ui/pages/DataPage.vue";
 import UpcomingPage from "../ui/pages/UpcomingPage.vue";
 
@@ -12,7 +13,7 @@ export const sections = [
     path: "/projects",
     label: "企劃與場次",
     icon: "calendar",
-    ready: false,
+    ready: true,
     description:
       "在同一個工作區管理企劃、創作者與多個場次。下一步先支援這次企劃的基本建檔。",
   },
@@ -62,11 +63,13 @@ export const router = createRouter({
           ? OverviewPage
           : section.path === "/templates"
             ? DataPage
-            : section.path === "/products"
-              ? ProductsPage
-              : section.path === "/customize"
-                ? CustomizationPage
-                : UpcomingPage,
+            : section.path === "/projects"
+              ? ProjectsPage
+              : section.path === "/products"
+                ? ProductsPage
+                : section.path === "/customize"
+                  ? CustomizationPage
+                  : UpcomingPage,
       meta: { title: section.label },
     })),
     {

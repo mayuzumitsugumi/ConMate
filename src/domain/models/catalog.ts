@@ -37,14 +37,43 @@ export interface CatalogItem extends NamedRecord {
   createdAt: string;
   updatedAt: string;
 }
+export interface CatalogProject extends NamedRecord {
+  description: string;
+  archived: boolean;
+}
+export interface CatalogEvent extends NamedRecord {
+  startDate: string;
+  endDate: string;
+  venue: string;
+  notes: string;
+  archived: boolean;
+}
+export interface ProjectEventLink extends NamedRecord {
+  projectId: string;
+  eventId: string;
+}
+export interface ProjectInput {
+  name: string;
+  description: string;
+}
+export interface EventInput {
+  name: string;
+  startDate: string;
+  endDate: string;
+  venue: string;
+  notes: string;
+  projectIds: string[];
+}
 export interface CatalogSnapshot {
-  schemaVersion: 2;
+  schemaVersion: 3;
   workspaceId: string;
   workspace: Workspace;
   revision: number;
   counters: Record<string, number>;
   parties: NamedRecord[];
-  projects: NamedRecord[];
+  projects: CatalogProject[];
+  events: CatalogEvent[];
+  projectEvents: ProjectEventLink[];
   productTypes: NamedRecord[];
   specs: (NamedRecord & { typeId: string })[];
   series: (NamedRecord & { projectId: string; typeId: string })[];

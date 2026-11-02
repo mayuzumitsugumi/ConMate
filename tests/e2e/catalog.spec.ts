@@ -70,7 +70,7 @@ test("website-first catalog, custom options and one-file export", async ({
   await book.xlsx.readFile(path!);
   expect(
     book.worksheets.filter((w) => w.state === "visible").map((w) => w.name),
-  ).toEqual(["00_專案說明", "01_商品", "02_自訂設定"]);
+  ).toEqual(["00_專案說明", "01_商品", "02_自訂設定", "03_企劃"]);
   expect(book.getWorksheet("01_商品")!.getCell("A2").value).toBe(
     "星狐陶土吊飾",
   );
