@@ -14,7 +14,134 @@ const fixture = JSON.parse(
   ),
 );
 const directory = new URL("public/templates/", root);
+const guide = JSON.parse(
+  await readFile(new URL("docs/contracts/template-guide.json", root), "utf8"),
+);
+const appPackage = JSON.parse(
+  await readFile(new URL("package.json", root), "utf8"),
+);
 await mkdir(directory, { recursive: true });
+const font = {
+  name: "Microsoft JhengHei",
+  size: 12,
+  color: { argb: "FF24382E" },
+};
+const border = Object.fromEntries(
+  ["top", "left", "bottom", "right"].map((side) => [
+    side,
+    { style: "thin", color: { argb: "FFB4BEB5" } },
+  ]),
+);
+
+// Importers identify columns by their unchanged labels, never by their position.
+function displayColumns(spec) {
+  if (!spec.entity) return spec.columns;
+  return [
+    ...["tempKey", "operation"].map((key) =>
+      spec.columns.find((c) => c.key === key),
+    ),
+    ...spec.columns.filter(
+      (c) => c.editable && !["tempKey", "operation"].includes(c.key),
+    ),
+    ...spec.columns.filter((c) => !c.editable),
+  ];
+}
+
+function columnHelp(spec, column) {
+  if (!column.editable)
+    return "系統管理欄位：請勿自行修改。新增資料留白，匯入後由 ConMate 產生。";
+  const common = {
+    tempKey:
+      "替這一列取一個好記、不重複的代號，例如星狐徽章；其他表用 new:星狐徽章 連過來。不是正式 ID。",
+    operation:
+      "第一次建立資料請選「新增」。不要為了複製新商品而沿用別列的正式 ID。",
+    ratio:
+      "填百分比數值；100 表示全部擁有，20 表示 20%。商品權益不是分潤比例。",
+    isCreator: "這個人是創作者填文字 TRUE；廠商或其他對象填文字 FALSE。",
+    trackingMode:
+      "一般商品選「批次」；只有需要逐件辨識的親簽、限量編號商品才選「單件」。",
+    name: `填${spec.name.slice(3)}的名稱，讓自己看得懂，不用編正式 ID。`,
+  };
+  let text = common[column.key];
+  if (!text && column.type === "reference") {
+    const target = contract.sheets.find((s) => s.entity === column.target);
+    text = `先在「${target?.name ?? "系統紀錄"}」建立資料，再填 new:該列新增代號。已有系統編號則填 code:編號；不能填列號。`;
+  }
+  const typeHelp = {
+    text: "填一般文字；備註可不填，代號與名稱請保持一致。",
+    money: "填整數金額，例如 600；不要加 NT$、元、逗號或公式。",
+    signedMoney: "填整數金額：應取得為正，應繳回為負；不要加單位或公式。",
+    unitMoney: "填每件金額或權重，最多四位小數，例如 20 或 46.7836，不加單位。",
+    quantity: "填整數件數，例如 30；不要加「個」。空白表示未提供，不等於 0。",
+    positiveInteger: "填大於零的整數。",
+    percent: "填 0 至 100 的數值；20 表示 20%，不要填成 0.2 或輸入百分比格式。",
+    date: "以純文字填 YYYY-MM-DD，例如 2027-01-10；不填試算表日期序號。",
+    datetime: "以純文字填日期時間與時區，例如 2027-01-10T10:00:00+08:00。",
+    booleanText: "填文字 TRUE 或 FALSE，不填 1、0 或公式。",
+    enum: "從下拉選單選一項，不用自行編寫英文代碼。",
+  };
+  text ??= typeHelp[column.type] ?? "依說明填入純值，不要輸入公式。";
+  const sample = fixture.newRows[spec.entity]?.find(
+    (r) => r[column.key] !== undefined,
+  )?.[column.key];
+  return `${column.required ? "必填" : "選填／條件必填"}｜${column.label}\n${text}${sample !== undefined ? `\n範例：${sample}` : ""}${column.options ? `\n可選：${contract.options[column.options].join("、")}` : ""}`;
+}
+
+function guideRows() {
+  const rows = [
+    [
+      "先別急著填 66 張表",
+      "只要先看下面的「星狐徽章」主線。先建商品，費用、販售、盤點等資料等需要時再填；灰色系統欄一律先留白。",
+    ],
+    [
+      "新版從左邊開始填",
+      "每張資料表左側依序是「新增代號」「操作」及商品資料；正式 ID、修訂號、時間已移到最右側。第 1 列仍是欄名，第 2 列開始填。",
+    ],
+    [
+      "怎麼看下面的例子",
+      "主線範例在同名工作表第 2 列，也可用「新增代號」找對應列。空白模板每筆資料填一列；同一張表新增下一筆時填下一空白列，不要覆蓋原列。不用把說明文字貼進資料區。",
+    ],
+  ];
+  for (const [index, step] of guide.starterSteps.entries()) {
+    const spec = contract.sheets.find((s) => s.name === step.sheet);
+    const columns = displayColumns(spec);
+    const entries = step.fields.map((field) => {
+      const letter = columnLetter(
+        columns.findIndex((c) => c.key === field.key) + 1,
+      );
+      return `${letter}2「${field.label}」：${field.value}`;
+    });
+    rows.push([
+      `先填 ${index + 1}｜${step.sheet}\n${step.title}`,
+      `${step.explanation}\n照填第 2 列：\n${entries.join("\n")}\n其餘選填可先留白，最右側灰色系統欄不要填。`,
+    ]);
+  }
+  rows.push([
+    "一個徽章已經連起來了",
+    "星狐（創作者）→星夜（企劃）→徽章（種類）→58mm（規格）→星狐徽章系列→星狐徽章（實際款式）。商品權益表記錄它屬於星狐。這些不是已入庫或已售出紀錄。",
+  ]);
+  rows.push([
+    "接著才填：柄圖與製作",
+    "有圖稿再填 13、14、17；要記製作數量再填 19、20。下方各列用同一個星狐徽章接續示範。其他進階工作表先不必填。",
+  ]);
+  for (const step of guide.optionalSteps) {
+    rows.push([
+      `選填｜${step.sheet}\n${step.title}`,
+      `${step.explanation}\n${step.fields.map((f) => `「${f.label}」：${f.value}`).join("\n")}`,
+    ]);
+  }
+  return rows;
+}
+
+function columnLetter(number) {
+  let result = "";
+  while (number) {
+    number--;
+    result = String.fromCharCode(65 + (number % 26)) + result;
+    number = Math.floor(number / 26);
+  }
+  return result;
+}
 const fills = {
   system: "FFE7E9E7",
   required: "FFEAF3FC",
@@ -131,6 +258,7 @@ export async function generateTemplate(kind) {
   workbook.created = new Date("2026-11-02T00:00:00Z");
   workbook.modified = workbook.created;
   workbook.calcProperties.fullCalcOnLoad = false;
+  workbook.views = [{ activeTab: 0, firstSheet: 0, visibility: "visible" }];
   const optionRanges = {};
   const dictionary = [];
   for (const [key, labels] of Object.entries(contract.options)) {
@@ -144,24 +272,57 @@ export async function generateTemplate(kind) {
     );
   }
   for (const spec of contract.sheets) {
+    const columns = displayColumns(spec);
     const sheet = workbook.addWorksheet(spec.name, {
       state: "visible",
-      views: [{ state: "frozen", ySplit: 1, xSplit: spec.entity ? 2 : 0 }],
+      views: [
+        {
+          state: "frozen",
+          ySplit: 1,
+          xSplit: spec.entity ? 2 : 0,
+          showGridLines: true,
+          zoomScale: 100,
+        },
+      ],
+      properties: {
+        defaultRowHeight: 30,
+        tabColor: {
+          argb: guide.starterSteps.some((s) => s.sheet === spec.name)
+            ? "FF518269"
+            : !spec.entity
+              ? "FF9AA19C"
+              : "FFD5B569",
+        },
+      },
+      pageSetup: {
+        paperSize: 9,
+        orientation: "landscape",
+        fitToPage: true,
+        fitToWidth: 1,
+        fitToHeight: 0,
+        showGridLines: true,
+      },
     });
-    sheet.columns = spec.columns.map((c) => ({
+    sheet.columns = columns.map((c) => ({
       header: c.label,
       key: c.key,
       width:
         c.key === "description"
-          ? 95
+          ? 100
           : c.type === "uuid"
             ? 40
             : c.type === "datetime"
               ? 30
               : c.type === "typedJson"
                 ? 60
-                : 23,
+                : c.key === "operation"
+                  ? 14
+                  : c.type === "date"
+                    ? 18
+                    : 26,
       style: {
+        font,
+        border,
         numFmt: numeric.has(c.type)
           ? c.type === "unitMoney" || c.type === "percent"
             ? "0.0000"
@@ -171,50 +332,48 @@ export async function generateTemplate(kind) {
           type: "pattern",
           pattern: "solid",
           fgColor: {
-            argb: !c.editable
-              ? fills.system
-              : c.required
-                ? fills.required
-                : fills.optional,
+            argb:
+              spec.kind === "instructions"
+                ? "FFFFFFFF"
+                : !c.editable
+                  ? fills.system
+                  : c.required
+                    ? fills.required
+                    : fills.optional,
           },
         },
         alignment: { vertical: "top", wrapText: true },
       },
     }));
     const header = sheet.getRow(1);
-    header.height = 32;
+    header.height = 36;
     header.eachCell((cell, index) => {
-      const c = spec.columns[index - 1];
+      const c = columns[index - 1];
       cell.fill = {
         type: "pattern",
         pattern: "solid",
         fgColor: { argb: "FF275C50" },
       };
-      cell.font = { color: { argb: "FFFFFFFF" }, bold: true, size: 11 };
-      cell.note = `${!c.editable ? "系統管理，不可自行修改" : c.required ? "必填" : "選填／可能條件必填"}\n型別：${c.type}${c.target ? `\n參照：${c.target}；填new:代號或code:編號` : ""}${c.options ? `\n選項：${contract.options[c.options].join("、")}` : ""}`;
+      cell.font = { ...font, color: { argb: "FFFFFFFF" }, bold: true };
+      cell.note = { texts: [{ font, text: columnHelp(spec, c) }] };
     });
     if (spec.kind === "instructions") {
-      for (const item of instructions) sheet.addRow(item);
+      sheet.addRow(instructions[0]);
+      for (const item of guideRows()) sheet.addRow(item);
+      for (const item of instructions.slice(1)) sheet.addRow(item);
       sheet.addRow([
         "工作表索引",
         "以下列出每張表用途；新手先從參與方、企劃及商品開始。",
       ]);
       for (const s of contract.sheets.slice(1))
-        sheet.addRow([
-          s.name,
-          s.kind === "system" || s.kind === "computed"
-            ? "系統管理／計算結果，不需填寫。"
-            : s.kind === "deferred"
-              ? "後續功能預留，現階段不填寫。"
-              : `資料類型：${s.entity ?? s.kind}；欄位用途請查看該表表頭註解。`,
-        ]);
+        sheet.addRow([s.name, guide.sheetPurposes[s.name]]);
     } else if (spec.name === "01_格式資訊") {
       sheet.addRow({
         formatName: contract.formatName,
         formatVersion: contract.formatVersion,
         fileKind: kind === "example" ? "虛構範例" : "空白模板",
         documentId: randomUUID(),
-        appVersion: "0.1.0",
+        appVersion: appPackage.version,
       });
     } else if (spec.name === "99_選項字典") {
       dictionary.forEach((r) => sheet.addRow(r));
@@ -235,24 +394,86 @@ export async function generateTemplate(kind) {
     if (spec.kind !== "instructions")
       sheet.autoFilter = {
         from: { row: 1, column: 1 },
-        to: { row: 1, column: spec.columns.length },
+        to: { row: 1, column: columns.length },
       };
     // Apply input guidance to the first 100 entry rows, not an Excel security boundary.
     if (spec.entity)
-      spec.columns.forEach((column, index) => {
+      columns.forEach((column, index) => {
         if (!column.editable) return;
         for (let r = 2; r <= 101; r++) {
-          if (column.options)
-            sheet.getCell(r, index + 1).dataValidation = {
-              type: "list",
-              allowBlank: true,
-              formulae: [optionRanges[column.options]],
-              showErrorMessage: true,
-              errorTitle: "請使用指定選項",
-              error: "請從下拉選單選取，完整驗證由ConMate執行。",
-            };
+          sheet.getCell(r, index + 1).dataValidation = {
+            type: column.options ? "list" : "any",
+            allowBlank: true,
+            ...(column.options
+              ? { formulae: [optionRanges[column.options]] }
+              : {}),
+            showInputMessage: true,
+            promptTitle: `${column.required ? "必填" : "選填"}：${column.label}`,
+            prompt: columnHelp(spec, column).slice(0, 250),
+            showErrorMessage: true,
+            errorTitle: "請使用指定選項",
+            error: "請從下拉選單選取，完整驗證由ConMate執行。",
+          };
         }
       });
+    // Fills hide native Excel gridlines: draw real borders, including blank entry cells.
+    const lastRow = spec.entity
+      ? Math.max(101, sheet.rowCount)
+      : sheet.rowCount;
+    for (let r = 2; r <= lastRow; r++) {
+      const row = sheet.getRow(r);
+      row.height = 30;
+      for (let c = 1; c <= columns.length; c++) {
+        const cell = row.getCell(c);
+        cell.font = font;
+        cell.border = border;
+      }
+      if (spec.kind === "instructions") {
+        const text = row.getCell(2).text;
+        const lines = text
+          .split("\n")
+          .reduce(
+            (sum, line) =>
+              sum +
+              Math.max(
+                1,
+                Math.ceil(
+                  [...line].reduce(
+                    (n, ch) => n + (ch.charCodeAt(0) > 255 ? 2 : 1),
+                    0,
+                  ) / 90,
+                ),
+              ),
+            0,
+          );
+        row.height = Math.max(36, lines * 19 + 12);
+      } else {
+        // Long names and notes must not be clipped by the default input-row height.
+        let lines = 1;
+        for (let c = 1; c <= columns.length; c++) {
+          const width = Math.max(10, sheet.getColumn(c).width - 2);
+          const count = row
+            .getCell(c)
+            .text.split("\n")
+            .reduce(
+              (sum, line) =>
+                sum +
+                Math.max(
+                  1,
+                  Math.ceil(
+                    [...line].reduce(
+                      (n, ch) => n + (ch.charCodeAt(0) > 255 ? 2 : 1),
+                      0,
+                    ) / width,
+                  ),
+                ),
+              0,
+            );
+          lines = Math.max(lines, count);
+        }
+        row.height = Math.min(409, Math.max(30, lines * 19 + 10));
+      }
+    }
   }
   return workbook;
 }

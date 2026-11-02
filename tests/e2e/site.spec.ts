@@ -36,6 +36,30 @@ test("templates download with the Pages subpath", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Excel 資料中心", exact: true }),
   ).toBeVisible();
+  await page
+    .getByRole("button", { name: "不確定怎麼填？先看逐欄範例 ↓" })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "一步一步，先建立一個星狐徽章" }),
+  ).toBeVisible();
+  const creatorStep = page
+    .locator("details.fill-step")
+    .filter({ has: page.locator("summary", { hasText: "建立創作者" }) });
+  await creatorStep.locator("summary").click();
+  await expect(
+    creatorStep.getByRole("cell", { name: "星狐", exact: true }),
+  ).toHaveCount(2);
+  await expect(
+    creatorStep.getByRole("cell", { name: "星狐", exact: true }).first(),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() => getComputedStyle(document.body).fontFamily),
+  ).toContain("Microsoft JhengHei");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth,
+    ),
+  ).toBe(false);
   for (const [name, file] of [
     ["下載空白模板", "conmate-blank-v1.xlsx"],
     ["下載虛構範例模板", "conmate-example-v1.xlsx"],

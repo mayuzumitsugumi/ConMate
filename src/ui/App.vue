@@ -10,6 +10,7 @@ import {
   updateServiceWorker,
 } from "../infrastructure/pwa/status";
 import AppIcon from "./components/AppIcon.vue";
+import { version } from "../../package.json";
 const store = useWorkspaceStore();
 const base = import.meta.env.BASE_URL;
 onMounted(() => {
@@ -48,7 +49,7 @@ onMounted(() => {
         <p>不需要帳號，不上傳雲端。<br />記得定期保留外部備份。</p>
       </div>
       <div class="sidebar-version">
-        <span class="status-dot"></span> v0.1 · 起步版本
+        <span class="status-dot"></span> v{{ version }} · 起步版本
       </div>
     </aside>
     <div class="main-shell">

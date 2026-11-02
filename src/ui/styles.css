@@ -1,11 +1,12 @@
 :root {
   font-family:
-    Inter,
+    "Microsoft JhengHei",
+    "微軟正黑體",
+    "PingFang TC",
     "Noto Sans TC",
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
-    "Microsoft JhengHei",
     sans-serif;
   color: #253b34;
   background: #f6f7f3;
@@ -13,7 +14,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   font-weight: 400;
-  font-size: 14px;
+  font-size: 16px;
   --green: #275c50;
   --text: #253b34;
   --muted: #77827b;
@@ -1343,4 +1344,233 @@ code {
   .step-card:hover {
     border-color: #cad7bf;
   }
+}
+
+/* Readable Traditional Chinese: prefer locally installed fonts, no font CDN. */
+.nav-link,
+.button {
+  font-size: 14px;
+}
+.page-heading p,
+.welcome-copy p,
+.template-body p,
+.info-banner p,
+.guide-grid p,
+.fill-guide-intro,
+.fill-step-body p {
+  font-size: 15px;
+  line-height: 1.9;
+  color: #536455;
+}
+.section-title p,
+.template-body ul,
+.step-card p,
+.backup-note p,
+.upcoming-note,
+.workspace-card span,
+.sheet-index p {
+  font-size: 13px;
+  line-height: 1.9;
+  color: #58674f;
+}
+.stat-label,
+.connection,
+.release-label,
+.soft-label,
+.hero-footnote,
+.step-link,
+.stat-note,
+.site-footer {
+  font-size: 12px;
+  color: #5d6b54;
+}
+.step-card h3,
+.guide-grid h3,
+.backup-note strong {
+  font-size: 15px;
+}
+.template-guide-link {
+  font-size: 15px;
+  color: #275c50;
+  padding-left: 0;
+  text-align: left;
+}
+.fill-guide {
+  scroll-margin-top: 30px;
+}
+.color-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+  margin-bottom: 18px;
+  font-size: 14px;
+}
+.color-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.color-key i {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #a4b09e;
+  border-radius: 3px;
+}
+.color-key .blue {
+  background: #eaf3fc;
+}
+.color-key .yellow {
+  background: #fff5d9;
+}
+.color-key .gray {
+  background: #e7e9e7;
+}
+.fill-guide-intro {
+  margin-bottom: 18px;
+}
+.fill-step {
+  background: white;
+  border: 1px solid #c5cfc0;
+  border-radius: 9px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.fill-step summary {
+  min-height: 74px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.fill-step-number {
+  font-size: 21px;
+  color: #53734e;
+  font-weight: 500;
+}
+.fill-step small {
+  display: block;
+  color: #596a50;
+  font-size: 13px;
+  font-weight: 400;
+  margin-top: 5px;
+}
+.fill-step-toggle {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 400;
+  color: #5f7056;
+  white-space: nowrap;
+}
+.fill-step[open] summary {
+  background: #eef3e8;
+  border-bottom: 1px solid #c5cfc0;
+}
+.fill-step-body {
+  padding: 18px 20px;
+}
+.fill-step table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 14px 0;
+  font-size: 14px;
+}
+.fill-step th,
+.fill-step td {
+  padding: 12px;
+  border: 1px solid #aebda7;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.fill-step thead {
+  background: #e8efe1;
+}
+.fill-step tbody th {
+  font-weight: 500;
+  background: #f6f8f2;
+  width: 40%;
+}
+.fill-step code,
+.fill-guide code,
+.guide-grid code {
+  font-family: inherit;
+  font-size: 14px;
+}
+.fill-step-body .fill-step-footnote {
+  font-size: 13px;
+  color: #596a51;
+}
+.guide-followup {
+  margin-top: 20px;
+}
+.sheet-index {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+.sheet-index strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+.sheet-index p {
+  margin-top: 6px;
+}
+@media (max-width: 800px) {
+  .nav-link {
+    font-size: 13px;
+  }
+  .fill-guide {
+    scroll-margin-top: 120px;
+  }
+}
+@media (max-width: 520px) {
+  .welcome-copy p,
+  .page-heading p {
+    font-size: 13px;
+  }
+  .hero-actions .button,
+  .step-card p,
+  .backup-note p {
+    font-size: 13px;
+  }
+  .stat-label,
+  .connection {
+    font-size: 11px;
+  }
+  .stat-card strong small {
+    font-size: 12px;
+  }
+  .backup-note strong,
+  .step-card h3 {
+    font-size: 14px;
+  }
+  .sheet-index {
+    grid-template-columns: 1fr;
+  }
+  .fill-step summary {
+    padding: 14px;
+    gap: 11px;
+    font-size: 15px;
+  }
+  .fill-step-body {
+    padding: 15px;
+  }
+  .fill-step-toggle {
+    font-size: 11px;
+  }
+  .color-key {
+    gap: 12px;
+    font-size: 13px;
+  }
+}
+.fill-step .when-open {
+  display: none;
+}
+.fill-step[open] .when-open {
+  display: inline;
+}
+.fill-step[open] .when-closed {
+  display: none;
 }
