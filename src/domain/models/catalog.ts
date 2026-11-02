@@ -65,7 +65,7 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 8;
+  schemaVersion: 9;
   workspaceId: string;
   workspace: Workspace;
   revision: number;
@@ -87,6 +87,7 @@ export interface CatalogSnapshot {
   onlineListings: OnlineListing[];
   sales: SaleRecord[];
   salePlans: SalePlan[];
+  stocktakes: StocktakeRecord[];
   costs: CostRecord[];
   advances: AdvanceRecord[];
 }
@@ -252,4 +253,31 @@ export interface AdvanceRecord extends NamedRecord, AdvanceInput {
   voidedAt: string;
   voidReason: string;
   repayments: RepaymentRecord[];
+}
+
+export interface StocktakeLine {
+  productId: string;
+  productName: string;
+  expected: number;
+  actual: number | null;
+  action: "pending" | "adjust";
+  reason: string;
+  adjustmentMovementId: string;
+}
+export interface StocktakeRecord extends NamedRecord {
+  locationId: string;
+  eventId: string;
+  notes: string;
+  createdAt: string;
+  completedAt: string;
+  cutoffMovementCount: number;
+  staleAtCompletion: boolean;
+  completionMovementCount: number | null;
+  lines: StocktakeLine[];
+}
+export interface StocktakeCountInput {
+  productId: string;
+  actual: number | null;
+  action: "pending" | "adjust";
+  reason: string;
 }

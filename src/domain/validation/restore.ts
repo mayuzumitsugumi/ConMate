@@ -65,6 +65,7 @@ const keys = [
   "onlineListings",
   "sales",
   "salePlans",
+  "stocktakes",
   "costs",
   "advances",
 ] as const;
@@ -87,11 +88,15 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     customized.schemaVersion === 6
       ? { ...customized, schemaVersion: 7, sales: [], costs: [], advances: [] }
       : customized;
-  const s =
+  const planned =
     business.schemaVersion === 7
       ? { ...business, schemaVersion: 8, salePlans: [] }
       : business;
-  if (s.schemaVersion !== 8) fail("目前僅支援網站資料版本 3 至 8。");
+  const s =
+    planned.schemaVersion === 8
+      ? { ...planned, schemaVersion: 9, stocktakes: [] }
+      : planned;
+  if (s.schemaVersion !== 9) fail("目前僅支援網站資料版本 3 至 9。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -332,6 +337,116 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
       reversalBySource.set(m.reversesId, m);
     }
   }
+  const stocktakeMovements = new Set<string>();
+  const byCutoff = new Map<number, any[]>();
+  let stocktakeLines = 0;
+  for (const take of s.stocktakes) {
+    ref("locations", take.locationId);
+    ref("events", take.eventId, true);
+    str(take.name, "盤點名稱", 80, true);
+    str(take.notes, "盤點備註");
+    time(take.createdAt);
+    str(take.completedAt, "完成時間", 40);
+    bool(take.staleAtCompletion);
+    integer(take.cutoffMovementCount);
+    if (take.cutoffMovementCount > s.movements.length)
+      fail("盤點截止異動數超出範圍。");
+    if (
+      !Array.isArray(take.lines) ||
+      (stocktakeLines += take.lines.length) > 100000
+    )
+      fail("盤點明細過多或格式不正確。");
+    const ids = new Set();
+    const completed = !!take.completedAt;
+    if (completed) {
+      time(take.completedAt);
+      integer(take.completionMovementCount);
+      if (
+        take.completionMovementCount < take.cutoffMovementCount ||
+        take.completionMovementCount > s.movements.length ||
+        Date.parse(take.completedAt) < Date.parse(take.createdAt)
+      )
+        fail("盤點完成資料不正確。");
+    } else if (take.completionMovementCount !== null || take.staleAtCompletion)
+      fail("未完成盤點不可有完成資料。");
+    const prior = byCutoff.get(take.cutoffMovementCount) || [];
+    prior.push(take);
+    byCutoff.set(take.cutoffMovementCount, prior);
+    const stale =
+      completed &&
+      s.movements
+        .slice(take.cutoffMovementCount, take.completionMovementCount)
+        .some(
+          (m: any) =>
+            m.fromLocationId === take.locationId ||
+            m.toLocationId === take.locationId,
+        );
+    if (completed && stale !== take.staleAtCompletion)
+      fail("盤點過期狀態不一致。");
+    for (const line of take.lines) {
+      ref("products", line.productId);
+      if (ids.has(line.productId)) fail("盤點商品重複。");
+      ids.add(line.productId);
+      str(line.productName, "盤點商品名稱", 80, true);
+      integer(line.expected);
+      if (line.actual !== null) integer(line.actual);
+      if (!["pending", "adjust"].includes(line.action))
+        fail("盤點差異處理方式不正確。");
+      str(line.reason, "盤點差異原因");
+      str(line.adjustmentMovementId, "盤點調整來源", 100);
+      if (
+        line.action === "adjust" &&
+        (line.actual === null ||
+          (line.actual !== line.expected && !line.reason.trim()))
+      )
+        fail("盤點調整缺少實點或原因。");
+      const delta = line.actual === null ? 0 : line.actual - line.expected;
+      if (completed && line.action === "adjust" && delta) {
+        if (stale) fail("過期盤點不能套用庫存差異。");
+        ref("movements", line.adjustmentMovementId);
+        const movement = maps.movements!.get(line.adjustmentMovementId);
+        const index = s.movements.findIndex((m: any) => m.id === movement.id);
+        if (
+          stocktakeMovements.has(movement.id) ||
+          index < take.completionMovementCount ||
+          movement.productId !== line.productId ||
+          movement.quantity !== Math.abs(delta) ||
+          movement.kind !== (delta > 0 ? "adjust-in" : "adjust-out") ||
+          movement.fromLocationId !== (delta < 0 ? take.locationId : "") ||
+          movement.toLocationId !== (delta > 0 ? take.locationId : "") ||
+          movement.saleId ||
+          movement.movementTypeId ||
+          !movement.reason.startsWith(take.code + " 盤點差異：")
+        )
+          fail("盤點差異與庫存異動不一致。");
+        stocktakeMovements.add(movement.id);
+      } else if (line.adjustmentMovementId) fail("盤點不應包含調整異動。");
+    }
+  }
+  // Rebuild each cutoff once, preserving historical expected quantities after later transactions.
+  const takeBalances = new Map<string, number>();
+  for (let i = 0; i <= s.movements.length; i++) {
+    for (const take of byCutoff.get(i) || [])
+      for (const line of take.lines) {
+        if (
+          (takeBalances.get(
+            JSON.stringify([line.productId, take.locationId]),
+          ) || 0) !== line.expected
+        )
+          fail("盤點帳面快照與截止庫存不一致。");
+      }
+    const m = s.movements[i];
+    if (!m) break;
+    for (const [location, sign] of [
+      [m.fromLocationId, -1],
+      [m.toLocationId, 1],
+    ] as const) {
+      if (!location) continue;
+      const key = JSON.stringify([m.productId, location]);
+      takeBalances.set(key, (takeBalances.get(key) || 0) + sign * m.quantity);
+    }
+  }
+
   const onlineTotals = new Map<string, number>();
   for (const listing of s.onlineListings) {
     ref("products", listing.productId);

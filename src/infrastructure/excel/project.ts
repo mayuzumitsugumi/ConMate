@@ -3,7 +3,7 @@ import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.6.0";
+export const PROJECT_VERSION = "2.7.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -480,6 +480,58 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
       ]);
     ws.getColumn(3).numFmt = "0";
     ws.getColumn(6).numFmt = "0";
+  }
+  if (snapshot.stocktakes.length) {
+    const ws = sheet("15_盤點單", [
+      "盤點編號",
+      "名稱",
+      "庫位",
+      "場次",
+      "開始時間",
+      "完成時間",
+      "開始異動數",
+      "完成前異動數",
+      "完成時已過期",
+      "備註",
+    ]);
+    const lines = sheet("16_盤點明細", [
+      "盤點編號",
+      "商品名稱",
+      "帳面數量",
+      "實點數量",
+      "差額",
+      "處理方式",
+      "差異原因",
+      "調整異動編號",
+    ]);
+    for (const t of snapshot.stocktakes) {
+      ws.addRow([
+        t.code,
+        t.name,
+        label(snapshot.locations, t.locationId),
+        label(snapshot.events, t.eventId),
+        t.createdAt,
+        t.completedAt,
+        t.cutoffMovementCount,
+        t.completionMovementCount,
+        t.staleAtCompletion ? "TRUE" : "FALSE",
+        t.notes,
+      ]);
+      for (const l of t.lines)
+        lines.addRow([
+          t.code,
+          l.productName,
+          l.expected,
+          l.actual,
+          l.actual === null ? null : l.actual - l.expected,
+          l.action === "adjust" ? "明確套用差異" : "保留待查",
+          l.reason,
+          snapshot.movements.find((m) => m.id === l.adjustmentMovementId)
+            ?.code || "",
+        ]);
+    }
+    for (const c of [7, 8]) ws.getColumn(c).numFmt = "0";
+    for (const c of [3, 4, 5]) lines.getColumn(c).numFmt = "0";
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);
   raw.state = "hidden";

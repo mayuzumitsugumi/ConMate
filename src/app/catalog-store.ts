@@ -1,3 +1,9 @@
+import {
+  beginStocktake,
+  saveStocktakeCounts,
+  finishStocktake,
+} from "../domain/inventory/stocktake";
+import type { StocktakeCountInput } from "../domain/models/catalog";
 import { putSalePlan, toggleSalePlanArchive } from "../domain/sales/plans";
 import type { SalePlanInput } from "../domain/models/catalog";
 import { completeSale, cancelSale } from "../domain/sales/operations";
@@ -187,7 +193,32 @@ export const useCatalogStore = defineStore("catalog", () => {
     mutate((s) => {
       toggleSalePlanArchive(s, id);
     });
+  const startStocktake = (input: {
+    name: string;
+    locationId: string;
+    eventId: string;
+    notes: string;
+  }) =>
+    mutate((s) => {
+      beginStocktake(
+        s,
+        input.locationId,
+        input.eventId,
+        input.name,
+        input.notes,
+      );
+    });
+  const updateStocktake = (id: string, inputs: StocktakeCountInput[]) =>
+    mutate((s) => saveStocktakeCounts(s, id, inputs));
+  const closeStocktake = (id: string, inputs: StocktakeCountInput[]) =>
+    mutate((s) => {
+      saveStocktakeCounts(s, id, inputs);
+      finishStocktake(s, id);
+    });
   return {
+    startStocktake,
+    updateStocktake,
+    closeStocktake,
     saveSalePlan,
     archiveSalePlan,
     finishSale,

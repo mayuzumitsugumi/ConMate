@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
+import StocktakePanel from "../components/StocktakePanel.vue";
 import MovementTypesPanel from "../components/MovementTypesPanel.vue";
 import OnlineStockPanel from "../components/OnlineStockPanel.vue";
 import { useWorkspaceStore } from "../../app/workspace-store";
@@ -160,7 +161,7 @@ const when = (time: string) =>
     <div>
       <strong>目前提供基本庫存異動。</strong>
       <p>
-        先建立商品與庫位，再登記數量。盤差可手動調整並註記原因；攤位販售頁成交時會同步扣庫；正式盤點單、製作批次與預留庫存尚未開放。要記錄營收請到攤位販售頁；自行命名的減少類型不會產生營收。
+        先建立商品與庫位，再登記數量。盤差可手動調整並註記原因；攤位販售頁成交時會同步扣庫；可建立盤點單保存實點及待查差異；製作批次與預留庫存尚未開放。要記錄營收請到攤位販售頁；自行命名的減少類型不會產生營收。
       </p>
     </div>
   </section>
@@ -194,6 +195,7 @@ const when = (time: string) =>
       </button>
     </p>
     <template v-if="catalog.snapshot">
+      <StocktakePanel />
       <OnlineStockPanel />
       <section class="inventory-panel section-block">
         <h2>新增庫位</h2>
