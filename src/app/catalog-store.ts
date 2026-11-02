@@ -1,4 +1,23 @@
 import {
+  recordSettlementCash as putSettlementCash,
+  reverseSettlementCash as undoSettlementCash,
+  reopenSettlement as reopenSettlementGroup,
+  createSettlement as createSettlementGroup,
+  closeSettlement as closeSettlementGroup,
+  recordSettlementTrial as putSettlementTrial,
+  decideSettlement as putSettlementDecision,
+  paySettlement as putSettlementPayment,
+  reverseSettlementPayment as undoSettlementPayment,
+  setSettlementHoldings as declareSettlementHoldings,
+} from "../domain/finance/settlements";
+import type {
+  SettlementCashInput,
+  SettlementTrialInput,
+  SettlementDecisionInput,
+  SettlementPaymentInput,
+  SettlementHolding,
+} from "../domain/models/catalog";
+import {
   putArtworkExpense,
   applyArtworkAllocation,
   reverseArtworkAllocation,
@@ -259,7 +278,65 @@ export const useCatalogStore = defineStore("catalog", () => {
     });
   const undoExpensePayment = (id: string, reason: string) =>
     mutate((s) => reverseExpensePayment(s, id, reason));
+  const recordSettlementCash = (id: string, input: SettlementCashInput) =>
+    mutate((s) => {
+      putSettlementCash(s, id, input);
+    });
+  const reverseSettlementCash = (
+    id: string,
+    adjustmentId: string,
+    reason: string,
+  ) =>
+    mutate((s) => {
+      undoSettlementCash(s, id, adjustmentId, reason);
+    });
+  const reopenSettlement = (id: string, reason: string) =>
+    mutate((s) => {
+      reopenSettlementGroup(s, id, reason);
+    });
+  const createSettlement = (name: string, notes: string) =>
+    mutate((s) => {
+      createSettlementGroup(s, name, notes);
+    });
+  const closeSettlement = (id: string, reason: string) =>
+    mutate((s) => {
+      closeSettlementGroup(s, id, reason);
+    });
+  const recordSettlementTrial = (id: string, input: SettlementTrialInput) =>
+    mutate((s) => {
+      putSettlementTrial(s, id, input);
+    });
+  const decideSettlement = (id: string, input: SettlementDecisionInput) =>
+    mutate((s) => {
+      putSettlementDecision(s, id, input);
+    });
+  const paySettlement = (id: string, input: SettlementPaymentInput) =>
+    mutate((s) => {
+      putSettlementPayment(s, id, input);
+    });
+  const reverseSettlementPayment = (
+    id: string,
+    paymentId: string,
+    reason: string,
+  ) =>
+    mutate((s) => {
+      undoSettlementPayment(s, id, paymentId, reason);
+    });
+  const setSettlementHoldings = (id: string, input: SettlementHolding[]) =>
+    mutate((s) => {
+      declareSettlementHoldings(s, id, input);
+    });
   return {
+    recordSettlementCash,
+    reverseSettlementCash,
+    reopenSettlement,
+    createSettlement,
+    closeSettlement,
+    recordSettlementTrial,
+    decideSettlement,
+    paySettlement,
+    reverseSettlementPayment,
+    setSettlementHoldings,
     createArtworkExpense,
     allocateArtwork,
     undoArtworkAllocation,

@@ -3,7 +3,7 @@ import type { CatalogSnapshot } from "../../domain/models/catalog";
 import type { Workspace } from "../../domain/models/workspace";
 export function emptyCatalog(workspace: Workspace): CatalogSnapshot {
   return {
-    schemaVersion: 11,
+    schemaVersion: 12,
     workspaceId: workspace.id,
     workspace,
     revision: 0,
@@ -29,6 +29,7 @@ export function emptyCatalog(workspace: Workspace): CatalogSnapshot {
     refunds: [],
     costs: [],
     advances: [],
+    settlements: [],
     artworkExpenses: [],
     expensePayments: [],
   };
@@ -38,7 +39,7 @@ export const catalogRepository = {
     const workspace = await database.workspaces.get(workspaceId);
     if (!workspace) throw new Error("請先選擇一個本機工作區。");
     const existing = await database.catalogs.get(workspaceId);
-    if (existing && existing.schemaVersion !== 11)
+    if (existing && existing.schemaVersion !== 12)
       throw new Error("資料版本較新或不支援，請更新網站；原始資料未刪除。 ");
     return existing ? { ...existing, workspace } : emptyCatalog(workspace);
   },

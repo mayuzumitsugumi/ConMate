@@ -234,7 +234,7 @@ it("previews and restores old schema10 recovery snapshots after the finance upgr
   });
   const row = await database.recoverySnapshots.get("old-recovery");
   const preview = await previewWorkspaceRestore(row!.snapshot);
-  expect(preview.incoming.schemaVersion).toBe(11);
+  expect(preview.incoming.schemaVersion).toBe(12);
   expect(preview.incoming.artworkExpenses).toEqual([]);
   expect(preview.differences.some((d) => d.key === "expensePayments")).toBe(
     true,

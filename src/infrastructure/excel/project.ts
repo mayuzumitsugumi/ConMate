@@ -3,7 +3,7 @@ import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.9.0";
+export const PROJECT_VERSION = "2.10.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -683,6 +683,194 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
         p.notes,
       ]);
     ws.getColumn(7).numFmt = "0";
+  }
+  if (snapshot.settlements.length) {
+    const groups = sheet("22_分配工作單", [
+      "工作單編號",
+      "名稱",
+      "建立時間",
+      "結束時間",
+      "結束說明",
+      "備註",
+    ]);
+    const trials = sheet("23_分潤試算", [
+      "工作單",
+      "試算ID",
+      "時間",
+      "狀態",
+      "明細營收",
+      "精確成本分子",
+      "精確成本分母",
+      "可分配精確分子",
+      "可分配精確分母",
+      "整元可分配額",
+      "抽成基礎",
+      "比例百分比",
+      "固定費",
+      "固定費順序",
+      "負基礎政策",
+      "未計算項",
+      "提醒",
+    ]);
+    const shares = sheet("24_試算分配", [
+      "工作單",
+      "試算ID",
+      "參與方",
+      "整元試算分配",
+    ]);
+    const decisions = sheet("25_人工分配", [
+      "工作單",
+      "決定ID",
+      "時間",
+      "試算來源",
+      "參與方",
+      "累計目標分配",
+      "總額",
+      "與試算差額",
+      "決定原因",
+    ]);
+    const payments = sheet("26_實際分款", [
+      "工作單",
+      "付款ID",
+      "時間",
+      "實際付款人",
+      "實際收款人",
+      "實付金額",
+      "沖銷來源",
+      "備註",
+    ]);
+    const holdings = sheet("27_期初持款", [
+      "工作單",
+      "登記時間",
+      "參與方",
+      "明確登記持款",
+    ]);
+    const statuses = sheet("28_工作單狀態", [
+      "工作單",
+      "狀態ID",
+      "時間",
+      "動作",
+      "原因",
+    ]);
+    const cash = sheet("29_外部持款變動", [
+      "工作單",
+      "變動ID",
+      "時間",
+      "參與方",
+      "實際增減持款",
+      "原因",
+      "沖銷來源",
+    ]);
+    for (const g of snapshot.settlements) {
+      groups.addRow([
+        g.code,
+        g.name,
+        g.createdAt,
+        g.closedAt,
+        g.closeReason,
+        g.notes,
+      ]);
+      for (const t of g.trials) {
+        const r = t.result;
+        trials.addRow([
+          g.code,
+          t.id,
+          t.createdAt,
+          r.status === "complete" ? "試算完整" : "尚有未計算項",
+          r.revenue,
+          r.exactCosts?.numerator || "",
+          r.exactCosts?.denominator || "",
+          r.exactAvailable?.numerator || "",
+          r.exactAvailable?.denominator || "",
+          r.roundedBase,
+          t.rules.base,
+          t.rules.ratePercent,
+          t.rules.fixedFee,
+          t.rules.fixedOrder,
+          t.rules.negativePolicy,
+          r.unknownItems.join("、"),
+          r.warnings.join("、"),
+        ]);
+        for (const a of r.allocations)
+          shares.addRow([
+            g.code,
+            t.id,
+            label(snapshot.parties, a.partyId),
+            a.amount,
+          ]);
+      }
+      for (const d of g.decisions) {
+        if (!d.allocations.length)
+          decisions.addRow([
+            g.code,
+            d.id,
+            d.createdAt,
+            d.trialId,
+            "",
+            0,
+            d.total,
+            d.variance,
+            d.reason,
+          ]);
+        for (const a of d.allocations)
+          decisions.addRow([
+            g.code,
+            d.id,
+            d.createdAt,
+            d.trialId,
+            label(snapshot.parties, a.partyId),
+            a.amount,
+            d.total,
+            d.variance,
+            d.reason,
+          ]);
+      }
+      for (const p of g.payments)
+        payments.addRow([
+          g.code,
+          p.id,
+          p.createdAt,
+          label(snapshot.parties, p.fromPartyId),
+          label(snapshot.parties, p.toPartyId),
+          p.amount,
+          p.reversesId,
+          p.notes,
+        ]);
+      for (const h of g.openingHoldings || [])
+        holdings.addRow([
+          g.code,
+          g.holdingsDeclaredAt,
+          label(snapshot.parties, h.partyId),
+          h.amount,
+        ]);
+      for (const a of g.cashAdjustments)
+        cash.addRow([
+          g.code,
+          a.id,
+          a.createdAt,
+          label(snapshot.parties, a.partyId),
+          a.amount,
+          a.reason,
+          a.reversesId,
+        ]);
+      for (const h of g.statusHistory)
+        statuses.addRow([
+          g.code,
+          h.id,
+          h.createdAt,
+          h.kind === "close" ? "結束" : "重新開啟",
+          h.reason,
+        ]);
+    }
+    for (const [ws, cols] of [
+      [trials, [5, 10, 13]],
+      [shares, [4]],
+      [decisions, [6, 7, 8]],
+      [payments, [6]],
+      [holdings, [4]],
+      [cash, [5]],
+    ] as const)
+      for (const c of cols) ws.getColumn(c).numFmt = "0";
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);
   raw.state = "hidden";

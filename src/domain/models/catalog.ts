@@ -65,7 +65,7 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 11;
+  schemaVersion: 12;
   workspaceId: string;
   workspace: Workspace;
   revision: number;
@@ -91,6 +91,7 @@ export interface CatalogSnapshot {
   refunds: RefundRecord[];
   costs: CostRecord[];
   advances: AdvanceRecord[];
+  settlements: SettlementGroup[];
   artworkExpenses: ArtworkExpenseRecord[];
   expensePayments: ExpensePaymentRecord[];
 }
@@ -387,4 +388,120 @@ export interface ExpensePaymentRecord extends NamedRecord, ExpensePaymentInput {
   createdAt: string;
   reversedAt: string;
   reverseReason: string;
+}
+
+export interface SettlementShare {
+  partyId: string;
+  percent: string;
+}
+export interface SettlementTrialInput {
+  saleLineIds: string[];
+  costIds: string[];
+  base: "revenue" | "revenue-minus-costs" | null;
+  ratePercent: string | null;
+  fixedFee: number | null;
+  fixedOrder: "before-rate" | "after-rate" | null;
+  negativePolicy: "zero-fee" | "signed" | "manual" | null;
+  feePartyId: string;
+  shares: SettlementShare[];
+  notes: string;
+}
+export interface SettlementSaleSource {
+  saleId: string;
+  saleLineId: string;
+  productId: string;
+  productName: string;
+  eventId: string;
+  planId: string;
+  collectorId: string;
+  gross: number;
+  refunded: number;
+  net: number;
+}
+export interface SettlementCostSource {
+  costId: string;
+  name: string;
+  exactAmount: ExactFraction | null;
+}
+export interface SettlementAllocation {
+  partyId: string;
+  amount: number;
+}
+export interface SettlementResult {
+  status: "complete" | "partial";
+  unknownItems: string[];
+  warnings: string[];
+  revenue: number;
+  exactCosts: ExactFraction | null;
+  exactBase: ExactFraction | null;
+  exactAvailable: ExactFraction | null;
+  exactFee: ExactFraction | null;
+  exactDistributable: ExactFraction | null;
+  roundedBase: number | null;
+  allocations: SettlementAllocation[];
+}
+export interface SettlementTrial {
+  id: string;
+  createdAt: string;
+  rules: SettlementTrialInput;
+  saleSources: SettlementSaleSource[];
+  costSources: SettlementCostSource[];
+  result: SettlementResult;
+}
+export interface SettlementDecisionInput {
+  trialId: string;
+  allocations: SettlementAllocation[];
+  reason: string;
+}
+export interface SettlementDecision extends SettlementDecisionInput {
+  id: string;
+  createdAt: string;
+  total: number;
+  variance: number | null;
+}
+export interface SettlementPaymentInput {
+  operationId: string;
+  fromPartyId: string;
+  toPartyId: string;
+  amount: number;
+  notes: string;
+}
+export interface SettlementPayment extends SettlementPaymentInput {
+  id: string;
+  createdAt: string;
+  reversesId: string;
+}
+export interface SettlementHolding {
+  partyId: string;
+  amount: number;
+}
+export interface SettlementStatusChange {
+  id: string;
+  kind: "close" | "reopen";
+  createdAt: string;
+  reason: string;
+}
+export interface SettlementCashInput {
+  operationId: string;
+  partyId: string;
+  amount: number;
+  reason: string;
+}
+export interface SettlementCashAdjustment extends SettlementCashInput {
+  id: string;
+  createdAt: string;
+  reversesId: string;
+}
+export interface SettlementGroup extends NamedRecord {
+  cashAdjustments: SettlementCashAdjustment[];
+  statusHistory: SettlementStatusChange[];
+  notes: string;
+  createdAt: string;
+  closedAt: string;
+  closeReason: string;
+  openingHoldings: SettlementHolding[] | null;
+  holdingsDeclaredAt: string;
+  trials: SettlementTrial[];
+  decisions: SettlementDecision[];
+  payments: SettlementPayment[];
 }

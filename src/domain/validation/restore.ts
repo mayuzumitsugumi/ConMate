@@ -1,3 +1,4 @@
+import { validateSettlements } from "./settlements";
 import { previewArtworkAllocation } from "../finance/artwork";
 import type { ArtworkExpenseRecord } from "../models/catalog";
 import { saleTotal } from "../sales/operations";
@@ -73,6 +74,7 @@ const keys = [
   "advances",
   "artworkExpenses",
   "expensePayments",
+  "settlements",
 ] as const;
 export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   // Older backups gain empty inventory; never invent physical stock.
@@ -105,7 +107,7 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     counted.schemaVersion === 9
       ? { ...counted, schemaVersion: 10, refunds: [] }
       : counted;
-  const s =
+  const financial =
     returned.schemaVersion === 10
       ? {
           ...returned,
@@ -114,7 +116,11 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
           expensePayments: [],
         }
       : returned;
-  if (s.schemaVersion !== 11) fail("目前僅支援網站資料版本 3 至 11。");
+  const s =
+    financial.schemaVersion === 11
+      ? { ...financial, schemaVersion: 12, settlements: [] }
+      : financial;
+  if (s.schemaVersion !== 12) fail("目前僅支援網站資料版本 3 至 12。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -961,5 +967,6 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     } else if (p.reverseReason) fail("付款沖銷資料不一致。");
   }
 
+  validateSettlements(s as unknown as CatalogSnapshot, nestedId);
   return s as unknown as CatalogSnapshot;
 }

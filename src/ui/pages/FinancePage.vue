@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SettlementPanel from "../components/SettlementPanel.vue";
 import ArtworkFinancePanel from "../components/ArtworkFinancePanel.vue";
 import { computed, reactive, ref, watch } from "vue";
 import { useWorkspaceStore } from "../../app/workspace-store";
@@ -236,7 +237,7 @@ const pending = computed(() =>
       <strong>目前提供批次成本試算與代墊本金紀錄。</strong>
       <p>
         空白成本表示未知；確定沒有費用時請填
-        0。成本表不代表實際付款，也不會增加庫存。柄圖分攤額由你填入，可使用上方柄圖費分攤功能；管理費、抽成與分潤結算尚未開放；系統不替你決定結案或追收。
+        0。成本表不代表實際付款，也不會增加庫存。柄圖分攤額由你填入，可使用上方柄圖費分攤功能；管理費、抽成與人工分配可在結算工作表試算及記錄；系統不替你決定結案或追收。
       </p>
     </div>
   </aside>
@@ -270,6 +271,7 @@ const pending = computed(() =>
       </button>
     </p>
     <template v-if="catalog.snapshot">
+      <SettlementPanel />
       <ArtworkFinancePanel />
       <section class="section-block">
         <h2>工作區概況</h2>
@@ -283,8 +285,8 @@ const pending = computed(() =>
             <dd>{{ pending }} 元</dd>
           </div>
           <div>
-            <dt>可分配利潤</dt>
-            <dd class="unknown">尚無法試算（未設定分潤規則）</dd>
+            <dt>分潤與人工分配</dt>
+            <dd>依各結算工作表核對，不跨工作表自動加總</dd>
           </div>
         </dl>
         <p>
