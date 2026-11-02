@@ -1,0 +1,6493 @@
+{
+  "contractStatus": "T01 specification, not an implemented XLSX format",
+  "formatName": "ConMate",
+  "formatVersion": "1.0.0",
+  "allSheetsVisible": true,
+  "headerRow": 1,
+  "firstDataRow": 2,
+  "additionalColumns": "reject unknown nonempty columns; warn for unknown empty columns",
+  "options": {
+    "operation": [
+      "新增",
+      "修改",
+      "保留",
+      "封存",
+      "取消"
+    ],
+    "currency": [
+      "TWD"
+    ],
+    "timezone": [
+      "Asia/Taipei"
+    ],
+    "partyKind": [
+      "個人",
+      "團體",
+      "廠商"
+    ],
+    "projectStatus": [
+      "草稿",
+      "進行中",
+      "已結案",
+      "重新開啟"
+    ],
+    "attendanceStatus": [
+      "預計",
+      "參加",
+      "取消"
+    ],
+    "channelKind": [
+      "現場",
+      "自營",
+      "寄賣",
+      "其他"
+    ],
+    "sessionStatus": [
+      "草稿",
+      "販售中",
+      "已停單",
+      "已結束"
+    ],
+    "artworkRole": [
+      "繪師",
+      "設計",
+      "其他"
+    ],
+    "activeStatus": [
+      "啟用",
+      "暫停",
+      "封存"
+    ],
+    "trackingMode": [
+      "批次",
+      "單件"
+    ],
+    "productionStatus": [
+      "草稿",
+      "已下單",
+      "部分到貨",
+      "完成",
+      "取消"
+    ],
+    "expenseCategory": [
+      "製作",
+      "柄圖",
+      "包材",
+      "運費",
+      "攤位",
+      "管理",
+      "其他"
+    ],
+    "expenseStatus": [
+      "預估",
+      "確定"
+    ],
+    "expenseTarget": [
+      "柄圖",
+      "製作批次",
+      "企劃共通"
+    ],
+    "allocationMethod": [
+      "單件印製成本比例",
+      "製作總成本比例",
+      "品項平均",
+      "總件數平均",
+      "自訂權重",
+      "人工指定"
+    ],
+    "costBasis": [
+      "預估",
+      "實際",
+      "內部約定"
+    ],
+    "differencePolicy": [
+      "本金封頂",
+      "差額指定歸屬",
+      "尾筆調整",
+      "人工決定"
+    ],
+    "paymentMethod": [
+      "現金",
+      "轉帳",
+      "電子支付",
+      "其他"
+    ],
+    "fundingMode": [
+      "自付",
+      "應償還代墊",
+      "抽成承擔不追收",
+      "結案補款約定"
+    ],
+    "recoveryKind": [
+      "償還",
+      "抵付",
+      "沖回",
+      "免除"
+    ],
+    "saleMode": [
+      "指定",
+      "抽選"
+    ],
+    "poolKind": [
+      "混合商品",
+      "單一商品"
+    ],
+    "drawRule": [
+      "直接記錄實際商品",
+      "號碼登記",
+      "系統抽選"
+    ],
+    "stockMode": [
+      "共用",
+      "專用"
+    ],
+    "roundStatus": [
+      "草稿",
+      "進行中",
+      "完成",
+      "取消"
+    ],
+    "ticketStatus": [
+      "未用",
+      "待交付",
+      "已用",
+      "取消"
+    ],
+    "deliveryStatus": [
+      "待交付",
+      "已交付",
+      "取消"
+    ],
+    "locationKind": [
+      "倉庫",
+      "場次",
+      "寄賣",
+      "不可售",
+      "其他"
+    ],
+    "stockDocumentKind": [
+      "製作入庫",
+      "調撥",
+      "免費發放",
+      "損耗",
+      "盤差調整",
+      "銷售出庫",
+      "退貨",
+      "更正"
+    ],
+    "documentStatus": [
+      "草稿",
+      "已提交",
+      "已沖銷"
+    ],
+    "direction": [
+      "增加",
+      "減少"
+    ],
+    "saleStatus": [
+      "已成交",
+      "已取消",
+      "部分退款",
+      "已退款",
+      "已更正"
+    ],
+    "adjustmentKind": [
+      "取消",
+      "錯款更正",
+      "換貨",
+      "折扣更正",
+      "收款更正"
+    ],
+    "returnDisposition": [
+      "良品回庫",
+      "損壞轉庫",
+      "損耗",
+      "不回庫"
+    ],
+    "formula": [
+      "自付交柄圖費",
+      "扣柄圖後抽成",
+      "營收比例抽成",
+      "扣指定成本抽成",
+      "固定管理費",
+      "固定費加抽成"
+    ],
+    "artCostBasis": [
+      "精確成本",
+      "約定回收額"
+    ],
+    "recoveryMethod": [
+      "不自動抵付",
+      "依約定順序抵付"
+    ],
+    "negativePolicy": [
+      "抽成最低零",
+      "按比例分擔",
+      "人工決定"
+    ],
+    "feeUnit": [
+      "每件",
+      "每筆",
+      "每場",
+      "每企劃"
+    ],
+    "feeOrder": [
+      "抽成前",
+      "抽成後"
+    ],
+    "closeoutScope": [
+      "領回商品",
+      "整個合作",
+      "人工決定"
+    ],
+    "financialRole": [
+      "創作者",
+      "抽成接收方",
+      "成本回收方",
+      "費用負擔方",
+      "團務資金"
+    ],
+    "settlementStatus": [
+      "草稿",
+      "已確認",
+      "部分付款",
+      "已付款"
+    ],
+    "closeoutDisposition": [
+      "保留存貨",
+      "報廢",
+      "領回"
+    ],
+    "decisionStatus": [
+      "草稿",
+      "已確認",
+      "已取代"
+    ],
+    "distributionKind": [
+      "成本回收",
+      "利潤分配",
+      "抽成",
+      "管理費",
+      "本金償還",
+      "團務款",
+      "其他"
+    ],
+    "stocktakeStatus": [
+      "草稿",
+      "已確認",
+      "需重新核對"
+    ],
+    "stocktakeAction": [
+      "補記或更正交易",
+      "盤差調整",
+      "保留待查"
+    ],
+    "fileKind": [
+      "空白模板",
+      "虛構範例",
+      "完整工作區"
+    ]
+  },
+  "columnRules": {
+    "newId": "blank; system assigned in staging",
+    "existingId": "immutable UUID",
+    "references": "new:<temporary-key> or code:<display-code>",
+    "temporaryKeys": "unique per entity per document; trim; ASCII case-insensitive",
+    "money": "nonnegative numeric integer TWD",
+    "signedMoney": "numeric integer TWD; sign explicit",
+    "unitMoney": "nonnegative numeric <= 4 decimal places",
+    "percent": "numeric 0..100 <= 4 decimals; 20 means 20 percent",
+    "date": "text YYYY-MM-DD",
+    "datetime": "text ISO8601 with UTC offset",
+    "booleanText": "text TRUE or FALSE",
+    "formulas": "reject in every cell in every sheet",
+    "computed": "read-only; changed numeric results warn and are recalculated"
+  },
+  "systemEntities": {
+    "StockEntry": [
+      "documentId",
+      "batchId",
+      "locationId",
+      "unitId?",
+      "signedQty"
+    ],
+    "StockReservation": [
+      "batchId",
+      "locationId",
+      "unitId?",
+      "sourceId",
+      "qty",
+      "status"
+    ],
+    "StockIssueAllocation": [
+      "fulfillmentId",
+      "batchId",
+      "locationId",
+      "unitId?",
+      "qty",
+      "stockEntryId"
+    ],
+    "CalculationSnapshot": [
+      "projectId",
+      "cutoff",
+      "ruleVersionIds",
+      "sourceRevision",
+      "status",
+      "values",
+      "unknownItems"
+    ],
+    "SettlementLine": [
+      "settlementId",
+      "sourceId",
+      "ruleVersionId?",
+      "calculationSnapshotId"
+    ],
+    "SettlementDistribution": [
+      "lineId",
+      "partyId",
+      "kind",
+      "amount"
+    ],
+    "CloseoutSnapshot": [
+      "projectId",
+      "sourceRevision",
+      "openItems",
+      "decision"
+    ],
+    "OperationReceipt": [
+      "operationId",
+      "requestDigest",
+      "result"
+    ],
+    "MigrationRecord": [
+      "fromVersion",
+      "toVersion",
+      "occurredAt"
+    ]
+  },
+  "sheets": [
+    {
+      "name": "00_使用說明",
+      "entity": null,
+      "kind": "instructions",
+      "columns": [
+        {
+          "key": "topic",
+          "label": "項目",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "description",
+          "label": "說明",
+          "type": "text",
+          "required": true,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "01_格式資訊",
+      "entity": null,
+      "kind": "metadata",
+      "columns": [
+        {
+          "key": "formatName",
+          "label": "格式名稱",
+          "type": "text",
+          "required": true,
+          "editable": false
+        },
+        {
+          "key": "formatVersion",
+          "label": "格式版本",
+          "type": "text",
+          "required": true,
+          "editable": false
+        },
+        {
+          "key": "fileKind",
+          "label": "檔案種類",
+          "type": "enum",
+          "required": true,
+          "editable": false,
+          "options": "fileKind"
+        },
+        {
+          "key": "documentId",
+          "label": "文件ID",
+          "type": "uuid",
+          "required": true,
+          "editable": false
+        },
+        {
+          "key": "workspaceId",
+          "label": "工作區ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "baseRevision",
+          "label": "匯出修訂號",
+          "type": "quantity",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "exportedAt",
+          "label": "匯出時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "appVersion",
+          "label": "程式版本",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "datasetDigest",
+          "label": "資料集識別值",
+          "type": "text",
+          "required": false,
+          "editable": false
+        }
+      ]
+    },
+    {
+      "name": "02_工作區",
+      "entity": "Workspace",
+      "kind": "workspace",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "name",
+          "label": "名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "currency",
+          "label": "幣別",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "currency"
+        },
+        {
+          "key": "timezone",
+          "label": "時區",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "timezone"
+        }
+      ]
+    },
+    {
+      "name": "03_參與方",
+      "entity": "Party",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "name",
+          "label": "名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "kind",
+          "label": "類型",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "partyKind"
+        },
+        {
+          "key": "isCreator",
+          "label": "是否創作者",
+          "type": "booleanText",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "notes",
+          "label": "備註",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "04_企劃",
+      "entity": "Project",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "name",
+          "label": "名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "startDate",
+          "label": "開始日",
+          "type": "date",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "endDate",
+          "label": "結束日",
+          "type": "date",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "status",
+          "label": "狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "projectStatus"
+        },
+        {
+          "key": "closedDate",
+          "label": "結案日",
+          "type": "date",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "notes",
+          "label": "備註",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "05_企劃成員",
+      "entity": "ProjectMember",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "projectId",
+          "label": "企劃",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Project"
+        },
+        {
+          "key": "partyId",
+          "label": "參與方",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Party"
+        },
+        {
+          "key": "roles",
+          "label": "角色標籤",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "06_場次",
+      "entity": "Event",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "name",
+          "label": "名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "startDate",
+          "label": "開始日",
+          "type": "date",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "endDate",
+          "label": "結束日",
+          "type": "date",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "location",
+          "label": "地點",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "notes",
+          "label": "備註",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "07_企劃參場",
+      "entity": "ProjectEvent",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "projectId",
+          "label": "企劃",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Project"
+        },
+        {
+          "key": "eventId",
+          "label": "場次",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Event"
+        },
+        {
+          "key": "status",
+          "label": "狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "attendanceStatus"
+        }
+      ]
+    },
+    {
+      "name": "08_販售通路",
+      "entity": "SalesChannel",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "name",
+          "label": "名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "kind",
+          "label": "類型",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "channelKind"
+        },
+        {
+          "key": "operatorId",
+          "label": "營運方",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "Party"
+        },
+        {
+          "key": "notes",
+          "label": "備註",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "09_販售作業",
+      "entity": "SalesSession",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "name",
+          "label": "名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "channelId",
+          "label": "通路",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SalesChannel"
+        },
+        {
+          "key": "eventId",
+          "label": "場次",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "Event"
+        },
+        {
+          "key": "startsAt",
+          "label": "開始時間",
+          "type": "datetime",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "endsAt",
+          "label": "結束時間",
+          "type": "datetime",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "status",
+          "label": "狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "sessionStatus"
+        }
+      ]
+    },
+    {
+      "name": "10_作業企劃",
+      "entity": "SessionProject",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "sessionId",
+          "label": "販售作業",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SalesSession"
+        },
+        {
+          "key": "projectId",
+          "label": "企劃",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Project"
+        }
+      ]
+    },
+    {
+      "name": "11_商品種類",
+      "entity": "ProductType",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "name",
+          "label": "名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "notes",
+          "label": "備註",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "12_商品規格",
+      "entity": "ProductSpec",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "typeId",
+          "label": "種類",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "ProductType"
+        },
+        {
+          "key": "name",
+          "label": "名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "size",
+          "label": "尺寸",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "material",
+          "label": "材質",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "process",
+          "label": "工法",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "13_柄圖",
+      "entity": "Artwork",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "projectId",
+          "label": "企劃",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Project"
+        },
+        {
+          "key": "name",
+          "label": "名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "versionLabel",
+          "label": "版本說明",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "notes",
+          "label": "備註",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "14_柄圖作者",
+      "entity": "ArtworkContributor",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "artworkId",
+          "label": "柄圖",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Artwork"
+        },
+        {
+          "key": "partyId",
+          "label": "參與方",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Party"
+        },
+        {
+          "key": "role",
+          "label": "貢獻角色",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "artworkRole"
+        }
+      ]
+    },
+    {
+      "name": "15_商品系列",
+      "entity": "Product",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "projectId",
+          "label": "企劃",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Project"
+        },
+        {
+          "key": "name",
+          "label": "名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "typeId",
+          "label": "商品種類",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "ProductType"
+        }
+      ]
+    },
+    {
+      "name": "16_商品款式",
+      "entity": "SKU",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "productId",
+          "label": "商品系列",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Product"
+        },
+        {
+          "key": "specId",
+          "label": "規格",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "ProductSpec"
+        },
+        {
+          "key": "name",
+          "label": "款式名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "trackingMode",
+          "label": "追蹤模式",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "trackingMode"
+        }
+      ]
+    },
+    {
+      "name": "17_款式柄圖",
+      "entity": "SKUArtwork",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "skuId",
+          "label": "商品款式",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SKU"
+        },
+        {
+          "key": "artworkId",
+          "label": "柄圖",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Artwork"
+        },
+        {
+          "key": "usage",
+          "label": "用途",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "18_商品權益",
+      "entity": "SKUInterest",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "skuId",
+          "label": "商品款式",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SKU"
+        },
+        {
+          "key": "partyId",
+          "label": "參與方",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Party"
+        },
+        {
+          "key": "ratio",
+          "label": "權益比例",
+          "type": "percent",
+          "required": true,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "19_製作單",
+      "entity": "ProductionOrder",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "projectId",
+          "label": "企劃",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Project"
+        },
+        {
+          "key": "supplierId",
+          "label": "廠商",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "Party"
+        },
+        {
+          "key": "orderedDate",
+          "label": "下單日",
+          "type": "date",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "estimatedAmount",
+          "label": "預計費用",
+          "type": "money",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "status",
+          "label": "狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "productionStatus"
+        }
+      ]
+    },
+    {
+      "name": "20_製作批次",
+      "entity": "ProductionBatch",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "orderId",
+          "label": "製作單",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "ProductionOrder"
+        },
+        {
+          "key": "skuId",
+          "label": "商品款式",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SKU"
+        },
+        {
+          "key": "plannedQty",
+          "label": "計畫數量",
+          "type": "quantity",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "receivedQty",
+          "label": "實收良品數",
+          "type": "quantity",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "receivedDate",
+          "label": "到貨日",
+          "type": "date",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "estimatedUnitCost",
+          "label": "估計製作單價",
+          "type": "unitMoney",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "21_特殊單件",
+      "entity": "PhysicalUnit",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "batchId",
+          "label": "製作批次",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "ProductionBatch"
+        },
+        {
+          "key": "label",
+          "label": "實物標記",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "description",
+          "label": "親簽或限量說明",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "22_費用",
+      "entity": "Expense",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "projectId",
+          "label": "企劃",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Project"
+        },
+        {
+          "key": "category",
+          "label": "類別",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "expenseCategory"
+        },
+        {
+          "key": "estimatedAmount",
+          "label": "預估金額",
+          "type": "money",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "actualAmount",
+          "label": "實際金額",
+          "type": "money",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "payeeId",
+          "label": "費用對象",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "Party"
+        },
+        {
+          "key": "status",
+          "label": "確定狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "expenseStatus"
+        },
+        {
+          "key": "notes",
+          "label": "備註",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "23_費用分配",
+      "entity": "ExpenseAllocation",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "expenseId",
+          "label": "費用",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Expense"
+        },
+        {
+          "key": "targetKind",
+          "label": "目標類型",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "expenseTarget"
+        },
+        {
+          "key": "artworkId",
+          "label": "柄圖",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "Artwork"
+        },
+        {
+          "key": "batchId",
+          "label": "製作批次",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "ProductionBatch"
+        },
+        {
+          "key": "sharedItem",
+          "label": "企劃共通項目",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "amount",
+          "label": "分配金額",
+          "type": "money",
+          "required": true,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "24_成本回收規則",
+      "entity": "CostRecoveryRule",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "allocationId",
+          "label": "費用分配",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "ExpenseAllocation"
+        },
+        {
+          "key": "skuId",
+          "label": "商品款式",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SKU"
+        },
+        {
+          "key": "groupKey",
+          "label": "分攤群組",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "method",
+          "label": "分攤方式",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "allocationMethod"
+        },
+        {
+          "key": "costBasis",
+          "label": "單價基礎",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "costBasis"
+        },
+        {
+          "key": "weightUnitCost",
+          "label": "權重單價",
+          "type": "unitMoney",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "baseQty",
+          "label": "基準數量",
+          "type": "quantity",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "weight",
+          "label": "自訂權重",
+          "type": "unitMoney",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "manualAmount",
+          "label": "人工分配額",
+          "type": "money",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "unitRecovery",
+          "label": "約定每件回收額",
+          "type": "unitMoney",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "version",
+          "label": "適用版本",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "differencePolicy",
+          "label": "回收差額政策",
+          "type": "enum",
+          "required": false,
+          "editable": true,
+          "options": "differencePolicy"
+        },
+        {
+          "key": "differencePartyId",
+          "label": "差額歸屬方",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "Party"
+        }
+      ]
+    },
+    {
+      "name": "25_實際付款",
+      "entity": "Payment",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "payerId",
+          "label": "付款方",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Party"
+        },
+        {
+          "key": "payeeId",
+          "label": "收款方",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Party"
+        },
+        {
+          "key": "amount",
+          "label": "金額",
+          "type": "money",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "date",
+          "label": "日期",
+          "type": "date",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "method",
+          "label": "方式",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "paymentMethod"
+        },
+        {
+          "key": "notes",
+          "label": "備註",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "26_付款用途",
+      "entity": "PaymentApplication",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "paymentId",
+          "label": "付款",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Payment"
+        },
+        {
+          "key": "expenseId",
+          "label": "費用",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Expense"
+        },
+        {
+          "key": "amount",
+          "label": "抵付金額",
+          "type": "money",
+          "required": true,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "27_出資代墊約定",
+      "entity": "FundingAgreement",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "projectId",
+          "label": "企劃",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Project"
+        },
+        {
+          "key": "funderId",
+          "label": "出資方",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Party"
+        },
+        {
+          "key": "beneficiaryId",
+          "label": "受益方",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Party"
+        },
+        {
+          "key": "mode",
+          "label": "模式",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "fundingMode"
+        },
+        {
+          "key": "ruleVersionId",
+          "label": "結算規則版本",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "SettlementRuleVersion"
+        },
+        {
+          "key": "notes",
+          "label": "備註",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "28_出資明細",
+      "entity": "FundingAllocation",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "agreementId",
+          "label": "出資約定",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "FundingAgreement"
+        },
+        {
+          "key": "expenseId",
+          "label": "費用",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Expense"
+        },
+        {
+          "key": "paymentApplicationId",
+          "label": "付款用途",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "PaymentApplication"
+        },
+        {
+          "key": "amount",
+          "label": "金額",
+          "type": "money",
+          "required": true,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "29_出資回收紀錄",
+      "entity": "FundingRecovery",
+      "kind": "mixed",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "agreementId",
+          "label": "出資約定",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "FundingAgreement"
+        },
+        {
+          "key": "date",
+          "label": "日期",
+          "type": "date",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "kind",
+          "label": "處理類型",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "recoveryKind"
+        },
+        {
+          "key": "amount",
+          "label": "金額",
+          "type": "money",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "paymentId",
+          "label": "付款",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "Payment"
+        },
+        {
+          "key": "distributionId",
+          "label": "結算分配",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "SettlementDistribution"
+        },
+        {
+          "key": "notes",
+          "label": "備註",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "30_販售方案",
+      "entity": "SalesPlan",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "name",
+          "label": "名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "sessionId",
+          "label": "販售作業",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SalesSession"
+        },
+        {
+          "key": "status",
+          "label": "狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "activeStatus"
+        }
+      ]
+    },
+    {
+      "name": "31_方案版本",
+      "entity": "SalesPlanVersion",
+      "kind": "version",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "planId",
+          "label": "販售方案",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SalesPlan"
+        },
+        {
+          "key": "version",
+          "label": "版本名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "mode",
+          "label": "方式",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "saleMode"
+        },
+        {
+          "key": "price",
+          "label": "價格",
+          "type": "money",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "refundPolicy",
+          "label": "退款政策",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "32_販售項目",
+      "entity": "SalesPlanItem",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "planVersionId",
+          "label": "方案版本",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SalesPlanVersion"
+        },
+        {
+          "key": "skuId",
+          "label": "商品款式",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SKU"
+        },
+        {
+          "key": "qty",
+          "label": "數量",
+          "type": "quantity",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "price",
+          "label": "指定價格",
+          "type": "money",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "revenueWeight",
+          "label": "收入分配權重",
+          "type": "unitMoney",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "33_抽選池",
+      "entity": "DrawPool",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "name",
+          "label": "名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "kind",
+          "label": "類型",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "poolKind"
+        },
+        {
+          "key": "status",
+          "label": "狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "activeStatus"
+        }
+      ]
+    },
+    {
+      "name": "34_抽選池版本",
+      "entity": "DrawPoolVersion",
+      "kind": "version",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "poolId",
+          "label": "抽選池",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "DrawPool"
+        },
+        {
+          "key": "version",
+          "label": "版本名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "planVersionId",
+          "label": "方案版本",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SalesPlanVersion"
+        },
+        {
+          "key": "rule",
+          "label": "規則",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "drawRule"
+        },
+        {
+          "key": "stockMode",
+          "label": "庫存模式",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "stockMode"
+        }
+      ]
+    },
+    {
+      "name": "35_池商品配置",
+      "entity": "DrawPoolItem",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "poolVersionId",
+          "label": "池版本",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "DrawPoolVersion"
+        },
+        {
+          "key": "skuId",
+          "label": "商品款式",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SKU"
+        },
+        {
+          "key": "qty",
+          "label": "配置數量",
+          "type": "quantity",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "locationId",
+          "label": "庫位",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "StockLocation"
+        }
+      ]
+    },
+    {
+      "name": "36_抽選輪次",
+      "entity": "DrawRound",
+      "kind": "deferred",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "poolVersionId",
+          "label": "池版本",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "DrawPoolVersion"
+        },
+        {
+          "key": "round",
+          "label": "輪次",
+          "type": "quantity",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "startsAt",
+          "label": "開始時間",
+          "type": "datetime",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "endsAt",
+          "label": "結束時間",
+          "type": "datetime",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "status",
+          "label": "狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "roundStatus"
+        }
+      ]
+    },
+    {
+      "name": "37_號碼籤",
+      "entity": "DrawTicket",
+      "kind": "deferred",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "roundId",
+          "label": "輪次",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "DrawRound"
+        },
+        {
+          "key": "number",
+          "label": "號碼",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "status",
+          "label": "狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "ticketStatus"
+        }
+      ]
+    },
+    {
+      "name": "38_號碼獎品",
+      "entity": "DrawTicketPrize",
+      "kind": "deferred",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "ticketId",
+          "label": "號碼籤",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "DrawTicket"
+        },
+        {
+          "key": "skuId",
+          "label": "商品款式",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SKU"
+        },
+        {
+          "key": "qty",
+          "label": "數量",
+          "type": "quantity",
+          "required": true,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "39_抽選結果",
+      "entity": "DrawResult",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "roundId",
+          "label": "輪次",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "DrawRound"
+        },
+        {
+          "key": "ticketId",
+          "label": "號碼籤",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "DrawTicket"
+        },
+        {
+          "key": "saleLineId",
+          "label": "交易明細",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SaleLine"
+        },
+        {
+          "key": "skuId",
+          "label": "商品款式",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SKU"
+        },
+        {
+          "key": "qty",
+          "label": "數量",
+          "type": "quantity",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "recordedAt",
+          "label": "登記時間",
+          "type": "datetime",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "deliveryStatus",
+          "label": "交付狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "deliveryStatus"
+        }
+      ]
+    },
+    {
+      "name": "40_庫位",
+      "entity": "StockLocation",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "name",
+          "label": "名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "kind",
+          "label": "類型",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "locationKind"
+        },
+        {
+          "key": "custodianId",
+          "label": "保管方",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "Party"
+        },
+        {
+          "key": "sessionId",
+          "label": "販售作業",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "SalesSession"
+        }
+      ]
+    },
+    {
+      "name": "41_庫存異動單",
+      "entity": "StockDocument",
+      "kind": "mixed",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "kind",
+          "label": "類型",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "stockDocumentKind"
+        },
+        {
+          "key": "occurredAt",
+          "label": "日期時間",
+          "type": "datetime",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "fromLocationId",
+          "label": "來源庫位",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "StockLocation"
+        },
+        {
+          "key": "toLocationId",
+          "label": "目的庫位",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "StockLocation"
+        },
+        {
+          "key": "reason",
+          "label": "原因",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "status",
+          "label": "狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "documentStatus"
+        }
+      ]
+    },
+    {
+      "name": "42_庫存異動項目",
+      "entity": "StockDocumentItem",
+      "kind": "mixed",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "documentId",
+          "label": "異動單",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "StockDocument"
+        },
+        {
+          "key": "batchId",
+          "label": "批次",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "ProductionBatch"
+        },
+        {
+          "key": "unitId",
+          "label": "特殊單件",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "PhysicalUnit"
+        },
+        {
+          "key": "qty",
+          "label": "數量",
+          "type": "quantity",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "direction",
+          "label": "調整方向",
+          "type": "enum",
+          "required": false,
+          "editable": true,
+          "options": "direction"
+        }
+      ]
+    },
+    {
+      "name": "43_銷售交易",
+      "entity": "Sale",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "sessionId",
+          "label": "販售作業",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SalesSession"
+        },
+        {
+          "key": "occurredAt",
+          "label": "發生時間",
+          "type": "datetime",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "status",
+          "label": "狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "saleStatus"
+        },
+        {
+          "key": "orderDiscount",
+          "label": "整單折扣",
+          "type": "money",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "notes",
+          "label": "備註",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "44_交易明細",
+      "entity": "SaleLine",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "saleId",
+          "label": "交易",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Sale"
+        },
+        {
+          "key": "planVersionId",
+          "label": "方案版本",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SalesPlanVersion"
+        },
+        {
+          "key": "qty",
+          "label": "購買數量",
+          "type": "quantity",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "unitPrice",
+          "label": "成交單價",
+          "type": "money",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "lineDiscount",
+          "label": "行折扣",
+          "type": "money",
+          "required": true,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "45_實際售出商品",
+      "entity": "SaleFulfillment",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "saleLineId",
+          "label": "交易明細",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SaleLine"
+        },
+        {
+          "key": "skuId",
+          "label": "商品款式",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SKU"
+        },
+        {
+          "key": "qty",
+          "label": "數量",
+          "type": "quantity",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "drawResultId",
+          "label": "抽選結果",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "DrawResult"
+        },
+        {
+          "key": "revenueWeight",
+          "label": "收入分配權重",
+          "type": "unitMoney",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "46_出庫批次指定",
+      "entity": "IssueRequest",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "fulfillmentId",
+          "label": "實際售出商品",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SaleFulfillment"
+        },
+        {
+          "key": "batchId",
+          "label": "批次",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "ProductionBatch"
+        },
+        {
+          "key": "locationId",
+          "label": "庫位",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "StockLocation"
+        },
+        {
+          "key": "unitId",
+          "label": "特殊單件",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "PhysicalUnit"
+        },
+        {
+          "key": "qty",
+          "label": "數量",
+          "type": "quantity",
+          "required": true,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "47_交易收款",
+      "entity": "SaleReceipt",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "saleId",
+          "label": "交易",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Sale"
+        },
+        {
+          "key": "collectorId",
+          "label": "收款方",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Party"
+        },
+        {
+          "key": "amount",
+          "label": "金額",
+          "type": "money",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "method",
+          "label": "方式",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "paymentMethod"
+        },
+        {
+          "key": "occurredAt",
+          "label": "時間",
+          "type": "datetime",
+          "required": true,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "48_交易更正",
+      "entity": "SaleAdjustment",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "saleId",
+          "label": "原交易",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Sale"
+        },
+        {
+          "key": "saleLineId",
+          "label": "原明細",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "SaleLine"
+        },
+        {
+          "key": "reason",
+          "label": "原因",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "kind",
+          "label": "更正類型",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "adjustmentKind"
+        }
+      ]
+    },
+    {
+      "name": "49_退貨退款",
+      "entity": "ReturnLine",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "originalIssueId",
+          "label": "原出庫分配",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "StockIssueAllocation"
+        },
+        {
+          "key": "qty",
+          "label": "退貨數量",
+          "type": "quantity",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "refundAmount",
+          "label": "退款額",
+          "type": "money",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "occurredAt",
+          "label": "日期",
+          "type": "datetime",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "returnLocationId",
+          "label": "退回庫位",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "StockLocation"
+        },
+        {
+          "key": "disposition",
+          "label": "處理方式",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "returnDisposition"
+        }
+      ]
+    },
+    {
+      "name": "50_合作結算約定",
+      "entity": "SettlementAgreement",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "projectId",
+          "label": "企劃",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Project"
+        },
+        {
+          "key": "name",
+          "label": "名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "status",
+          "label": "狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "activeStatus"
+        }
+      ]
+    },
+    {
+      "name": "51_約定適用款式",
+      "entity": "AgreementSKU",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "agreementId",
+          "label": "結算約定",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SettlementAgreement"
+        },
+        {
+          "key": "skuId",
+          "label": "商品款式",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SKU"
+        },
+        {
+          "key": "planVersionId",
+          "label": "特定方案版本",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "SalesPlanVersion"
+        }
+      ]
+    },
+    {
+      "name": "52_結算規則版本",
+      "entity": "SettlementRuleVersion",
+      "kind": "version",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "agreementId",
+          "label": "結算約定",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SettlementAgreement"
+        },
+        {
+          "key": "version",
+          "label": "版本名稱",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "formula",
+          "label": "公式類型",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "formula"
+        },
+        {
+          "key": "commissionRatio",
+          "label": "抽成比例",
+          "type": "percent",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "printCostBasis",
+          "label": "製作成本基礎",
+          "type": "enum",
+          "required": false,
+          "editable": true,
+          "options": "costBasis"
+        },
+        {
+          "key": "artCostBasis",
+          "label": "柄圖成本基礎",
+          "type": "enum",
+          "required": false,
+          "editable": true,
+          "options": "artCostBasis"
+        },
+        {
+          "key": "recoveryMethod",
+          "label": "成本回收方式",
+          "type": "enum",
+          "required": false,
+          "editable": true,
+          "options": "recoveryMethod"
+        },
+        {
+          "key": "negativePolicy",
+          "label": "負值政策",
+          "type": "enum",
+          "required": false,
+          "editable": true,
+          "options": "negativePolicy"
+        },
+        {
+          "key": "fixedFee",
+          "label": "固定管理費",
+          "type": "money",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "fixedFeeUnit",
+          "label": "固定費單位",
+          "type": "enum",
+          "required": false,
+          "editable": true,
+          "options": "feeUnit"
+        },
+        {
+          "key": "fixedFeeOrder",
+          "label": "固定費順序",
+          "type": "enum",
+          "required": false,
+          "editable": true,
+          "options": "feeOrder"
+        },
+        {
+          "key": "repaymentOrder",
+          "label": "償還順序",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "closeoutScope",
+          "label": "結案補款範圍",
+          "type": "enum",
+          "required": false,
+          "editable": true,
+          "options": "closeoutScope"
+        },
+        {
+          "key": "deductPrintCost",
+          "label": "扣製作成本",
+          "type": "booleanText",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "deductArtCost",
+          "label": "扣柄圖成本",
+          "type": "booleanText",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "overridesRuleId",
+          "label": "明確覆寫規則",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "SettlementRuleVersion"
+        }
+      ]
+    },
+    {
+      "name": "53_規則參與方",
+      "entity": "RuleParticipant",
+      "kind": "entity",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "ruleVersionId",
+          "label": "規則版本",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "SettlementRuleVersion"
+        },
+        {
+          "key": "partyId",
+          "label": "參與方",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Party"
+        },
+        {
+          "key": "role",
+          "label": "角色",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "financialRole"
+        },
+        {
+          "key": "distributionRatio",
+          "label": "分配比例",
+          "type": "percent",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "burdenRatio",
+          "label": "費用負擔比例",
+          "type": "percent",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "54_結算批次",
+      "entity": "Settlement",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "projectId",
+          "label": "企劃",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Project"
+        },
+        {
+          "key": "cutoff",
+          "label": "截止時間",
+          "type": "datetime",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "status",
+          "label": "狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "settlementStatus"
+        },
+        {
+          "key": "notes",
+          "label": "備註",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "55_結算付款抵付",
+      "entity": "SettlementPayment",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "paymentId",
+          "label": "付款",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Payment"
+        },
+        {
+          "key": "distributionId",
+          "label": "結算分配",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "SettlementDistribution"
+        },
+        {
+          "key": "decisionLineId",
+          "label": "人工分配項",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "AllocationDecisionLine"
+        },
+        {
+          "key": "amount",
+          "label": "金額",
+          "type": "money",
+          "required": true,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "56_結案處置",
+      "entity": "ProjectCloseoutItem",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "projectId",
+          "label": "企劃",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Project"
+        },
+        {
+          "key": "batchId",
+          "label": "批次",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "ProductionBatch"
+        },
+        {
+          "key": "qty",
+          "label": "數量",
+          "type": "quantity",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "disposition",
+          "label": "處置",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "closeoutDisposition"
+        },
+        {
+          "key": "recipientId",
+          "label": "領回方",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "Party"
+        },
+        {
+          "key": "agreedPrice",
+          "label": "作價",
+          "type": "money",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "confirmed",
+          "label": "確認狀態",
+          "type": "booleanText",
+          "required": true,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "57_人工分配決定",
+      "entity": "AllocationDecision",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "projectId",
+          "label": "企劃",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Project"
+        },
+        {
+          "key": "settlementId",
+          "label": "結算批次",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "Settlement"
+        },
+        {
+          "key": "calculationSnapshotId",
+          "label": "試算快照",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "CalculationSnapshot"
+        },
+        {
+          "key": "decidedAt",
+          "label": "決定時間",
+          "type": "datetime",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "status",
+          "label": "狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "decisionStatus"
+        },
+        {
+          "key": "reason",
+          "label": "原因",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "58_人工分配項目",
+      "entity": "AllocationDecisionLine",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "decisionId",
+          "label": "人工決定",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "AllocationDecision"
+        },
+        {
+          "key": "partyId",
+          "label": "參與方",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Party"
+        },
+        {
+          "key": "kind",
+          "label": "款項性質",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "distributionKind"
+        },
+        {
+          "key": "amount",
+          "label": "金額",
+          "type": "signedMoney",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "notes",
+          "label": "備註",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "59_盤點單",
+      "entity": "Stocktake",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "locationId",
+          "label": "庫位",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "StockLocation"
+        },
+        {
+          "key": "cutoffRevision",
+          "label": "截止修訂號",
+          "type": "quantity",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "occurredAt",
+          "label": "盤點時間",
+          "type": "datetime",
+          "required": true,
+          "editable": true
+        },
+        {
+          "key": "status",
+          "label": "狀態",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "stocktakeStatus"
+        },
+        {
+          "key": "notes",
+          "label": "備註",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "60_盤點明細",
+      "entity": "StocktakeLine",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "stocktakeId",
+          "label": "盤點單",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "Stocktake"
+        },
+        {
+          "key": "batchId",
+          "label": "批次",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "ProductionBatch"
+        },
+        {
+          "key": "unitId",
+          "label": "特殊單件",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "PhysicalUnit"
+        },
+        {
+          "key": "actualQty",
+          "label": "實點數量",
+          "type": "quantity",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "61_盤差處理",
+      "entity": "StocktakeResolution",
+      "kind": "source",
+      "columns": [
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "displayCode",
+          "label": "顯示編號",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "tempKey",
+          "label": "新增代號",
+          "type": "text",
+          "required": false,
+          "editable": true
+        },
+        {
+          "key": "operation",
+          "label": "操作",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "operation"
+        },
+        {
+          "key": "createdAt",
+          "label": "建立時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "updatedAt",
+          "label": "更新時間",
+          "type": "datetime",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "lineId",
+          "label": "盤點明細",
+          "type": "reference",
+          "required": true,
+          "editable": true,
+          "target": "StocktakeLine"
+        },
+        {
+          "key": "action",
+          "label": "處理方式",
+          "type": "enum",
+          "required": true,
+          "editable": true,
+          "options": "stocktakeAction"
+        },
+        {
+          "key": "linkedAdjustmentId",
+          "label": "相關更正",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "SaleAdjustment"
+        },
+        {
+          "key": "linkedStockDocumentId",
+          "label": "庫存調整單",
+          "type": "reference",
+          "required": false,
+          "editable": true,
+          "target": "StockDocument"
+        },
+        {
+          "key": "reason",
+          "label": "說明",
+          "type": "text",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "name": "90_系統關聯紀錄",
+      "entity": null,
+      "kind": "system",
+      "columns": [
+        {
+          "key": "recordType",
+          "label": "記錄類型",
+          "type": "text",
+          "required": true,
+          "editable": false
+        },
+        {
+          "key": "id",
+          "label": "正式ID",
+          "type": "uuid",
+          "required": true,
+          "editable": false
+        },
+        {
+          "key": "revision",
+          "label": "修訂號",
+          "type": "positiveInteger",
+          "required": true,
+          "editable": false
+        },
+        {
+          "key": "parentId",
+          "label": "父資料ID",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "payload",
+          "label": "資料內容",
+          "type": "typedJson",
+          "required": true,
+          "editable": false
+        }
+      ]
+    },
+    {
+      "name": "91_計算結果",
+      "entity": null,
+      "kind": "computed",
+      "columns": [
+        {
+          "key": "resultType",
+          "label": "結果類型",
+          "type": "text",
+          "required": true,
+          "editable": false
+        },
+        {
+          "key": "sourceId",
+          "label": "來源ID",
+          "type": "uuid",
+          "required": true,
+          "editable": false
+        },
+        {
+          "key": "metric",
+          "label": "指標",
+          "type": "text",
+          "required": true,
+          "editable": false
+        },
+        {
+          "key": "numberValue",
+          "label": "結果數值",
+          "type": "resultNumber",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "textValue",
+          "label": "結果文字",
+          "type": "text",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "unit",
+          "label": "單位",
+          "type": "text",
+          "required": false,
+          "editable": false
+        }
+      ]
+    },
+    {
+      "name": "92_匯入與修訂紀錄",
+      "entity": null,
+      "kind": "system",
+      "columns": [
+        {
+          "key": "eventId",
+          "label": "事件ID",
+          "type": "uuid",
+          "required": true,
+          "editable": false
+        },
+        {
+          "key": "documentId",
+          "label": "文件ID",
+          "type": "uuid",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "occurredAt",
+          "label": "時間",
+          "type": "datetime",
+          "required": true,
+          "editable": false
+        },
+        {
+          "key": "baseRevision",
+          "label": "基準修訂",
+          "type": "quantity",
+          "required": false,
+          "editable": false
+        },
+        {
+          "key": "resultingRevision",
+          "label": "結果修訂",
+          "type": "quantity",
+          "required": true,
+          "editable": false
+        },
+        {
+          "key": "summary",
+          "label": "摘要",
+          "type": "text",
+          "required": false,
+          "editable": false
+        }
+      ]
+    },
+    {
+      "name": "99_選項字典",
+      "entity": null,
+      "kind": "dictionary",
+      "columns": [
+        {
+          "key": "category",
+          "label": "類別",
+          "type": "text",
+          "required": true,
+          "editable": false
+        },
+        {
+          "key": "code",
+          "label": "代碼",
+          "type": "text",
+          "required": true,
+          "editable": false
+        },
+        {
+          "key": "label",
+          "label": "顯示文字",
+          "type": "text",
+          "required": true,
+          "editable": false
+        },
+        {
+          "key": "formatVersion",
+          "label": "適用版本",
+          "type": "text",
+          "required": true,
+          "editable": false
+        }
+      ]
+    }
+  ],
+  "entityPrefixes": {
+    "Workspace": "WSP",
+    "Party": "PTY",
+    "Project": "PRJ",
+    "ProjectMember": "PMB",
+    "Event": "EVT",
+    "ProjectEvent": "PEV",
+    "SalesChannel": "CHN",
+    "SalesSession": "SES",
+    "SessionProject": "SPJ",
+    "ProductType": "TYP",
+    "ProductSpec": "SPC",
+    "Artwork": "ART",
+    "ArtworkContributor": "ACT",
+    "Product": "PRD",
+    "SKU": "SKU",
+    "SKUArtwork": "SAR",
+    "SKUInterest": "SOW",
+    "ProductionOrder": "POR",
+    "ProductionBatch": "BAT",
+    "PhysicalUnit": "UNT",
+    "Expense": "EXP",
+    "ExpenseAllocation": "EAL",
+    "CostRecoveryRule": "CRR",
+    "Payment": "PAY",
+    "PaymentApplication": "PAP",
+    "FundingAgreement": "FAG",
+    "FundingAllocation": "FAL",
+    "FundingRecovery": "FRC",
+    "SalesPlan": "PLN",
+    "SalesPlanVersion": "PLV",
+    "SalesPlanItem": "PLI",
+    "DrawPool": "POL",
+    "DrawPoolVersion": "POV",
+    "DrawPoolItem": "POI",
+    "DrawRound": "RND",
+    "DrawTicket": "TKT",
+    "DrawTicketPrize": "TPR",
+    "DrawResult": "DRW",
+    "StockLocation": "LOC",
+    "StockDocument": "SDC",
+    "StockDocumentItem": "SDI",
+    "Sale": "SAL",
+    "SaleLine": "SLN",
+    "SaleFulfillment": "FUL",
+    "IssueRequest": "ISR",
+    "SaleReceipt": "RCT",
+    "SaleAdjustment": "ADJ",
+    "ReturnLine": "RET",
+    "SettlementAgreement": "SAG",
+    "AgreementSKU": "ASK",
+    "SettlementRuleVersion": "SRV",
+    "RuleParticipant": "RPT",
+    "Settlement": "STL",
+    "SettlementPayment": "STP",
+    "ProjectCloseoutItem": "CLO",
+    "AllocationDecision": "DEC",
+    "AllocationDecisionLine": "DEL",
+    "Stocktake": "STK",
+    "StocktakeLine": "SKL",
+    "StocktakeResolution": "SKR"
+  },
+  "displayCodeFormat": "PREFIX-000001; minimum 6 digits, grows beyond 999999 without reset; no recycling",
+  "compositeUniqueKeys": {
+    "ProjectMember": [
+      [
+        "projectId",
+        "partyId"
+      ]
+    ],
+    "ProjectEvent": [
+      [
+        "projectId",
+        "eventId"
+      ]
+    ],
+    "SessionProject": [
+      [
+        "sessionId",
+        "projectId"
+      ]
+    ],
+    "SKUArtwork": [
+      [
+        "skuId",
+        "artworkId",
+        "usage"
+      ]
+    ],
+    "SKUInterest": [
+      [
+        "skuId",
+        "partyId"
+      ]
+    ],
+    "PhysicalUnit": [
+      [
+        "batchId",
+        "label"
+      ]
+    ],
+    "SalesPlanVersion": [
+      [
+        "planId",
+        "version"
+      ]
+    ],
+    "DrawPoolVersion": [
+      [
+        "poolId",
+        "version"
+      ]
+    ],
+    "DrawTicket": [
+      [
+        "roundId",
+        "number"
+      ]
+    ],
+    "StocktakeLine": [
+      [
+        "stocktakeId",
+        "batchId",
+        "unitId"
+      ]
+    ]
+  },
+  "referenceNormalization": {
+    "prefixes": [
+      "new:",
+      "code:"
+    ],
+    "trimEdges": true,
+    "temporaryKeyCaseFold": "ASCII letters only",
+    "unicodeNormalization": "none; distinct Unicode keys remain distinct",
+    "rejectControlCharacters": true,
+    "emptyStringIsNull": true
+  },
+  "operationPolicyByKind": {
+    "entity": [
+      "新增",
+      "修改",
+      "保留",
+      "封存"
+    ],
+    "workspace": [
+      "新增",
+      "修改",
+      "保留"
+    ],
+    "version": [
+      "新增",
+      "保留",
+      "封存",
+      "修改 only when unused draft"
+    ],
+    "source": [
+      "新增",
+      "保留",
+      "修改 via correction",
+      "取消 via explicit cancellation"
+    ],
+    "mixed": [
+      "user-origin same as source; system-origin keep only"
+    ],
+    "deferred": [
+      "keep only until feature supported; new/edit rejected"
+    ],
+    "system": [
+      "keep only"
+    ],
+    "computed": [
+      "recalculate only"
+    ],
+    "metadata": [
+      "system generated"
+    ],
+    "dictionary": [
+      "keep only"
+    ],
+    "instructions": [
+      "not interpreted as business data"
+    ]
+  },
+  "systemRecordFieldTypes": {
+    "StockEntry": {
+      "documentId": "uuid:StockDocument",
+      "batchId": "uuid:ProductionBatch",
+      "locationId": "uuid:StockLocation",
+      "unitId": "uuid:PhysicalUnit?",
+      "signedQty": "nonzero signed integer"
+    },
+    "StockReservation": {
+      "batchId": "uuid:ProductionBatch",
+      "locationId": "uuid:StockLocation",
+      "unitId": "uuid:PhysicalUnit?",
+      "sourceId": "uuid:DrawPoolVersion|DrawResult",
+      "qty": "positive integer",
+      "status": "active|consumed|released"
+    },
+    "StockIssueAllocation": {
+      "fulfillmentId": "uuid:SaleFulfillment",
+      "batchId": "uuid:ProductionBatch",
+      "locationId": "uuid:StockLocation",
+      "unitId": "uuid:PhysicalUnit?",
+      "qty": "positive integer",
+      "stockEntryId": "uuid:StockEntry"
+    },
+    "CalculationSnapshot": {
+      "projectId": "uuid:Project",
+      "cutoff": "datetime",
+      "ruleVersionIds": "uuid:SettlementRuleVersion[]",
+      "sourceRevision": "nonnegative integer",
+      "status": "complete|partial",
+      "values": "map<registered financial metric, decimal string|exact fraction string|null>",
+      "unknownItems": "issue code[]"
+    },
+    "SettlementLine": {
+      "settlementId": "uuid:Settlement",
+      "sourceId": "uuid:SaleFulfillment|ExpenseAllocation|SaleAdjustment|ReturnLine|ProjectCloseoutItem",
+      "ruleVersionId": "uuid:SettlementRuleVersion?",
+      "calculationSnapshotId": "uuid:CalculationSnapshot"
+    },
+    "SettlementDistribution": {
+      "lineId": "uuid:SettlementLine",
+      "partyId": "uuid:Party",
+      "kind": "option:distributionKind",
+      "amount": "signed integer decimal string"
+    },
+    "CloseoutSnapshot": {
+      "projectId": "uuid:Project",
+      "sourceRevision": "nonnegative integer",
+      "openItems": "{issueCode:text,sourceId:uuid,amount:signed integer string|null,qty:integer|null}[]",
+      "decision": "user-confirmed-close|reopen"
+    },
+    "OperationReceipt": {
+      "operationId": "uuid",
+      "requestDigest": "sha256 hex",
+      "result": "{workspaceRevision:integer,entityIds:uuid[],warnings:issue code[]}"
+    },
+    "MigrationRecord": {
+      "fromVersion": "semver",
+      "toVersion": "semver",
+      "occurredAt": "datetime"
+    }
+  }
+}

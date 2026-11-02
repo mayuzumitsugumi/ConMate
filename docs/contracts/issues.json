@@ -1,0 +1,307 @@
+{
+  "version": "1.0.0",
+  "status": "specification",
+  "reportFields": [
+    "severity",
+    "code",
+    "sheet",
+    "cell",
+    "field",
+    "rawValue",
+    "reason",
+    "suggestion",
+    "relatedLocations"
+  ],
+  "fileLevelLocation": null,
+  "rules": "Only error blocks data import. Warnings needing confirmation never prevent independent manual decisions or closing. Rule ambiguity blocks complete calculation, not valid source records.",
+  "issues": [
+    {
+      "code": "FILE_INVALID",
+      "severity": "error",
+      "message": "不是有效xlsx或OOXML結構",
+      "suggestion": "重新另存為xlsx，不是改副檔名",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "FILE_LIMIT",
+      "severity": "error",
+      "message": "檔案、解壓、文字或資料量超過已公布限制",
+      "suggestion": "縮減附件或拆工作區，保留原檔",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "FILE_UNSAFE",
+      "severity": "error",
+      "message": "含巨集、外部關聯、嵌入物件或異常XML",
+      "suggestion": "移除不支援內容，重新輸出純資料檔",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "FORMULA_NOT_ALLOWED",
+      "severity": "error",
+      "message": "儲存格含實際公式",
+      "suggestion": "在試算表複製並貼上為值",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "FORMAT_UNSUPPORTED",
+      "severity": "error",
+      "message": "無法讀取的格式版本",
+      "suggestion": "更新ConMate或使用支援的模板",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "SHEET_MISSING",
+      "severity": "error",
+      "message": "缺必要工作表或名稱不符",
+      "suggestion": "從同版模板恢復正確工作表",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "HEADER_INVALID",
+      "severity": "error",
+      "message": "缺欄、欄名重複或未知非空欄",
+      "suggestion": "核對欄位字典，不任意改名",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "EXTRA_EMPTY_CONTENT",
+      "severity": "warning",
+      "message": "有未使用空白工作表或欄",
+      "suggestion": "可移除以維持模板清楚",
+      "requiresConfirmation": false,
+      "blocksImport": false
+    },
+    {
+      "code": "TYPE_INVALID",
+      "severity": "error",
+      "message": "型別或格式不符",
+      "suggestion": "依日期、文字、數值等規格修正",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "REQUIRED_MISSING",
+      "severity": "error",
+      "message": "必要或條件必填值空白",
+      "suggestion": "填入指定欄位；0與空白不同",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "ID_DUPLICATE",
+      "severity": "error",
+      "message": "同正式ID出現多筆",
+      "suggestion": "保留一筆；複製新增需清系統欄並換暫時代號",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "ID_UNKNOWN",
+      "severity": "error",
+      "message": "自填未知正式ID或ID與實體不符",
+      "suggestion": "新資料清空正式ID，使用新增代號",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "ID_IMMUTABLE",
+      "severity": "error",
+      "message": "既有正式ID或顯示編號被改",
+      "suggestion": "恢復原系統欄，不以改ID搬移資料",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "TEMP_KEY_DUPLICATE",
+      "severity": "error",
+      "message": "同實體新增代號重複",
+      "suggestion": "使用不重複暫時代號並修正參照",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "TEMP_KEY_NORMALIZED",
+      "severity": "warning",
+      "message": "暫時代號前後空白或大小寫已正規化",
+      "suggestion": "建議使用一致代號",
+      "requiresConfirmation": false,
+      "blocksImport": false
+    },
+    {
+      "code": "REF_NOT_FOUND",
+      "severity": "error",
+      "message": "找不到被參照資料",
+      "suggestion": "核對new:代號或code:編號與目標工作表",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "REF_WRONG_SCOPE",
+      "severity": "error",
+      "message": "跨工作區或企劃關係不符",
+      "suggestion": "使用同工作區及適用企劃資料",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "REVISION_STALE",
+      "severity": "error",
+      "message": "來源修訂與目前工作區不符",
+      "suggestion": "重新匯出再修改，或建立獨立副本",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "DOCUMENT_REPLAY",
+      "severity": "error",
+      "message": "同文件已完成新增匯入",
+      "suggestion": "使用匯入後帶正式ID的更新檔",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "OPERATION_CONFLICT",
+      "severity": "error",
+      "message": "同操作ID帶不同輸入",
+      "suggestion": "重新讀取既有結果，不重用識別碼",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "SOURCE_DERIVED_EDIT",
+      "severity": "error",
+      "message": "系統分錄或已確認快照被直接改動",
+      "suggestion": "修改原始來源，透過更正流程提交",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "STOCK_INSUFFICIENT",
+      "severity": "error",
+      "message": "正常銷售或保留會超出可用庫存",
+      "suggestion": "減量、補實際入庫或先查明盤差",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "UNIT_DUPLICATE",
+      "severity": "error",
+      "message": "同單件重複保留或售出",
+      "suggestion": "選擇正確實物單件及位置",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "POOL_INVALID",
+      "severity": "error",
+      "message": "池商品或數量與適用方案不符",
+      "suggestion": "核對實際SKU、來源庫位與池設定",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "RETURN_EXCEEDS_SOURCE",
+      "severity": "error",
+      "message": "累計退貨或退款超原允許量",
+      "suggestion": "核對原出庫與已退款紀錄",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "AMOUNT_UNBALANCED",
+      "severity": "error",
+      "message": "來源分配或抵付超出有效金額",
+      "suggestion": "修正來源分配，勿用重複付款配平",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "RULE_AMBIGUOUS",
+      "severity": "warning",
+      "message": "規則重疊或缺必要計算政策，無法完整試算",
+      "suggestion": "選擇明確版本或保留未計算並人工決定",
+      "requiresConfirmation": true,
+      "blocksImport": false
+    },
+    {
+      "code": "CALCULATION_UNKNOWN",
+      "severity": "warning",
+      "message": "部分財務規則尚未設定",
+      "suggestion": "補規則或由使用者決定，不將未知視為0",
+      "requiresConfirmation": true,
+      "blocksImport": false
+    },
+    {
+      "code": "RECOVERY_DIFFERENCE",
+      "severity": "warning",
+      "message": "約定回收與實際成本不同",
+      "suggestion": "指定差額處理或保留待定",
+      "requiresConfirmation": true,
+      "blocksImport": false
+    },
+    {
+      "code": "DECISION_DIFFERENCE",
+      "severity": "warning",
+      "message": "人工決定與試算或分配來源不同",
+      "suggestion": "核對並明示差額，允許使用者確認",
+      "requiresConfirmation": true,
+      "blocksImport": false
+    },
+    {
+      "code": "OPEN_ITEMS",
+      "severity": "warning",
+      "message": "仍有未清款、未回本或待查盤差",
+      "suggestion": "可保留未解事項後結案，不自動沖銷",
+      "requiresConfirmation": true,
+      "blocksImport": false
+    },
+    {
+      "code": "POSSIBLE_DUPLICATE_SALE",
+      "severity": "warning",
+      "message": "不同ID交易內容近似",
+      "suggestion": "確認是否真實連續交易，不自動合併",
+      "requiresConfirmation": true,
+      "blocksImport": false
+    },
+    {
+      "code": "COMPUTED_VALUE_CHANGED",
+      "severity": "warning",
+      "message": "唯讀計算結果與來源重算不同",
+      "suggestion": "不採該值，確認以ConMate重算",
+      "requiresConfirmation": true,
+      "blocksImport": false
+    },
+    {
+      "code": "RECALCULATION_MISMATCH",
+      "severity": "error",
+      "message": "相同來源及規則重算卻不一致",
+      "suggestion": "保留原檔，調查版本或資料完整性",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "FEATURE_NOT_IMPLEMENTED",
+      "severity": "error",
+      "message": "此版本未實作指定編輯或流程",
+      "suggestion": "使用已支援流程；不靜默丟資料",
+      "requiresConfirmation": false,
+      "blocksImport": true
+    },
+    {
+      "code": "STOCKTAKE_NEEDS_REVIEW",
+      "severity": "warning",
+      "message": "盤點截止前來源有後續更正",
+      "suggestion": "重新核對差異或明確保留待查",
+      "requiresConfirmation": true,
+      "blocksImport": false
+    }
+  ]
+}

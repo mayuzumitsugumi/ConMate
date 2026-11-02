@@ -1,0 +1,1227 @@
+{
+  "version": "1.0.0",
+  "origin": "entirely-fictional",
+  "status": "contract fixture, not an exported workbook or completed runtime test",
+  "encoding": "DTO uses decimal strings; XLSX numeric columns must be real numeric cells",
+  "newRows": {
+    "Workspace": [
+      {
+        "tempKey": "工作區",
+        "operation": "新增",
+        "name": "星港周邊虛構範例",
+        "currency": "TWD",
+        "timezone": "Asia/Taipei"
+      }
+    ],
+    "Party": [
+      {
+        "tempKey": "星狐",
+        "operation": "新增",
+        "name": "星狐",
+        "kind": "個人",
+        "isCreator": "TRUE"
+      },
+      {
+        "tempKey": "月鯨",
+        "operation": "新增",
+        "name": "月鯨",
+        "kind": "個人",
+        "isCreator": "TRUE"
+      },
+      {
+        "tempKey": "松鼠",
+        "operation": "新增",
+        "name": "松鼠",
+        "kind": "個人",
+        "isCreator": "TRUE"
+      },
+      {
+        "tempKey": "團務",
+        "operation": "新增",
+        "name": "星港團務",
+        "kind": "團體",
+        "isCreator": "FALSE"
+      },
+      {
+        "tempKey": "廠商",
+        "operation": "新增",
+        "name": "虛構印製社",
+        "kind": "廠商",
+        "isCreator": "FALSE"
+      }
+    ],
+    "Project": [
+      {
+        "tempKey": "星夜",
+        "operation": "新增",
+        "name": "星夜企劃",
+        "status": "進行中"
+      },
+      {
+        "tempKey": "海風",
+        "operation": "新增",
+        "name": "海風企劃",
+        "status": "進行中"
+      }
+    ],
+    "ProjectMember": [
+      {
+        "tempKey": "星夜星狐",
+        "operation": "新增",
+        "projectId": "new:星夜",
+        "partyId": "new:星狐"
+      },
+      {
+        "tempKey": "星夜松鼠",
+        "operation": "新增",
+        "projectId": "new:星夜",
+        "partyId": "new:松鼠"
+      },
+      {
+        "tempKey": "星夜團務",
+        "operation": "新增",
+        "projectId": "new:星夜",
+        "partyId": "new:團務"
+      },
+      {
+        "tempKey": "海風月鯨",
+        "operation": "新增",
+        "projectId": "new:海風",
+        "partyId": "new:月鯨"
+      },
+      {
+        "tempKey": "海風團務",
+        "operation": "新增",
+        "projectId": "new:海風",
+        "partyId": "new:團務"
+      }
+    ],
+    "Event": [
+      {
+        "tempKey": "第一場",
+        "operation": "新增",
+        "name": "第一場虛構場次",
+        "startDate": "2027-01-10",
+        "endDate": "2027-01-10"
+      },
+      {
+        "tempKey": "第二場",
+        "operation": "新增",
+        "name": "第二場虛構場次",
+        "startDate": "2027-02-14",
+        "endDate": "2027-02-14"
+      }
+    ],
+    "SalesChannel": [
+      {
+        "tempKey": "第一場攤位",
+        "operation": "新增",
+        "name": "第一場合攤",
+        "kind": "現場",
+        "operatorId": "new:團務"
+      },
+      {
+        "tempKey": "第二場攤位",
+        "operation": "新增",
+        "name": "第二場合攤",
+        "kind": "現場",
+        "operatorId": "new:團務"
+      }
+    ],
+    "SalesSession": [
+      {
+        "tempKey": "第一場作業",
+        "operation": "新增",
+        "name": "第一場販售",
+        "channelId": "new:第一場攤位",
+        "eventId": "new:第一場",
+        "status": "草稿"
+      },
+      {
+        "tempKey": "第二場作業",
+        "operation": "新增",
+        "name": "第二場販售",
+        "channelId": "new:第二場攤位",
+        "eventId": "new:第二場",
+        "status": "草稿"
+      }
+    ],
+    "ProjectEvent": [
+      {
+        "tempKey": "星夜第一場",
+        "operation": "新增",
+        "projectId": "new:星夜",
+        "eventId": "new:第一場",
+        "status": "參加"
+      },
+      {
+        "tempKey": "海風第一場",
+        "operation": "新增",
+        "projectId": "new:海風",
+        "eventId": "new:第一場",
+        "status": "參加"
+      },
+      {
+        "tempKey": "星夜第二場",
+        "operation": "新增",
+        "projectId": "new:星夜",
+        "eventId": "new:第二場",
+        "status": "參加"
+      },
+      {
+        "tempKey": "海風第二場",
+        "operation": "新增",
+        "projectId": "new:海風",
+        "eventId": "new:第二場",
+        "status": "參加"
+      }
+    ],
+    "SessionProject": [
+      {
+        "tempKey": "星夜第一場作業",
+        "operation": "新增",
+        "sessionId": "new:第一場作業",
+        "projectId": "new:星夜"
+      },
+      {
+        "tempKey": "海風第一場作業",
+        "operation": "新增",
+        "sessionId": "new:第一場作業",
+        "projectId": "new:海風"
+      },
+      {
+        "tempKey": "星夜第二場作業",
+        "operation": "新增",
+        "sessionId": "new:第二場作業",
+        "projectId": "new:星夜"
+      },
+      {
+        "tempKey": "海風第二場作業",
+        "operation": "新增",
+        "sessionId": "new:第二場作業",
+        "projectId": "new:海風"
+      }
+    ],
+    "StockLocation": [
+      {
+        "tempKey": "第一場庫位",
+        "operation": "新增",
+        "name": "第一場攤位箱",
+        "kind": "場次",
+        "custodianId": "new:團務",
+        "sessionId": "new:第一場作業"
+      },
+      {
+        "tempKey": "第二場庫位",
+        "operation": "新增",
+        "name": "第二場攤位箱",
+        "kind": "場次",
+        "custodianId": "new:團務",
+        "sessionId": "new:第二場作業"
+      },
+      {
+        "tempKey": "倉庫",
+        "operation": "新增",
+        "name": "共同倉庫",
+        "kind": "倉庫",
+        "custodianId": "new:團務"
+      }
+    ],
+    "ProductType": [
+      {
+        "tempKey": "徽章",
+        "operation": "新增",
+        "name": "徽章"
+      },
+      {
+        "tempKey": "吊飾",
+        "operation": "新增",
+        "name": "吊飾"
+      },
+      {
+        "tempKey": "拍立得",
+        "operation": "新增",
+        "name": "拍立得"
+      },
+      {
+        "tempKey": "立牌",
+        "operation": "新增",
+        "name": "立牌"
+      }
+    ],
+    "ProductSpec": [
+      {
+        "tempKey": "徽章規格",
+        "operation": "新增",
+        "typeId": "new:徽章",
+        "name": "58mm"
+      },
+      {
+        "tempKey": "吊飾規格",
+        "operation": "新增",
+        "typeId": "new:吊飾",
+        "name": "5x5cm"
+      },
+      {
+        "tempKey": "拍立得規格",
+        "operation": "新增",
+        "typeId": "new:拍立得",
+        "name": "3吋"
+      },
+      {
+        "tempKey": "立牌規格",
+        "operation": "新增",
+        "typeId": "new:立牌",
+        "name": "11x11cm"
+      }
+    ],
+    "Artwork": [
+      {
+        "tempKey": "星狐Q",
+        "operation": "新增",
+        "projectId": "new:星夜",
+        "name": "星狐Q"
+      },
+      {
+        "tempKey": "星狐正比",
+        "operation": "新增",
+        "projectId": "new:星夜",
+        "name": "星狐正比"
+      },
+      {
+        "tempKey": "月鯨Q",
+        "operation": "新增",
+        "projectId": "new:海風",
+        "name": "月鯨Q"
+      }
+    ],
+    "ArtworkContributor": [
+      {
+        "tempKey": "星狐Q作者",
+        "operation": "新增",
+        "artworkId": "new:星狐Q",
+        "partyId": "new:星狐",
+        "role": "繪師"
+      },
+      {
+        "tempKey": "星狐正比作者",
+        "operation": "新增",
+        "artworkId": "new:星狐正比",
+        "partyId": "new:星狐",
+        "role": "繪師"
+      },
+      {
+        "tempKey": "月鯨Q作者",
+        "operation": "新增",
+        "artworkId": "new:月鯨Q",
+        "partyId": "new:月鯨",
+        "role": "繪師"
+      }
+    ],
+    "Product": [
+      {
+        "tempKey": "星狐徽章系列",
+        "operation": "新增",
+        "projectId": "new:星夜",
+        "name": "星狐徽章系列",
+        "typeId": "new:徽章"
+      },
+      {
+        "tempKey": "星狐吊飾系列",
+        "operation": "新增",
+        "projectId": "new:星夜",
+        "name": "星狐吊飾系列",
+        "typeId": "new:吊飾"
+      },
+      {
+        "tempKey": "月鯨吊飾系列",
+        "operation": "新增",
+        "projectId": "new:海風",
+        "name": "月鯨吊飾系列",
+        "typeId": "new:吊飾"
+      },
+      {
+        "tempKey": "月鯨拍立得系列",
+        "operation": "新增",
+        "projectId": "new:海風",
+        "name": "月鯨拍立得系列",
+        "typeId": "new:拍立得"
+      },
+      {
+        "tempKey": "星狐拍立得系列",
+        "operation": "新增",
+        "projectId": "new:星夜",
+        "name": "星狐拍立得系列",
+        "typeId": "new:拍立得"
+      },
+      {
+        "tempKey": "星狐立牌系列",
+        "operation": "新增",
+        "projectId": "new:星夜",
+        "name": "星狐立牌系列",
+        "typeId": "new:立牌"
+      }
+    ],
+    "SKU": [
+      {
+        "tempKey": "星狐徽章",
+        "operation": "新增",
+        "productId": "new:星狐徽章系列",
+        "specId": "new:徽章規格",
+        "name": "星狐徽章",
+        "trackingMode": "批次"
+      },
+      {
+        "tempKey": "星狐吊飾",
+        "operation": "新增",
+        "productId": "new:星狐吊飾系列",
+        "specId": "new:吊飾規格",
+        "name": "星狐吊飾",
+        "trackingMode": "批次"
+      },
+      {
+        "tempKey": "月鯨吊飾",
+        "operation": "新增",
+        "productId": "new:月鯨吊飾系列",
+        "specId": "new:吊飾規格",
+        "name": "月鯨吊飾",
+        "trackingMode": "批次"
+      },
+      {
+        "tempKey": "月鯨拍立得",
+        "operation": "新增",
+        "productId": "new:月鯨拍立得系列",
+        "specId": "new:拍立得規格",
+        "name": "月鯨拍立得",
+        "trackingMode": "批次"
+      },
+      {
+        "tempKey": "星狐拍立得",
+        "operation": "新增",
+        "productId": "new:星狐拍立得系列",
+        "specId": "new:拍立得規格",
+        "name": "星狐拍立得",
+        "trackingMode": "批次"
+      },
+      {
+        "tempKey": "星狐立牌",
+        "operation": "新增",
+        "productId": "new:星狐立牌系列",
+        "specId": "new:立牌規格",
+        "name": "星狐立牌",
+        "trackingMode": "批次"
+      }
+    ],
+    "SKUArtwork": [
+      {
+        "tempKey": "星狐徽章用圖",
+        "operation": "新增",
+        "skuId": "new:星狐徽章",
+        "artworkId": "new:星狐Q"
+      },
+      {
+        "tempKey": "星狐吊飾用圖",
+        "operation": "新增",
+        "skuId": "new:星狐吊飾",
+        "artworkId": "new:星狐Q"
+      },
+      {
+        "tempKey": "月鯨吊飾用圖",
+        "operation": "新增",
+        "skuId": "new:月鯨吊飾",
+        "artworkId": "new:月鯨Q"
+      },
+      {
+        "tempKey": "月鯨拍立得用圖",
+        "operation": "新增",
+        "skuId": "new:月鯨拍立得",
+        "artworkId": "new:月鯨Q"
+      },
+      {
+        "tempKey": "星狐拍立得用圖",
+        "operation": "新增",
+        "skuId": "new:星狐拍立得",
+        "artworkId": "new:星狐正比"
+      },
+      {
+        "tempKey": "星狐立牌用圖",
+        "operation": "新增",
+        "skuId": "new:星狐立牌",
+        "artworkId": "new:星狐正比"
+      }
+    ],
+    "SKUInterest": [
+      {
+        "tempKey": "星狐徽章權益",
+        "operation": "新增",
+        "skuId": "new:星狐徽章",
+        "partyId": "new:星狐",
+        "ratio": "100"
+      },
+      {
+        "tempKey": "星狐吊飾權益",
+        "operation": "新增",
+        "skuId": "new:星狐吊飾",
+        "partyId": "new:星狐",
+        "ratio": "100"
+      },
+      {
+        "tempKey": "月鯨吊飾權益",
+        "operation": "新增",
+        "skuId": "new:月鯨吊飾",
+        "partyId": "new:月鯨",
+        "ratio": "100"
+      },
+      {
+        "tempKey": "月鯨拍立得權益",
+        "operation": "新增",
+        "skuId": "new:月鯨拍立得",
+        "partyId": "new:月鯨",
+        "ratio": "100"
+      },
+      {
+        "tempKey": "星狐拍立得權益",
+        "operation": "新增",
+        "skuId": "new:星狐拍立得",
+        "partyId": "new:星狐",
+        "ratio": "100"
+      },
+      {
+        "tempKey": "星狐立牌權益",
+        "operation": "新增",
+        "skuId": "new:星狐立牌",
+        "partyId": "new:星狐",
+        "ratio": "100"
+      }
+    ],
+    "ProductionOrder": [
+      {
+        "tempKey": "星狐徽章製作單",
+        "operation": "新增",
+        "projectId": "new:星夜",
+        "supplierId": "new:廠商",
+        "status": "完成"
+      },
+      {
+        "tempKey": "星狐吊飾製作單",
+        "operation": "新增",
+        "projectId": "new:星夜",
+        "supplierId": "new:廠商",
+        "status": "完成"
+      },
+      {
+        "tempKey": "月鯨吊飾製作單",
+        "operation": "新增",
+        "projectId": "new:海風",
+        "supplierId": "new:廠商",
+        "status": "完成"
+      },
+      {
+        "tempKey": "月鯨拍立得製作單",
+        "operation": "新增",
+        "projectId": "new:海風",
+        "supplierId": "new:廠商",
+        "status": "完成"
+      },
+      {
+        "tempKey": "星狐拍立得製作單",
+        "operation": "新增",
+        "projectId": "new:星夜",
+        "supplierId": "new:廠商",
+        "status": "完成"
+      },
+      {
+        "tempKey": "星狐立牌製作單",
+        "operation": "新增",
+        "projectId": "new:星夜",
+        "supplierId": "new:廠商",
+        "status": "完成"
+      }
+    ],
+    "ProductionBatch": [
+      {
+        "tempKey": "星狐徽章首批",
+        "operation": "新增",
+        "orderId": "new:星狐徽章製作單",
+        "skuId": "new:星狐徽章",
+        "plannedQty": 30,
+        "receivedQty": 30,
+        "estimatedUnitCost": "20"
+      },
+      {
+        "tempKey": "星狐吊飾首批",
+        "operation": "新增",
+        "orderId": "new:星狐吊飾製作單",
+        "skuId": "new:星狐吊飾",
+        "plannedQty": 15,
+        "receivedQty": 15,
+        "estimatedUnitCost": "16"
+      },
+      {
+        "tempKey": "月鯨吊飾首批",
+        "operation": "新增",
+        "orderId": "new:月鯨吊飾製作單",
+        "skuId": "new:月鯨吊飾",
+        "plannedQty": 20,
+        "receivedQty": 20,
+        "estimatedUnitCost": "16"
+      },
+      {
+        "tempKey": "月鯨拍立得首批",
+        "operation": "新增",
+        "orderId": "new:月鯨拍立得製作單",
+        "skuId": "new:月鯨拍立得",
+        "plannedQty": 10,
+        "receivedQty": 10,
+        "estimatedUnitCost": "5"
+      },
+      {
+        "tempKey": "星狐拍立得首批",
+        "operation": "新增",
+        "orderId": "new:星狐拍立得製作單",
+        "skuId": "new:星狐拍立得",
+        "plannedQty": 10,
+        "receivedQty": 10,
+        "estimatedUnitCost": "5"
+      },
+      {
+        "tempKey": "星狐立牌首批",
+        "operation": "新增",
+        "orderId": "new:星狐立牌製作單",
+        "skuId": "new:星狐立牌",
+        "plannedQty": 10,
+        "receivedQty": 10,
+        "estimatedUnitCost": "50"
+      }
+    ],
+    "SalesPlan": [
+      {
+        "tempKey": "第一場Q池",
+        "operation": "新增",
+        "name": "第一場Q池",
+        "sessionId": "new:第一場作業",
+        "status": "啟用"
+      },
+      {
+        "tempKey": "第一場卡池",
+        "operation": "新增",
+        "name": "第一場卡池",
+        "sessionId": "new:第一場作業",
+        "status": "啟用"
+      },
+      {
+        "tempKey": "第一場指定",
+        "operation": "新增",
+        "name": "第一場指定",
+        "sessionId": "new:第一場作業",
+        "status": "啟用"
+      },
+      {
+        "tempKey": "第一場立牌指定",
+        "operation": "新增",
+        "name": "第一場立牌指定",
+        "sessionId": "new:第一場作業",
+        "status": "啟用"
+      },
+      {
+        "tempKey": "第二場Q池",
+        "operation": "新增",
+        "name": "第二場Q池",
+        "sessionId": "new:第二場作業",
+        "status": "啟用"
+      },
+      {
+        "tempKey": "第二場卡池",
+        "operation": "新增",
+        "name": "第二場卡池",
+        "sessionId": "new:第二場作業",
+        "status": "啟用"
+      },
+      {
+        "tempKey": "第二場指定",
+        "operation": "新增",
+        "name": "第二場指定",
+        "sessionId": "new:第二場作業",
+        "status": "啟用"
+      },
+      {
+        "tempKey": "第二場立牌指定",
+        "operation": "新增",
+        "name": "第二場立牌指定",
+        "sessionId": "new:第二場作業",
+        "status": "啟用"
+      }
+    ],
+    "SalesPlanVersion": [
+      {
+        "tempKey": "第一場Q池v1",
+        "operation": "新增",
+        "planId": "new:第一場Q池",
+        "version": "v1",
+        "mode": "抽選",
+        "price": "100"
+      },
+      {
+        "tempKey": "第一場卡池v1",
+        "operation": "新增",
+        "planId": "new:第一場卡池",
+        "version": "v1",
+        "mode": "抽選",
+        "price": "100"
+      },
+      {
+        "tempKey": "第一場指定v1",
+        "operation": "新增",
+        "planId": "new:第一場指定",
+        "version": "v1",
+        "mode": "指定",
+        "price": "250"
+      },
+      {
+        "tempKey": "第一場立牌指定v1",
+        "operation": "新增",
+        "planId": "new:第一場立牌指定",
+        "version": "v1",
+        "mode": "指定",
+        "price": "350"
+      },
+      {
+        "tempKey": "第二場Q池v1",
+        "operation": "新增",
+        "planId": "new:第二場Q池",
+        "version": "v1",
+        "mode": "抽選",
+        "price": "110"
+      },
+      {
+        "tempKey": "第二場卡池v1",
+        "operation": "新增",
+        "planId": "new:第二場卡池",
+        "version": "v1",
+        "mode": "抽選",
+        "price": "110"
+      },
+      {
+        "tempKey": "第二場指定v1",
+        "operation": "新增",
+        "planId": "new:第二場指定",
+        "version": "v1",
+        "mode": "指定",
+        "price": "260"
+      },
+      {
+        "tempKey": "第二場立牌指定v1",
+        "operation": "新增",
+        "planId": "new:第二場立牌指定",
+        "version": "v1",
+        "mode": "指定",
+        "price": "350"
+      }
+    ],
+    "SalesPlanItem": [
+      {
+        "tempKey": "第一場Q池星狐徽章",
+        "operation": "新增",
+        "planVersionId": "new:第一場Q池v1",
+        "skuId": "new:星狐徽章",
+        "qty": 1
+      },
+      {
+        "tempKey": "第一場Q池星狐吊飾",
+        "operation": "新增",
+        "planVersionId": "new:第一場Q池v1",
+        "skuId": "new:星狐吊飾",
+        "qty": 1
+      },
+      {
+        "tempKey": "第一場Q池月鯨吊飾",
+        "operation": "新增",
+        "planVersionId": "new:第一場Q池v1",
+        "skuId": "new:月鯨吊飾",
+        "qty": 1
+      },
+      {
+        "tempKey": "第一場卡池月鯨拍立得",
+        "operation": "新增",
+        "planVersionId": "new:第一場卡池v1",
+        "skuId": "new:月鯨拍立得",
+        "qty": 1
+      },
+      {
+        "tempKey": "第一場卡池星狐拍立得",
+        "operation": "新增",
+        "planVersionId": "new:第一場卡池v1",
+        "skuId": "new:星狐拍立得",
+        "qty": 1
+      },
+      {
+        "tempKey": "第一場指定星狐徽章",
+        "operation": "新增",
+        "planVersionId": "new:第一場指定v1",
+        "skuId": "new:星狐徽章",
+        "qty": 1
+      },
+      {
+        "tempKey": "第一場指定星狐吊飾",
+        "operation": "新增",
+        "planVersionId": "new:第一場指定v1",
+        "skuId": "new:星狐吊飾",
+        "qty": 1
+      },
+      {
+        "tempKey": "第一場指定月鯨吊飾",
+        "operation": "新增",
+        "planVersionId": "new:第一場指定v1",
+        "skuId": "new:月鯨吊飾",
+        "qty": 1
+      },
+      {
+        "tempKey": "第一場立牌指定星狐立牌",
+        "operation": "新增",
+        "planVersionId": "new:第一場立牌指定v1",
+        "skuId": "new:星狐立牌",
+        "qty": 1
+      },
+      {
+        "tempKey": "第二場Q池星狐徽章",
+        "operation": "新增",
+        "planVersionId": "new:第二場Q池v1",
+        "skuId": "new:星狐徽章",
+        "qty": 1
+      },
+      {
+        "tempKey": "第二場Q池星狐吊飾",
+        "operation": "新增",
+        "planVersionId": "new:第二場Q池v1",
+        "skuId": "new:星狐吊飾",
+        "qty": 1
+      },
+      {
+        "tempKey": "第二場Q池月鯨吊飾",
+        "operation": "新增",
+        "planVersionId": "new:第二場Q池v1",
+        "skuId": "new:月鯨吊飾",
+        "qty": 1
+      },
+      {
+        "tempKey": "第二場卡池月鯨拍立得",
+        "operation": "新增",
+        "planVersionId": "new:第二場卡池v1",
+        "skuId": "new:月鯨拍立得",
+        "qty": 1
+      },
+      {
+        "tempKey": "第二場卡池星狐拍立得",
+        "operation": "新增",
+        "planVersionId": "new:第二場卡池v1",
+        "skuId": "new:星狐拍立得",
+        "qty": 1
+      },
+      {
+        "tempKey": "第二場指定星狐徽章",
+        "operation": "新增",
+        "planVersionId": "new:第二場指定v1",
+        "skuId": "new:星狐徽章",
+        "qty": 1
+      },
+      {
+        "tempKey": "第二場指定星狐吊飾",
+        "operation": "新增",
+        "planVersionId": "new:第二場指定v1",
+        "skuId": "new:星狐吊飾",
+        "qty": 1
+      },
+      {
+        "tempKey": "第二場指定月鯨吊飾",
+        "operation": "新增",
+        "planVersionId": "new:第二場指定v1",
+        "skuId": "new:月鯨吊飾",
+        "qty": 1
+      },
+      {
+        "tempKey": "第二場立牌指定星狐立牌",
+        "operation": "新增",
+        "planVersionId": "new:第二場立牌指定v1",
+        "skuId": "new:星狐立牌",
+        "qty": 1
+      }
+    ],
+    "DrawPool": [
+      {
+        "tempKey": "第一場Q池",
+        "operation": "新增",
+        "name": "第一場Q池",
+        "kind": "混合商品",
+        "status": "啟用"
+      },
+      {
+        "tempKey": "第一場卡池",
+        "operation": "新增",
+        "name": "第一場卡池",
+        "kind": "混合商品",
+        "status": "啟用"
+      },
+      {
+        "tempKey": "第二場Q池",
+        "operation": "新增",
+        "name": "第二場Q池",
+        "kind": "混合商品",
+        "status": "啟用"
+      },
+      {
+        "tempKey": "第二場卡池",
+        "operation": "新增",
+        "name": "第二場卡池",
+        "kind": "混合商品",
+        "status": "啟用"
+      }
+    ],
+    "DrawPoolVersion": [
+      {
+        "tempKey": "第一場Q池池v1",
+        "operation": "新增",
+        "poolId": "new:第一場Q池",
+        "version": "v1",
+        "planVersionId": "new:第一場Q池v1",
+        "rule": "直接記錄實際商品",
+        "stockMode": "共用"
+      },
+      {
+        "tempKey": "第一場卡池池v1",
+        "operation": "新增",
+        "poolId": "new:第一場卡池",
+        "version": "v1",
+        "planVersionId": "new:第一場卡池v1",
+        "rule": "直接記錄實際商品",
+        "stockMode": "共用"
+      },
+      {
+        "tempKey": "第二場Q池池v1",
+        "operation": "新增",
+        "poolId": "new:第二場Q池",
+        "version": "v1",
+        "planVersionId": "new:第二場Q池v1",
+        "rule": "直接記錄實際商品",
+        "stockMode": "共用"
+      },
+      {
+        "tempKey": "第二場卡池池v1",
+        "operation": "新增",
+        "poolId": "new:第二場卡池",
+        "version": "v1",
+        "planVersionId": "new:第二場卡池v1",
+        "rule": "直接記錄實際商品",
+        "stockMode": "共用"
+      }
+    ],
+    "DrawPoolItem": [
+      {
+        "tempKey": "第一場Q池星狐徽章配置",
+        "operation": "新增",
+        "poolVersionId": "new:第一場Q池池v1",
+        "skuId": "new:星狐徽章",
+        "qty": 5,
+        "locationId": "new:第一場庫位"
+      },
+      {
+        "tempKey": "第一場Q池星狐吊飾配置",
+        "operation": "新增",
+        "poolVersionId": "new:第一場Q池池v1",
+        "skuId": "new:星狐吊飾",
+        "qty": 5,
+        "locationId": "new:第一場庫位"
+      },
+      {
+        "tempKey": "第一場Q池月鯨吊飾配置",
+        "operation": "新增",
+        "poolVersionId": "new:第一場Q池池v1",
+        "skuId": "new:月鯨吊飾",
+        "qty": 5,
+        "locationId": "new:第一場庫位"
+      },
+      {
+        "tempKey": "第一場卡池月鯨拍立得配置",
+        "operation": "新增",
+        "poolVersionId": "new:第一場卡池池v1",
+        "skuId": "new:月鯨拍立得",
+        "qty": 5,
+        "locationId": "new:第一場庫位"
+      },
+      {
+        "tempKey": "第一場卡池星狐拍立得配置",
+        "operation": "新增",
+        "poolVersionId": "new:第一場卡池池v1",
+        "skuId": "new:星狐拍立得",
+        "qty": 5,
+        "locationId": "new:第一場庫位"
+      },
+      {
+        "tempKey": "第二場Q池星狐徽章配置",
+        "operation": "新增",
+        "poolVersionId": "new:第二場Q池池v1",
+        "skuId": "new:星狐徽章",
+        "qty": 5,
+        "locationId": "new:第二場庫位"
+      },
+      {
+        "tempKey": "第二場Q池星狐吊飾配置",
+        "operation": "新增",
+        "poolVersionId": "new:第二場Q池池v1",
+        "skuId": "new:星狐吊飾",
+        "qty": 5,
+        "locationId": "new:第二場庫位"
+      },
+      {
+        "tempKey": "第二場Q池月鯨吊飾配置",
+        "operation": "新增",
+        "poolVersionId": "new:第二場Q池池v1",
+        "skuId": "new:月鯨吊飾",
+        "qty": 5,
+        "locationId": "new:第二場庫位"
+      },
+      {
+        "tempKey": "第二場卡池月鯨拍立得配置",
+        "operation": "新增",
+        "poolVersionId": "new:第二場卡池池v1",
+        "skuId": "new:月鯨拍立得",
+        "qty": 5,
+        "locationId": "new:第二場庫位"
+      },
+      {
+        "tempKey": "第二場卡池星狐拍立得配置",
+        "operation": "新增",
+        "poolVersionId": "new:第二場卡池池v1",
+        "skuId": "new:星狐拍立得",
+        "qty": 5,
+        "locationId": "new:第二場庫位"
+      }
+    ]
+  },
+  "operations": [
+    {
+      "id": "SCN-01",
+      "command": "ReceiveStock",
+      "items": [
+        {
+          "batch": "new:星狐徽章首批",
+          "location": "new:倉庫",
+          "qty": 30
+        },
+        {
+          "batch": "new:星狐吊飾首批",
+          "location": "new:倉庫",
+          "qty": 15
+        },
+        {
+          "batch": "new:月鯨吊飾首批",
+          "location": "new:倉庫",
+          "qty": 20
+        },
+        {
+          "batch": "new:月鯨拍立得首批",
+          "location": "new:倉庫",
+          "qty": 10
+        },
+        {
+          "batch": "new:星狐拍立得首批",
+          "location": "new:倉庫",
+          "qty": 10
+        },
+        {
+          "batch": "new:星狐立牌首批",
+          "location": "new:倉庫",
+          "qty": 10
+        }
+      ],
+      "expected": {
+        "totalBookQty": 95
+      }
+    },
+    {
+      "id": "SCN-02",
+      "command": "TransferStock",
+      "from": "new:倉庫",
+      "to": "new:第一場庫位",
+      "items": [
+        {
+          "sku": "new:星狐徽章",
+          "qty": 10
+        },
+        {
+          "sku": "new:星狐吊飾",
+          "qty": 5
+        },
+        {
+          "sku": "new:月鯨吊飾",
+          "qty": 10
+        },
+        {
+          "sku": "new:月鯨拍立得",
+          "qty": 5
+        },
+        {
+          "sku": "new:星狐拍立得",
+          "qty": 5
+        },
+        {
+          "sku": "new:星狐立牌",
+          "qty": 4
+        }
+      ],
+      "expected": {
+        "transferredQty": 39,
+        "totalBookQty": 95
+      }
+    },
+    {
+      "id": "SCN-03",
+      "command": "PostSale",
+      "session": "new:第一場作業",
+      "operationId": "sale-a",
+      "items": [
+        {
+          "plan": "new:第一場Q池v1",
+          "sku": "new:星狐徽章",
+          "qty": 1,
+          "unitPrice": "100"
+        },
+        {
+          "plan": "new:第一場Q池v1",
+          "sku": "new:月鯨吊飾",
+          "qty": 1,
+          "unitPrice": "100"
+        },
+        {
+          "plan": "new:第一場卡池v1",
+          "sku": "new:月鯨拍立得",
+          "qty": 1,
+          "unitPrice": "100"
+        },
+        {
+          "plan": "new:第一場立牌指定v1",
+          "sku": "new:星狐立牌",
+          "qty": 1,
+          "unitPrice": "350"
+        }
+      ],
+      "tendered": "700",
+      "collector": "new:團務",
+      "expected": {
+        "netRevenue": "650",
+        "change": "50",
+        "netReceipt": "650",
+        "projectRevenue": {
+          "星夜": "450",
+          "海風": "200"
+        },
+        "totalBookQty": 91
+      }
+    },
+    {
+      "id": "SCN-04",
+      "command": "PostSale",
+      "session": "new:第一場作業",
+      "operationId": "sale-b",
+      "items": [
+        {
+          "plan": "new:第一場指定v1",
+          "sku": "new:星狐徽章",
+          "qty": 9,
+          "unitPrice": "250"
+        }
+      ],
+      "tendered": "2250",
+      "collector": "new:團務",
+      "expected": {
+        "netRevenue": "2250",
+        "availableStarBadgeFirstEvent": 0,
+        "totalBookQty": 82
+      }
+    },
+    {
+      "id": "SCN-05",
+      "command": "SoldOutRedraw",
+      "sku": "new:星狐徽章",
+      "expected": {
+        "newSaleCount": 0,
+        "newStockEntryCount": 0,
+        "extraCharge": "0",
+        "message": "售罄，請重抽"
+      }
+    },
+    {
+      "id": "SCN-06",
+      "command": "ReturnSaleItems",
+      "originalSaleOperation": "sale-b",
+      "sku": "new:星狐徽章",
+      "qty": 1,
+      "refundAmount": "250",
+      "disposition": "良品回庫",
+      "expected": {
+        "availableStarBadgeFirstEvent": 1,
+        "totalNetRevenue": "2650",
+        "totalBookQty": 83
+      }
+    },
+    {
+      "id": "SCN-07",
+      "command": "Stocktake",
+      "location": "new:第一場庫位",
+      "countedMoonCharm": 8,
+      "expected": {
+        "bookMoonCharm": 9,
+        "difference": -1,
+        "autoSaleCreated": false,
+        "unresolvedAllowed": true,
+        "noStockChangeUntilAdjustment": true
+      }
+    },
+    {
+      "id": "SCN-08",
+      "command": "TransferStock",
+      "from": "new:第一場庫位",
+      "to": "new:第二場庫位",
+      "basis": "transfer counted stock only; leave one unresolved book unit at first-event location",
+      "expected": {
+        "starBadge": 1,
+        "starCharm": 5,
+        "moonCharm": 8,
+        "moonCard": 4,
+        "starCard": 5,
+        "starStand": 3,
+        "totalBookQty": 83,
+        "mustShowUnresolvedDifference": true,
+        "unresolvedBookQtyAtFirstEvent": 1
+      }
+    },
+    {
+      "id": "SCN-09",
+      "command": "CloseProject",
+      "project": "new:星夜",
+      "ruleStatus": "partial",
+      "expected": {
+        "allowed": true,
+        "openItemsPreserved": true,
+        "noDebtOrStockErasure": true
+      }
+    }
+  ],
+  "expectedReferenceBehavior": {
+    "sortingRows": "same relations",
+    "duplicateTemporaryKey": "TEMP_KEY_DUPLICATE",
+    "unknownTemporaryReference": "REF_NOT_FOUND",
+    "sameNameDifferentKey": "distinct records",
+    "reimportSameDocument": "DOCUMENT_REPLAY",
+    "noMoonBadge": "no SKU is created for absent product"
+  },
+  "expectedBackupBehavior": {
+    "preserveIds": true,
+    "preserveHistory": true,
+    "excludeFromEquality": [
+      "documentId",
+      "exportedAt",
+      "style",
+      "newImportAuditEvents"
+    ]
+  }
+}

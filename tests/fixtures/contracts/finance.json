@@ -1,0 +1,529 @@
+{
+  "version": "1.0.0",
+  "status": "acceptance vectors; no implementation under test yet",
+  "amountEncoding": "integer TWD strings; rational values as numerator/denominator",
+  "cases": [
+    {
+      "id": "FIN-01",
+      "origin": "provided-workbook",
+      "operation": "artworkAllocation",
+      "input": {
+        "artworkFee": "4000",
+        "method": "unit-print-cost",
+        "unitCosts": [
+          "20",
+          "16",
+          "16",
+          "5"
+        ],
+        "quantities": [
+          30,
+          15,
+          15,
+          30
+        ],
+        "agreedUnitRecovery": [
+          "47",
+          "75",
+          "75",
+          "12"
+        ]
+      },
+      "expected": {
+        "allocatedArtwork": [
+          "80000/57",
+          "64000/57",
+          "64000/57",
+          "20000/57"
+        ],
+        "unitArtwork": [
+          "8000/171",
+          "12800/171",
+          "12800/171",
+          "2000/171"
+        ],
+        "unitCombined": [
+          "11420/171",
+          "15536/171",
+          "15536/171",
+          "2855/171"
+        ],
+        "agreedTotal": "4020",
+        "difference": "20",
+        "differencePolicy": null
+      }
+    },
+    {
+      "id": "FIN-02",
+      "origin": "provided-workbook",
+      "operation": "actualCost",
+      "input": {
+        "estimatedTotal": "1710",
+        "actualTotal": "1368",
+        "quantity": 30,
+        "artworkFee": "6000",
+        "weightUnitCosts": [
+          "57",
+          "5"
+        ],
+        "artworkQuantities": [
+          30,
+          30
+        ]
+      },
+      "expected": {
+        "actualUnitPrint": "228/5",
+        "allocatedArtworkStand": "171000/31",
+        "unitArtworkStand": "5700/31",
+        "actualCombinedStand": "35568/155",
+        "estimatedCombinedStand": "7467/31",
+        "internalCharge": "1368",
+        "estimateDifference": "342",
+        "groupFundReceivable": "0"
+      }
+    },
+    {
+      "id": "FIN-03",
+      "origin": "provided-workbook",
+      "operation": "actualCost",
+      "input": {
+        "estimatedTotal": "1200",
+        "actualTotal": "960",
+        "quantity": 20
+      },
+      "expected": {
+        "actualUnitPrint": "48",
+        "estimateDifference": "240",
+        "groupFundReceivable": "0"
+      }
+    },
+    {
+      "id": "FIN-04",
+      "origin": "confirmed-conversation",
+      "operation": "afterArtworkCommission",
+      "input": {
+        "netRevenue": "1000",
+        "soldArtworkRecovery": "100",
+        "commissionPercent": "20",
+        "fundingMode": "commission-funded-no-repayment"
+      },
+      "expected": {
+        "commission": "180",
+        "creatorDistribution": "720",
+        "artworkRecovery": "100",
+        "organizerTotalIfBothBelongToOrganizer": "280",
+        "creatorDebtFromFunding": "0"
+      }
+    },
+    {
+      "id": "FIN-05",
+      "origin": "synthetic",
+      "operation": "artworkAllocation",
+      "input": {
+        "artworkFee": "900",
+        "unitCosts": [
+          "10",
+          "20"
+        ],
+        "quantities": [
+          10,
+          20
+        ]
+      },
+      "expected": {
+        "byUnitCost": [
+          "300",
+          "600"
+        ],
+        "byProductionTotal": [
+          "180",
+          "720"
+        ],
+        "byItemAverage": [
+          "450",
+          "450"
+        ],
+        "byQuantity": [
+          "300",
+          "600"
+        ]
+      }
+    },
+    {
+      "id": "FIN-06",
+      "origin": "synthetic",
+      "operation": "allocateWholeCurrency",
+      "input": {
+        "total": "100",
+        "weights": [
+          "1",
+          "1",
+          "1"
+        ],
+        "stableIds": [
+          "a",
+          "b",
+          "c"
+        ]
+      },
+      "expected": {
+        "amounts": [
+          "34",
+          "33",
+          "33"
+        ],
+        "sum": "100"
+      }
+    },
+    {
+      "id": "FIN-07",
+      "origin": "synthetic",
+      "operation": "allocateWholeCurrency",
+      "input": {
+        "total": "-100",
+        "weights": [
+          "1",
+          "1",
+          "1"
+        ],
+        "stableIds": [
+          "a",
+          "b",
+          "c"
+        ]
+      },
+      "expected": {
+        "amounts": [
+          "-34",
+          "-33",
+          "-33"
+        ],
+        "sum": "-100"
+      }
+    },
+    {
+      "id": "FIN-08",
+      "origin": "synthetic",
+      "operation": "roundHalfAwayFromZero",
+      "input": {
+        "values": [
+          "5/2",
+          "-5/2",
+          "24999/10000",
+          "-24999/10000"
+        ]
+      },
+      "expected": {
+        "rounded": [
+          "3",
+          "-3",
+          "2",
+          "-2"
+        ]
+      }
+    },
+    {
+      "id": "FIN-09",
+      "origin": "synthetic",
+      "operation": "cumulativeRecovery",
+      "input": {
+        "unitRecovery": "0.3333",
+        "cumulativeQuantities": [
+          1,
+          2,
+          3
+        ],
+        "previousRecognized": [
+          "0",
+          "0",
+          "1"
+        ]
+      },
+      "expected": {
+        "cumulativeRounded": [
+          "0",
+          "1",
+          "1"
+        ],
+        "increments": [
+          "0",
+          "1",
+          "0"
+        ],
+        "allAtOnce": "1"
+      }
+    },
+    {
+      "id": "FIN-10",
+      "origin": "synthetic",
+      "operation": "fundingBalance",
+      "input": {
+        "principal": "1368",
+        "recovered": "500",
+        "forgiven": "0"
+      },
+      "expected": {
+        "unpaidPrincipal": "868",
+        "recoveryIsRevenue": false
+      }
+    },
+    {
+      "id": "FIN-11",
+      "origin": "synthetic",
+      "operation": "negativeCommission",
+      "input": {
+        "netRevenue": "100",
+        "specifiedCosts": "150",
+        "percent": "20",
+        "negativePolicy": null
+      },
+      "expected": {
+        "status": "partial",
+        "commission": null,
+        "manualDecisionAllowed": true,
+        "closeAllowed": true
+      }
+    },
+    {
+      "id": "FIN-12",
+      "origin": "synthetic",
+      "operation": "negativeCommission",
+      "input": {
+        "netRevenue": "100",
+        "specifiedCosts": "150",
+        "percent": "20",
+        "negativePolicy": "floor-zero"
+      },
+      "expected": {
+        "commission": "0",
+        "lossBeforeOtherCosts": "-50"
+      }
+    },
+    {
+      "id": "FIN-13",
+      "origin": "synthetic",
+      "operation": "negativeCommission",
+      "input": {
+        "netRevenue": "100",
+        "specifiedCosts": "150",
+        "percent": "20",
+        "negativePolicy": "share-negative"
+      },
+      "expected": {
+        "commission": "-10"
+      }
+    },
+    {
+      "id": "FIN-14",
+      "origin": "synthetic",
+      "operation": "refundOriginalCommission",
+      "input": {
+        "originalRevenue": "100",
+        "originalArtRecovery": "10",
+        "percent": "20",
+        "refundRevenue": "100",
+        "returnedQty": 1,
+        "originalQty": 1
+      },
+      "expected": {
+        "commissionAdjustment": "-18",
+        "artRecoveryAdjustment": "-10",
+        "cumulativeNetRevenue": "0"
+      }
+    },
+    {
+      "id": "FIN-15",
+      "origin": "synthetic",
+      "operation": "fixedFeeCumulative",
+      "input": {
+        "feePerProject": "100",
+        "settlementCount": 3
+      },
+      "expected": {
+        "totalFee": "100"
+      }
+    },
+    {
+      "id": "FIN-16",
+      "origin": "synthetic",
+      "operation": "orderDiscount",
+      "input": {
+        "lineNetBeforeOrderDiscount": [
+          "100",
+          "200"
+        ],
+        "orderDiscount": "10",
+        "stableIds": [
+          "a",
+          "b"
+        ]
+      },
+      "expected": {
+        "allocatedDiscount": [
+          "3",
+          "7"
+        ],
+        "finalRevenue": [
+          "97",
+          "193"
+        ],
+        "sum": "290"
+      }
+    },
+    {
+      "id": "FIN-17",
+      "origin": "synthetic",
+      "operation": "manualDecision",
+      "input": {
+        "sourceAvailable": "100",
+        "computed": [
+          "60",
+          "40"
+        ],
+        "decided": [
+          "80",
+          "30"
+        ]
+      },
+      "expected": {
+        "decisionAllowed": true,
+        "difference": "-10",
+        "mustNotCreateFakeReceipt": true
+      }
+    },
+    {
+      "id": "FIN-18",
+      "origin": "synthetic",
+      "operation": "breakEven",
+      "input": {
+        "fixedBatchOutlay": "1000",
+        "unitRevenue": "100",
+        "otherVariableCost": "20"
+      },
+      "expected": {
+        "quantity": 13,
+        "mustNotDeductBatchCostAgain": true
+      }
+    },
+    {
+      "id": "FIN-19",
+      "origin": "synthetic",
+      "operation": "breakEven",
+      "input": {
+        "fixedBatchOutlay": "1000",
+        "unitRevenue": "100",
+        "otherVariableCost": "100"
+      },
+      "expected": {
+        "quantity": null,
+        "status": "unreachable"
+      }
+    },
+    {
+      "id": "FIN-20",
+      "origin": "synthetic",
+      "operation": "unpaidSupplier",
+      "input": {
+        "confirmedExpense": "1000",
+        "paid": "0"
+      },
+      "expected": {
+        "supplierPayable": "1000",
+        "advancePrincipal": "0"
+      }
+    },
+    {
+      "id": "FIN-21",
+      "origin": "synthetic",
+      "operation": "giveaway",
+      "input": {
+        "quantity": 1,
+        "unitPrintCost": "20",
+        "unitArtworkCost": "30",
+        "burdenParty": null
+      },
+      "expected": {
+        "salesRevenue": "0",
+        "inventoryCostOut": "50",
+        "status": "partial",
+        "creatorDebt": null
+      }
+    },
+    {
+      "id": "FIN-22",
+      "origin": "synthetic",
+      "operation": "manualArtworkAllocation",
+      "input": {
+        "artworkFee": "100",
+        "allocations": [
+          "40",
+          "50"
+        ]
+      },
+      "expected": {
+        "error": "AMOUNT_UNBALANCED"
+      }
+    },
+    {
+      "id": "FIN-23",
+      "origin": "synthetic",
+      "operation": "duplicateRecovery",
+      "input": {
+        "principal": "100",
+        "recoverySourceId": "same-source",
+        "applications": [
+          "100",
+          "100"
+        ]
+      },
+      "expected": {
+        "error": "AMOUNT_UNBALANCED",
+        "mustNotCommitSecond": true
+      }
+    },
+    {
+      "id": "FIN-24",
+      "origin": "synthetic",
+      "operation": "costDeductionVersusCash",
+      "input": {
+        "netRevenue": "1000",
+        "printCost": "400",
+        "artCost": "100",
+        "percent": "20",
+        "printPaidBy": "creator",
+        "artPaidBy": "organizer",
+        "profitRecipient": "creator"
+      },
+      "expected": {
+        "profitBasis": "500",
+        "commission": "100",
+        "creatorCostRecovery": "400",
+        "creatorProfit": "400",
+        "creatorTotal": "800",
+        "organizerArtRecovery": "100",
+        "organizerCommission": "100",
+        "totalDistributed": "1000"
+      }
+    },
+    {
+      "id": "FIN-25",
+      "origin": "synthetic",
+      "operation": "closeWithUnresolvedItems",
+      "input": {
+        "unpaidAdvance": "100",
+        "stockDifference": -1,
+        "closeoutPolicy": null,
+        "userDecision": "close"
+      },
+      "expected": {
+        "closeAllowed": true,
+        "unpaidAdvanceAfterClose": "100",
+        "inventoryAdjustmentCreated": false,
+        "warnings": [
+          "OPEN_ITEMS",
+          "CALCULATION_UNKNOWN"
+        ]
+      }
+    }
+  ]
+}
