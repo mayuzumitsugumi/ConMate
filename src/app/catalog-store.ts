@@ -1,3 +1,18 @@
+import {
+  putArtworkExpense,
+  applyArtworkAllocation,
+  reverseArtworkAllocation,
+  voidArtworkExpense,
+} from "../domain/finance/artwork";
+import {
+  putExpensePayment,
+  reverseExpensePayment,
+} from "../domain/finance/payments";
+import type {
+  ArtworkExpenseInput,
+  ArtworkAllocationInput,
+  ExpensePaymentInput,
+} from "../domain/models/catalog";
 import { putProductNames } from "../domain/catalog/bulk";
 import { refundSale as putRefund } from "../domain/sales/refunds";
 import type { RefundInput } from "../domain/models/catalog";
@@ -226,7 +241,31 @@ export const useCatalogStore = defineStore("catalog", () => {
     mutate((s) => {
       putProductNames(s, names);
     });
+  const createArtworkExpense = (input: ArtworkExpenseInput) =>
+    mutate((s) => {
+      putArtworkExpense(s, input);
+    });
+  const allocateArtwork = (id: string, input: ArtworkAllocationInput) =>
+    mutate((s) => {
+      applyArtworkAllocation(s, id, input);
+    });
+  const undoArtworkAllocation = (id: string, reason: string) =>
+    mutate((s) => reverseArtworkAllocation(s, id, reason));
+  const cancelArtworkExpense = (id: string, reason: string) =>
+    mutate((s) => voidArtworkExpense(s, id, reason));
+  const recordExpensePayment = (input: ExpensePaymentInput) =>
+    mutate((s) => {
+      putExpensePayment(s, input);
+    });
+  const undoExpensePayment = (id: string, reason: string) =>
+    mutate((s) => reverseExpensePayment(s, id, reason));
   return {
+    createArtworkExpense,
+    allocateArtwork,
+    undoArtworkAllocation,
+    cancelArtworkExpense,
+    recordExpensePayment,
+    undoExpensePayment,
     bulkSaveProducts,
     recordRefund,
     startStocktake,

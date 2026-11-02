@@ -6,6 +6,7 @@ import type {
   CostRecord,
   AdvanceInput,
   AdvanceRecord,
+  ManagedArtworkAllocation,
 } from "../models/catalog";
 
 export function putCost(s: CatalogSnapshot, input: CostInput, id?: string) {
@@ -13,6 +14,19 @@ export function putCost(s: CatalogSnapshot, input: CostInput, id?: string) {
   if (!p) throw new Error("請選擇商品。");
   const old = id ? s.costs.find((c) => c.id === id) : undefined;
   if (id && !old) throw new Error("找不到成本紀錄。");
+  if (
+    old?.artworkAllocation &&
+    [
+      "productId",
+      "quantity",
+      "estimatedPrint",
+      "actualPrint",
+      "artworkAllocated",
+    ].some((key) => (old as any)[key] !== (input as any)[key])
+  )
+    throw new Error(
+      "此成本由柄圖分攤管理，請先撤銷分攤再修改商品、數量或印製／柄圖基準。",
+    );
   const name = text(input.name, "批次／成本名稱", 80);
   whole(input.quantity, "製作數量", true);
   for (const key of [
@@ -46,7 +60,7 @@ export function putCost(s: CatalogSnapshot, input: CostInput, id?: string) {
     notes: input.notes.trim(),
     updatedAt: new Date().toISOString(),
   };
-  costSummary(value);
+  costSummary({ ...value, artworkAllocation: old?.artworkAllocation });
   if (old) Object.assign(old, value);
   else
     s.costs.push({
@@ -57,34 +71,56 @@ export function putCost(s: CatalogSnapshot, input: CostInput, id?: string) {
     });
 }
 // Exact fractions until final display. Unknown values remain unknown rather than zero.
-export function costSummary(c: CostInput) {
+// CostInput remains editable manual data. CostRecord may additionally carry a managed exact artwork source.
+export function costSummary(
+  c: CostInput & { artworkAllocation?: ManagedArtworkAllocation },
+) {
   if (
     c.actualPrint === null ||
     c.artworkAllocated === null ||
     c.otherCost === null
   )
     return null;
-  const total = safeAmount(
+  const art = c.artworkAllocation;
+  if (
+    art &&
+    (!/^(0|[1-9]\d*)$/.test(art.numerator) ||
+      !/^[1-9]\d*$/.test(art.denominator) ||
+      art.numerator.length > 2000 ||
+      art.denominator.length > 2000)
+  )
+    throw new Error("精確柄圖分數不正確。");
+  const d = art ? BigInt(art.denominator) : 1n;
+  const n =
+    (BigInt(c.actualPrint) + BigInt(c.otherCost)) * d +
+    (art ? BigInt(art.numerator) : BigInt(c.artworkAllocated));
+  if (n > BigInt(Number.MAX_SAFE_INTEGER) * d)
+    throw new Error("成本合計超過安全範圍。");
+  const integerTotal = safeAmount(
     BigInt(c.actualPrint) + BigInt(c.artworkAllocated) + BigInt(c.otherCost),
   );
   const revenue =
     c.unitSalePrice === null
       ? null
       : safeAmount(BigInt(c.quantity) * BigInt(c.unitSalePrice));
-  const profit = revenue === null ? null : BigInt(revenue) - BigInt(total);
+  const profitNumerator = revenue === null ? null : BigInt(revenue) * d - n;
+  const integerString = (v: bigint, den: bigint) =>
+    v % den === 0n ? (v / den).toString() : fractionDecimal(v, den);
   const breakEven =
     c.unitSalePrice === null || c.unitSalePrice === 0
       ? null
-      : (BigInt(total) + BigInt(c.unitSalePrice) - 1n) /
-        BigInt(c.unitSalePrice);
+      : (n + BigInt(c.unitSalePrice) * d - 1n) / (BigInt(c.unitSalePrice) * d);
   return {
-    total,
-    unitCost: fractionDecimal(BigInt(total), BigInt(c.quantity)),
+    total: art ? integerString(n, d) : integerTotal,
+    integerTotal,
+    exactTotal: { numerator: n.toString(), denominator: d.toString() },
+    unitCost: fractionDecimal(n, d * BigInt(c.quantity)),
     revenue,
-    profit: profit === null ? null : profit.toString(),
+    profit: profitNumerator === null ? null : integerString(profitNumerator, d),
     breakEven: breakEven?.toString() ?? null,
   };
 }
+
 export function fractionDecimal(
   numerator: bigint,
   denominator: bigint,

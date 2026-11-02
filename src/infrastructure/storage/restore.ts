@@ -62,6 +62,8 @@ const groups = {
   refunds: "退款退貨",
   costs: "成本",
   advances: "代墊",
+  artworkExpenses: "柄圖費來源與分攤版本",
+  expensePayments: "廠商實際付款",
 } as const;
 export async function previewWorkspaceRestore(input: unknown) {
   const incoming = validateRestoreSnapshot(structuredClone(input));

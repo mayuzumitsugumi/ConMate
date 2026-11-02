@@ -1,3 +1,5 @@
+import { previewArtworkAllocation } from "../finance/artwork";
+import type { ArtworkExpenseRecord } from "../models/catalog";
 import { saleTotal } from "../sales/operations";
 import { costSummary } from "../finance/operations";
 import { safeShopUrl } from "../inventory/online";
@@ -69,6 +71,8 @@ const keys = [
   "refunds",
   "costs",
   "advances",
+  "artworkExpenses",
+  "expensePayments",
 ] as const;
 export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   // Older backups gain empty inventory; never invent physical stock.
@@ -97,11 +101,20 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     planned.schemaVersion === 8
       ? { ...planned, schemaVersion: 9, stocktakes: [] }
       : planned;
-  const s =
+  const returned =
     counted.schemaVersion === 9
       ? { ...counted, schemaVersion: 10, refunds: [] }
       : counted;
-  if (s.schemaVersion !== 10) fail("目前僅支援網站資料版本 3 至 10。");
+  const s =
+    returned.schemaVersion === 10
+      ? {
+          ...returned,
+          schemaVersion: 11,
+          artworkExpenses: [],
+          expensePayments: [],
+        }
+      : returned;
+  if (s.schemaVersion !== 11) fail("目前僅支援網站資料版本 3 至 11。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -753,5 +766,200 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
       if (!a.voidReason.trim() || paid !== 0n) fail("作廢代墊仍有有效還款。");
     } else if (a.voidReason) fail("代墊作廢資料不一致。");
   }
+  const managedArtwork = new Map<
+    string,
+    { sourceId: string; version: number; target: any }
+  >();
+  for (const source of s.artworkExpenses) {
+    ref("artworks", source.artworkId);
+    integer(source.amount);
+    str(source.notes, "柄圖費備註");
+    time(source.createdAt);
+    str(source.voidedAt, "柄圖費作廢時間", 40);
+    str(source.voidReason, "柄圖費作廢原因");
+    if (!Array.isArray(source.allocations) || source.allocations.length > 1000)
+      fail("柄圖費分攤歷史格式不正確。");
+    if (source.voidedAt) {
+      time(source.voidedAt);
+      if (!source.voidReason.trim()) fail("作廢柄圖費缺少原因。");
+    } else if (source.voidReason) fail("柄圖費作廢資料不一致。");
+    for (let i = 0; i < source.allocations.length; i++) {
+      const a = obj(source.allocations[i]);
+      if (a.version !== i + 1) fail("柄圖分攤版本不連續。");
+      if (
+        !["unit-print", "total-print", "equal", "custom", "manual"].includes(
+          a.method,
+        ) ||
+        !["actual", "estimated"].includes(a.basis)
+      )
+        fail("柄圖分攤規則不正確。");
+      time(a.createdAt);
+      str(a.reversedAt, "分攤撤銷時間", 40);
+      str(a.reverseReason, "分攤撤銷原因");
+      if (Date.parse(a.createdAt) < Date.parse(source.createdAt))
+        fail("柄圖分攤時間順序不正確。");
+      if (
+        i &&
+        (!source.allocations[i - 1].reversedAt ||
+          Date.parse(a.createdAt) <
+            Date.parse(source.allocations[i - 1].reversedAt))
+      )
+        fail("柄圖分攤版本重疊。");
+      if (a.reversedAt) {
+        time(a.reversedAt);
+        if (
+          !a.reverseReason.trim() ||
+          Date.parse(a.reversedAt) < Date.parse(a.createdAt)
+        )
+          fail("分攤撤銷資料不正確。");
+      } else if (
+        a.reverseReason ||
+        source.voidedAt ||
+        i !== source.allocations.length - 1
+      )
+        fail("生效分攤資料不一致。");
+      if (
+        !Array.isArray(a.targets) ||
+        !a.targets.length ||
+        a.targets.length > 1000
+      )
+        fail("柄圖分攤目標不正確。");
+      for (const t of a.targets) {
+        obj(t);
+        ref("costs", t.costId);
+        ref("products", t.productId);
+        integer(t.quantity);
+        if (!t.quantity) fail("分攤製作數量必須大於零。");
+        if (t.printTotal !== null) integer(t.printTotal);
+        if (t.manualAmount !== null) integer(t.manualAmount);
+        if (t.previousAmount !== null) integer(t.previousAmount);
+        str(t.weight, "分攤權重", 40);
+        integer(t.integerAmount);
+        const exact = obj(t.exactAmount);
+        for (const k of ["numerator", "denominator"]) {
+          str(exact[k], "精確分攤分數", 2000, true);
+          if (!/^(0|[1-9]\d*)$/.test(exact[k])) fail("精確分攤分數不正確。");
+        }
+        if (exact.denominator === "0") fail("分母必須大於零。");
+      }
+      const simulated = {
+        ...s,
+        costs: a.targets.map((t: any) => ({
+          ...maps.costs!.get(t.costId),
+          productId: t.productId,
+          quantity: t.quantity,
+          actualPrint:
+            a.basis === "actual"
+              ? t.printTotal
+              : maps.costs!.get(t.costId).actualPrint,
+          estimatedPrint:
+            a.basis === "estimated"
+              ? t.printTotal
+              : maps.costs!.get(t.costId).estimatedPrint,
+          artworkAllocated: t.previousAmount,
+          artworkAllocation: undefined,
+          archived: false,
+        })),
+        products: s.products.map((p: any) =>
+          a.targets.some((t: any) => t.productId === p.id)
+            ? { ...p, artworkId: source.artworkId }
+            : p,
+        ),
+      };
+      const recalculated = previewArtworkAllocation(
+        simulated as CatalogSnapshot,
+        source as ArtworkExpenseRecord,
+        {
+          method: a.method,
+          basis: a.basis,
+          targets: a.targets.map((t: any) => ({
+            costId: t.costId,
+            weight: t.weight,
+            manualAmount: t.manualAmount,
+          })),
+          allowReplaceManual: true,
+        },
+      );
+      for (let j = 0; j < a.targets.length; j++) {
+        const t = a.targets[j],
+          expected = recalculated[j]!;
+        if (
+          t.integerAmount !== expected.integerAmount ||
+          t.exactAmount.numerator !== expected.exactAmount.numerator ||
+          t.exactAmount.denominator !== expected.exactAmount.denominator
+        )
+          fail("柄圖精確分攤或整元分攤與規則不一致。");
+        if (!a.reversedAt) {
+          if (managedArtwork.has(t.costId))
+            fail("同一成本重複承擔生效柄圖分攤。");
+          managedArtwork.set(t.costId, {
+            sourceId: source.id,
+            version: a.version,
+            target: t,
+          });
+        }
+      }
+    }
+  }
+  for (const cost of s.costs) {
+    const managed = managedArtwork.get(cost.id);
+    const exact = cost.artworkAllocation;
+    if (managed) {
+      const t = managed.target;
+      const source = maps.artworkExpenses!.get(managed.sourceId);
+      const a = source.allocations.find(
+        (a: any) => a.version === managed.version,
+      );
+      if (
+        !exact ||
+        exact.sourceId !== managed.sourceId ||
+        exact.version !== managed.version ||
+        exact.numerator !== t.exactAmount.numerator ||
+        exact.denominator !== t.exactAmount.denominator ||
+        cost.artworkAllocated !== t.integerAmount ||
+        cost.quantity !== t.quantity ||
+        cost.productId !== t.productId ||
+        (a.basis === "actual" ? cost.actualPrint : cost.estimatedPrint) !==
+          t.printTotal
+      )
+        fail("成本柄圖分攤來源或基準不一致。");
+    } else if (exact !== undefined) fail("成本存在沒有生效來源的柄圖分攤。");
+  }
+  const paymentOperations = new Set<string>();
+  for (const p of s.expensePayments) {
+    str(p.operationId, "付款操作識別", 100, true);
+    if (paymentOperations.has(p.operationId)) fail("付款操作識別重複。");
+    paymentOperations.add(p.operationId);
+    if (!["print", "other", "artwork"].includes(p.category))
+      fail("廠商付款類別不正確。");
+    if (p.category === "artwork") {
+      ref("artworkExpenses", p.artworkSourceId);
+      if (
+        p.costId ||
+        (!p.reversedAt && maps.artworkExpenses!.get(p.artworkSourceId).voidedAt)
+      )
+        fail("廠商付款柄圖來源不正確。");
+    } else {
+      ref("costs", p.costId);
+      if (p.artworkSourceId) fail("廠商付款成本來源不正確。");
+    }
+    ref("parties", p.payerId);
+    str(p.recipient, "實際收款廠商", 120, true);
+    integer(p.amount);
+    if (!p.amount) fail("廠商付款金額必須大於零。");
+    str(p.notes, "付款備註");
+    time(p.createdAt);
+    str(p.reversedAt, "付款沖銷時間", 40);
+    str(p.reverseReason, "付款沖銷原因");
+    if (p.reversedAt) {
+      time(p.reversedAt);
+      if (
+        !p.reverseReason.trim() ||
+        Date.parse(p.reversedAt) < Date.parse(p.createdAt)
+      )
+        fail("付款沖銷資料不一致。");
+    } else if (p.reverseReason) fail("付款沖銷資料不一致。");
+  }
+
   return s as unknown as CatalogSnapshot;
 }

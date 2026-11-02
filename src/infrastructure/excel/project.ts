@@ -3,7 +3,7 @@ import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.8.0";
+export const PROJECT_VERSION = "2.9.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -367,10 +367,10 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
       "製作數量",
       "預估印製費",
       "實際印製費",
-      "柄圖分配費",
+      "柄圖整元分攤（核對）",
       "其他成本",
       "試算售價",
-      "成本總額",
+      "整元成本總額（核對）",
       "單件綜合成本",
       "全部售出預估毛利",
       "回本所需銷量",
@@ -378,6 +378,10 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
       "成本負擔者註記",
       "狀態",
       "備註",
+      "精確成本分子",
+      "精確成本分母",
+      "柄圖費來源",
+      "柄圖分攤版本",
     ]);
     for (const c of snapshot.costs) {
       const result = costSummary(c);
@@ -390,7 +394,7 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
         c.artworkAllocated,
         c.otherCost,
         c.unitSalePrice,
-        result?.total ?? null,
+        result?.integerTotal ?? null,
         result ? Number(result.unitCost) : null,
         result?.profit == null ? null : Number(result.profit),
         result?.breakEven == null ? null : Number(result.breakEven),
@@ -398,11 +402,20 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
         label(snapshot.parties, c.burdenPartyId),
         c.archived ? "已封存" : "啟用",
         c.notes,
+        result?.exactTotal.numerator ?? "",
+        result?.exactTotal.denominator ?? "",
+        c.artworkAllocation
+          ? snapshot.artworkExpenses.find(
+              (a) => a.id === c.artworkAllocation!.sourceId,
+            )?.code || ""
+          : "",
+        c.artworkAllocation?.version ?? null,
       ]);
     }
-    for (const col of [3, 4, 5, 6, 7, 8, 9, 11, 12])
+    for (const col of [3, 4, 5, 6, 7, 8, 9, 12, 20])
       ws.getColumn(col).numFmt = "0";
     ws.getColumn(10).numFmt = "0.0000";
+    ws.getColumn(11).numFmt = "0.0000";
   }
   if (snapshot.advances.length) {
     const ws = sheet("12_代墊本金", [
@@ -569,6 +582,107 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
     }
     ws.getColumn(4).numFmt = "0";
     for (const col of [4, 5, 6]) detail.getColumn(col).numFmt = "0";
+  }
+  if (snapshot.artworkExpenses.length) {
+    const ws = sheet("19_柄圖費來源", [
+      "來源編號",
+      "名稱",
+      "柄圖",
+      "來源總額",
+      "建立時間",
+      "狀態",
+      "作廢原因",
+      "備註",
+    ]);
+    const versions = sheet("20_柄圖分攤", [
+      "來源編號",
+      "版本",
+      "方式",
+      "權重基準",
+      "成本編號",
+      "製作數量快照",
+      "印製總額快照",
+      "自訂權重",
+      "人工分攤額",
+      "精確分攤分子",
+      "精確分攤分母",
+      "整元分攤",
+      "原人工分攤額",
+      "套用時間",
+      "撤銷時間",
+      "撤銷原因",
+    ]);
+    for (const a of snapshot.artworkExpenses) {
+      ws.addRow([
+        a.code,
+        a.name,
+        label(snapshot.artworks, a.artworkId),
+        a.amount,
+        a.createdAt,
+        a.voidedAt ? "已作廢" : "有效",
+        a.voidReason,
+        a.notes,
+      ]);
+      for (const v of a.allocations)
+        for (const t of v.targets)
+          versions.addRow([
+            a.code,
+            v.version,
+            {
+              "unit-print": "單件印製成本比例",
+              "total-print": "製作印製總額比例",
+              equal: "成本品項平均",
+              custom: "自訂權重",
+              manual: "人工金額",
+            }[v.method],
+            v.basis === "actual" ? "實際" : "預估",
+            snapshot.costs.find((c) => c.id === t.costId)?.code || "",
+            t.quantity,
+            t.printTotal,
+            t.weight,
+            t.manualAmount,
+            t.exactAmount.numerator,
+            t.exactAmount.denominator,
+            t.integerAmount,
+            t.previousAmount,
+            v.createdAt,
+            v.reversedAt,
+            v.reverseReason,
+          ]);
+    }
+    ws.getColumn(4).numFmt = "0";
+    for (const col of [2, 6, 7, 9, 12, 13])
+      versions.getColumn(col).numFmt = "0";
+  }
+  if (snapshot.expensePayments.length) {
+    const ws = sheet("21_廠商付款", [
+      "付款編號",
+      "費用類別",
+      "成本來源",
+      "柄圖費來源",
+      "實際付款人",
+      "實際收款廠商",
+      "金額",
+      "付款登記時間",
+      "沖銷時間",
+      "沖銷原因",
+      "備註",
+    ]);
+    for (const p of snapshot.expensePayments)
+      ws.addRow([
+        p.code,
+        { print: "印製費", other: "其他費用", artwork: "柄圖費" }[p.category],
+        label(snapshot.costs, p.costId),
+        label(snapshot.artworkExpenses, p.artworkSourceId),
+        label(snapshot.parties, p.payerId),
+        p.recipient,
+        p.amount,
+        p.createdAt,
+        p.reversedAt,
+        p.reverseReason,
+        p.notes,
+      ]);
+    ws.getColumn(7).numFmt = "0";
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);
   raw.state = "hidden";

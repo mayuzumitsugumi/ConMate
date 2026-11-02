@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ArtworkFinancePanel from "../components/ArtworkFinancePanel.vue";
 import { computed, reactive, ref, watch } from "vue";
 import { useWorkspaceStore } from "../../app/workspace-store";
 import { useCatalogStore } from "../../app/catalog-store";
@@ -29,6 +30,11 @@ const emptyCost = (): CostInput => ({
   notes: "",
 });
 const form = reactive(emptyCost());
+const managedCost = computed(
+  () =>
+    catalog.snapshot?.costs.find((c) => c.id === editingId.value)
+      ?.artworkAllocation,
+);
 const advance = reactive<AdvanceInput>({
   name: "",
   payerId: "",
@@ -83,7 +89,10 @@ function cleanCost(): CostInput {
 }
 const preview = computed(() => {
   try {
-    return costSummary(cleanCost());
+    return costSummary({
+      ...cleanCost(),
+      artworkAllocation: managedCost.value,
+    });
   } catch {
     return null;
   }
@@ -227,7 +236,7 @@ const pending = computed(() =>
       <strong>目前提供批次成本試算與代墊本金紀錄。</strong>
       <p>
         空白成本表示未知；確定沒有費用時請填
-        0。成本表不代表實際付款，也不會增加庫存。柄圖分攤額由你填入，尚未提供自動分攤、管理費、抽成與分潤結算；系統不替你決定結案或追收。
+        0。成本表不代表實際付款，也不會增加庫存。柄圖分攤額由你填入，可使用上方柄圖費分攤功能；管理費、抽成與分潤結算尚未開放；系統不替你決定結案或追收。
       </p>
     </div>
   </aside>
@@ -261,6 +270,7 @@ const pending = computed(() =>
       </button>
     </p>
     <template v-if="catalog.snapshot">
+      <ArtworkFinancePanel />
       <section class="section-block">
         <h2>工作區概況</h2>
         <dl class="report-grid">
@@ -300,7 +310,12 @@ const pending = computed(() =>
             </div>
             <div class="field">
               <label for="cost-product">成本商品</label
-              ><select id="cost-product" v-model="form.productId" required>
+              ><select
+                id="cost-product"
+                v-model="form.productId"
+                :disabled="!!managedCost"
+                required
+              >
                 <option value="">請選擇商品</option>
                 <option
                   v-for="p in catalog.snapshot.products"
@@ -315,6 +330,7 @@ const pending = computed(() =>
               <label for="cost-quantity">製作數量</label
               ><input
                 id="cost-quantity"
+                :disabled="!!managedCost"
                 v-model.number="form.quantity"
                 type="number"
                 min="1"
@@ -326,6 +342,14 @@ const pending = computed(() =>
               <label :for="'cost-' + key">{{ labels[key] }}（元）</label
               ><input
                 :id="'cost-' + key"
+                :disabled="
+                  !!managedCost &&
+                  [
+                    'estimatedPrint',
+                    'actualPrint',
+                    'artworkAllocated',
+                  ].includes(key)
+                "
                 v-model.number="form[key]"
                 type="number"
                 min="0"
@@ -370,6 +394,9 @@ const pending = computed(() =>
               ></textarea>
             </div>
           </fieldset>
+          <p v-if="managedCost">
+            此成本的柄圖費由分攤來源管理。商品、數量、印製費與柄圖費需先撤銷分攤再修改；成本試算使用保存的精確分數，不用整元分攤反推。
+          </p>
           <p v-if="preview">
             綜合成本總額 {{ preview.total }} 元；單件
             {{ preview.unitCost }} 元。全部按試算售價售出時，預估毛利
@@ -418,13 +445,19 @@ const pending = computed(() =>
             {{
               c.estimatedPrint === null ? "未知" : c.estimatedPrint + " 元"
             }}；實際印製
-            {{
-              c.actualPrint === null ? "未知" : c.actualPrint + " 元"
-            }}；柄圖分配
+            {{ c.actualPrint === null ? "未知" : c.actualPrint + " 元" }}；{{
+              c.artworkAllocation ? "柄圖整元分攤（核對用）" : "柄圖分配"
+            }}
             {{
               c.artworkAllocated === null ? "未知" : c.artworkAllocated + " 元"
             }}；其他成本
             {{ c.otherCost === null ? "未知" : c.otherCost + " 元" }}。
+          </p>
+          <p v-if="c.artworkAllocation">
+            精確柄圖份額 {{ c.artworkAllocation.numerator }}／{{
+              c.artworkAllocation.denominator
+            }}
+            元；以下成本及毛利使用此精確份額計算，最後顯示至四位小數。
           </p>
           <dl v-if="summary(c)" class="report-grid">
             <div>

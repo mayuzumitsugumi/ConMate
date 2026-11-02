@@ -176,7 +176,7 @@ it("backup statuses distinguish initiated download from user confirmed saved rev
     "紀錄已變更",
   );
 });
-it("Dexie11 adds local safety tables without changing portable schema10 records", async () => {
+it("upgrades portable schema10 while retaining local safety tables", async () => {
   const w = {
       id: crypto.randomUUID(),
       name: "舊工作區",
@@ -191,7 +191,11 @@ it("Dexie11 adds local safety tables without changing portable schema10 records"
     .version(10)
     .stores({ workspaces: "id, createdAt", catalogs: "workspaceId" });
   await old.table("workspaces").add(w);
-  await old.table("catalogs").add(s);
+  const legacy: any = structuredClone(s);
+  legacy.schemaVersion = 10;
+  delete legacy.artworkExpenses;
+  delete legacy.expensePayments;
+  await old.table("catalogs").add(legacy);
   old.close();
   const upgraded = new ConMateDatabase(name);
   try {
@@ -211,4 +215,37 @@ it("unknown or max revisions cannot replace local state", async () => {
   ).rejects.toThrow("安全範圍");
   await expect(restoreWorkspace(current)).rejects.toThrow("已有相同");
   expect(await database.recoverySnapshots.count()).toBe(0);
+});
+it("previews and restores old schema10 recovery snapshots after the finance upgrade", async () => {
+  const current = await fixture();
+  const legacy: any = structuredClone(current);
+  legacy.schemaVersion = 10;
+  delete legacy.artworkExpenses;
+  delete legacy.expensePayments;
+  legacy.workspace.name = "舊復原點";
+  await database.recoverySnapshots.add({
+    id: "old-recovery",
+    workspaceId: current.workspaceId,
+    createdAt: new Date().toISOString(),
+    source: "file",
+    restoredFromRevision: 0,
+    restoredToRevision: current.revision,
+    snapshot: legacy,
+  });
+  const row = await database.recoverySnapshots.get("old-recovery");
+  const preview = await previewWorkspaceRestore(row!.snapshot);
+  expect(preview.incoming.schemaVersion).toBe(11);
+  expect(preview.incoming.artworkExpenses).toEqual([]);
+  expect(preview.differences.some((d) => d.key === "expensePayments")).toBe(
+    true,
+  );
+  await replaceWorkspace(
+    preview.incoming,
+    preview.expectedLocalContent!,
+    "recovery",
+  );
+  const restored = await catalogRepository.read(current.workspaceId);
+  expect(restored.workspace.name).toBe("舊復原點");
+  expect(restored.expensePayments).toEqual([]);
+  expect(await inspectProject(await exportProject(restored))).toEqual(restored);
 });

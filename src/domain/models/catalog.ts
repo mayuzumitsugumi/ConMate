@@ -65,7 +65,7 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 10;
+  schemaVersion: 11;
   workspaceId: string;
   workspace: Workspace;
   revision: number;
@@ -91,6 +91,8 @@ export interface CatalogSnapshot {
   refunds: RefundRecord[];
   costs: CostRecord[];
   advances: AdvanceRecord[];
+  artworkExpenses: ArtworkExpenseRecord[];
+  expensePayments: ExpensePaymentRecord[];
 }
 export interface ProductInput {
   name: string;
@@ -235,6 +237,7 @@ export interface CostInput {
   notes: string;
 }
 export interface CostRecord extends NamedRecord, CostInput {
+  artworkAllocation?: ManagedArtworkAllocation;
   archived: boolean;
   createdAt: string;
   updatedAt: string;
@@ -311,4 +314,77 @@ export interface RefundRecord extends NamedRecord {
   createdAt: string;
   total: number;
   lines: RefundLine[];
+}
+
+export interface ExactFraction {
+  numerator: string;
+  denominator: string;
+}
+export type ArtworkAllocationMethod =
+  "unit-print" | "total-print" | "equal" | "custom" | "manual";
+export interface ArtworkAllocationTargetInput {
+  costId: string;
+  weight: string;
+  manualAmount: number | null;
+}
+export interface ArtworkAllocationInput {
+  method: ArtworkAllocationMethod;
+  basis: "actual" | "estimated";
+  targets: ArtworkAllocationTargetInput[];
+  allowReplaceManual: boolean;
+}
+export interface ArtworkTargetSnapshot {
+  costId: string;
+  productId: string;
+  quantity: number;
+  printTotal: number | null;
+  weight: string;
+  manualAmount: number | null;
+  exactAmount: ExactFraction;
+  integerAmount: number;
+  previousAmount: number | null;
+}
+export interface ArtworkAllocationVersion {
+  version: number;
+  method: ArtworkAllocationMethod;
+  basis: "actual" | "estimated";
+  createdAt: string;
+  reversedAt: string;
+  reverseReason: string;
+  targets: ArtworkTargetSnapshot[];
+}
+export interface ArtworkExpenseRecord extends NamedRecord {
+  artworkId: string;
+  amount: number;
+  notes: string;
+  createdAt: string;
+  allocations: ArtworkAllocationVersion[];
+  voidedAt: string;
+  voidReason: string;
+}
+export interface ArtworkExpenseInput {
+  name: string;
+  artworkId: string;
+  amount: number;
+  notes: string;
+}
+export interface ManagedArtworkAllocation extends ExactFraction {
+  sourceId: string;
+  version: number;
+}
+export interface ExpensePaymentInput {
+  operationId?: string;
+  costId: string;
+  artworkSourceId: string;
+  category: "print" | "other" | "artwork";
+  payerId: string;
+  recipient: string;
+  amount: number;
+  notes: string;
+}
+export interface ExpensePaymentRecord extends NamedRecord, ExpensePaymentInput {
+  operationId: string;
+  createdAt: string;
+  reversedAt: string;
+  reverseReason: string;
 }
