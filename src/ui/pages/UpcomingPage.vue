@@ -28,12 +28,12 @@ const description = computed(() =>
     <h2>{{ section ? "小秘書正在準備這一頁" : "換個方向，繼續準備吧" }}</h2>
     <p>{{ description }}</p>
     <div class="hero-actions">
-      <RouterLink class="button primary" to="/templates"
-        ><AppIcon name="download" />先下載 Excel 模板</RouterLink
+      <RouterLink class="button primary" to="/products"
+        ><AppIcon name="download" />先建立商品資料</RouterLink
       ><RouterLink class="button secondary" to="/">回到總覽</RouterLink>
     </div>
     <div class="upcoming-note">
-      目前可使用：工作區名稱建立、本機保存、Excel 模板下載。<br />此頁尚無資料輸入或記帳功能，不會產生交易。
+      目前可使用：網站商品建檔、自訂標記與欄位、單檔匯出。<br />此頁尚無資料輸入或記帳功能，不會產生交易。
     </div>
   </section>
 </template>

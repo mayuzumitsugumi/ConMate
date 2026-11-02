@@ -1,6 +1,9 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import OverviewPage from "../ui/pages/OverviewPage.vue";
 import TemplatesPage from "../ui/pages/TemplatesPage.vue";
+import ProductsPage from "../ui/pages/ProductsPage.vue";
+import CustomizationPage from "../ui/pages/CustomizationPage.vue";
+import DataPage from "../ui/pages/DataPage.vue";
 import UpcomingPage from "../ui/pages/UpcomingPage.vue";
 
 export const sections = [
@@ -15,9 +18,9 @@ export const sections = [
   },
   {
     path: "/products",
-    label: "商品與柄圖",
+    label: "商品建檔",
     icon: "box",
-    ready: false,
+    ready: true,
     description:
       "管理徽章、吊飾、拍立得與立牌，保留柄圖、款式、批次及成本的關聯。",
   },
@@ -45,7 +48,8 @@ export const sections = [
     description:
       "分開呈現成本、代墊、抽成、試算與實際付款。最後如何分款與結案由你決定。",
   },
-  { path: "/templates", label: "Excel 資料中心", icon: "file", ready: true },
+  { path: "/customize", label: "自訂商品資料", icon: "layers", ready: true },
+  { path: "/templates", label: "專案檔與備份", icon: "file", ready: true },
 ] as const;
 
 export const router = createRouter({
@@ -57,10 +61,19 @@ export const router = createRouter({
         section.path === "/"
           ? OverviewPage
           : section.path === "/templates"
-            ? TemplatesPage
-            : UpcomingPage,
+            ? DataPage
+            : section.path === "/products"
+              ? ProductsPage
+              : section.path === "/customize"
+                ? CustomizationPage
+                : UpcomingPage,
       meta: { title: section.label },
     })),
+    {
+      path: "/templates/advanced",
+      component: TemplatesPage,
+      meta: { title: "舊版 Excel 模板" },
+    },
     {
       path: "/:pathMatch(.*)*",
       component: UpcomingPage,

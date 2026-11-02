@@ -6,12 +6,33 @@ import { workspaceRepository } from "../infrastructure/storage/workspaces";
 export const useWorkspaceStore = defineStore("workspaces", () => {
   const workspaces = ref<Workspace[]>([]);
   const loading = ref(true);
+  const activeWorkspaceId = ref("");
+  function select(id: string) {
+    if (!workspaces.value.some((w) => w.id === id)) return;
+    activeWorkspaceId.value = id;
+    try {
+      localStorage.setItem("conmate-active-workspace", id);
+    } catch {
+      /* preference only */
+    }
+  }
   const saving = ref(false);
   const storageError = ref("");
   async function load() {
     try {
       workspaces.value = await workspaceRepository.list();
       storageError.value = "";
+      let stored = "";
+      try {
+        stored = localStorage.getItem("conmate-active-workspace") || "";
+      } catch {
+        /* preference only */
+      }
+      select(
+        workspaces.value.some((w) => w.id === stored)
+          ? stored
+          : workspaces.value[0]?.id || "",
+      );
     } catch {
       storageError.value =
         "無法讀取本機資料。請確認瀏覽器允許網站儲存，並避免私人瀏覽模式。";
@@ -25,6 +46,7 @@ export const useWorkspaceStore = defineStore("workspaces", () => {
     try {
       const result = await workspaceRepository.create(name);
       workspaces.value.push(result);
+      select(result.id);
       storageError.value = "";
       return result;
     } catch (error) {
@@ -37,5 +59,14 @@ export const useWorkspaceStore = defineStore("workspaces", () => {
       saving.value = false;
     }
   }
-  return { workspaces, loading, saving, storageError, load, create };
+  return {
+    workspaces,
+    activeWorkspaceId,
+    select,
+    loading,
+    saving,
+    storageError,
+    load,
+    create,
+  };
 });

@@ -1,14 +1,20 @@
 import Dexie, { type EntityTable } from "dexie";
+import type { CatalogSnapshot } from "../../domain/models/catalog";
 import type { Workspace } from "../../domain/models/workspace";
 
 export class ConMateDatabase extends Dexie {
   workspaces!: EntityTable<Workspace, "id">;
+  catalogs!: EntityTable<CatalogSnapshot, "workspaceId">;
   constructor(name = "conmate-workspaces-v1") {
     super(name);
     this.version(1).stores({ workspaces: "id, createdAt" });
+    this.version(2).stores({
+      workspaces: "id, createdAt",
+      catalogs: "workspaceId",
+    });
   }
 }
-const database = new ConMateDatabase();
+export const database = new ConMateDatabase();
 export const workspaceRepository = {
   list: () => database.workspaces.orderBy("createdAt").toArray(),
   async create(name: string): Promise<Workspace> {

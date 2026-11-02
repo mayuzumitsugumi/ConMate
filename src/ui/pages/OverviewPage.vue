@@ -26,7 +26,7 @@ async function create() {
   try {
     const result = await store.create(name.value);
     if (result) {
-      notice.value = `「${result.name}」已保存在這台裝置。商品與企劃建檔會在後續分頁開放。`;
+      notice.value = `「${result.name}」已保存在這台裝置。可以直接前往商品建檔，再一鍵匯出專案檔。`;
       closeCreate();
     }
   } catch (reason) {
@@ -37,27 +37,27 @@ async function create() {
 const steps = [
   {
     number: "01",
-    name: "先準備商品清單",
-    text: "用空白模板開始，或看看虛構範例怎麼填。",
-    link: "/templates",
-    action: "下載 Excel 模板",
+    name: "直接在網站新增商品",
+    text: "先填名稱，再慢慢補創作者、企劃與種類，不必先準備Excel。",
+    link: "/products",
+    action: "前往商品建檔",
     ready: true,
   },
   {
     number: "02",
-    name: "把場次準備好",
-    text: "商品、成本與庫存，一步一步整理進工作區。",
-    link: "/projects",
-    action: "建檔功能開發中",
-    ready: false,
+    name: "整理適合自己的欄位",
+    text: "標記、文字與下拉選項由你決定，不需要的功能先不填。",
+    link: "/customize",
+    action: "自訂商品資料",
+    ready: true,
   },
   {
     number: "03",
-    name: "輕鬆開攤、安心收攤",
-    text: "快速記錄指定與抽選，收攤再核對庫存。",
-    link: "/sales",
-    action: "攤位功能開發中",
-    ready: false,
+    name: "一鍵帶走一份專案檔",
+    text: "只呈現已有的資料，所有設定保存在同一份Excel裡。",
+    link: "/templates",
+    action: "匯出專案檔",
+    ready: true,
   },
 ];
 </script>
@@ -86,8 +86,8 @@ const steps = [
           @click="openCreate"
         >
           <AppIcon name="plus" />建立工作區</button
-        ><RouterLink class="button secondary" to="/templates"
-          ><AppIcon name="download" />下載 Excel 模板</RouterLink
+        ><RouterLink class="button secondary" to="/products"
+          ><AppIcon name="box" />前往商品建檔</RouterLink
         >
       </div>
       <div class="hero-footnote">
@@ -212,18 +212,18 @@ const steps = [
           }}<small>個</small></strong
         >
       </div>
-      <span class="stat-note">名稱可先建立</span>
+      <span class="stat-note">直接在網站建檔</span>
     </div>
     <div class="stat-card">
       <span class="stat-icon peach"><AppIcon name="file" /></span>
       <div>
-        <span class="stat-label">Excel 模板</span
-        ><strong>2<small>種</small></strong>
+        <span class="stat-label">網站建檔</span
+        ><strong class="stat-text">已開放</strong>
       </div>
       <RouterLink
         class="stat-link"
         to="/templates"
-        aria-label="前往 Excel 資料中心"
+        aria-label="前往專案檔與備份"
         ><AppIcon name="arrow"
       /></RouterLink>
     </div>
@@ -262,7 +262,7 @@ const steps = [
     <div class="section-title">
       <div>
         <h2>你的本機工作區</h2>
-        <p>目前先保存名稱；企劃與商品管理會在後續開放。</p>
+        <p>選擇工作區後，商品、標記與自訂欄位分開保存在自己的裝置。</p>
       </div>
     </div>
     <div class="workspace-list">
@@ -283,7 +283,17 @@ const steps = [
             建立 · 保存在本機</span
           >
         </div>
-        <span class="soft-label">待建檔</span>
+        <button
+          class="button secondary"
+          :aria-pressed="store.activeWorkspaceId === workspace.id"
+          @click="store.select(workspace.id)"
+        >
+          {{
+            store.activeWorkspaceId === workspace.id
+              ? "目前工作區"
+              : "切換工作區"
+          }}
+        </button>
       </article>
     </div>
   </section>
@@ -292,11 +302,11 @@ const steps = [
     <div>
       <strong>多留一份備份，少一點擔心。</strong>
       <p>
-        本機資料可能因清除瀏覽器或裝置故障而遺失。此版僅保存工作區名稱；完整匯入、備份與記帳仍在開發，請保留外部原始資料。
+        本機資料可能因清除瀏覽器或裝置故障而遺失。記得匯出專案檔並自行保存；目前匯入還原與記帳仍未開放，請保留本機資料。
       </p>
     </div>
     <RouterLink to="/templates"
-      >了解資料準備<AppIcon name="arrow" :size="16"
+      >匯出專案檔<AppIcon name="arrow" :size="16"
     /></RouterLink>
   </aside>
   <dialog
@@ -319,7 +329,7 @@ const steps = [
         </button>
       </div>
       <p>
-        把同一批企劃與場次放在一起。這一版先替工作區取名字，其他資料稍後開放。
+        替商品與企劃取一個工作區名稱。建立後直接在網站填商品，標記與額外欄位可稍後設定。
       </p>
       <label for="workspace-name">工作區名稱</label
       ><input

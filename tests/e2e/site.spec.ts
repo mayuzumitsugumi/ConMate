@@ -32,7 +32,7 @@ test("overview, local workspace and responsive navigation", async ({
 });
 
 test("templates download with the Pages subpath", async ({ page }) => {
-  await page.goto("#/templates");
+  await page.goto("#/templates/advanced");
   await expect(
     page.getByRole("heading", { name: "Excel 資料中心", exact: true }),
   ).toBeVisible();
@@ -97,7 +97,7 @@ test("cached application and template remain available offline", async ({
   ).toBeVisible();
   await page
     .getByRole("navigation")
-    .getByRole("link", { name: "Excel 資料中心" })
+    .getByRole("link", { name: "專案檔與備份" })
     .click();
   const status = await page.evaluate(
     async () =>
