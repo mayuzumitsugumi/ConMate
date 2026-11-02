@@ -1,10 +1,13 @@
 import Dexie, { type EntityTable } from "dexie";
 import type { CatalogSnapshot } from "../../domain/models/catalog";
+import type { BackupStatus, RecoverySnapshot } from "./local-backups";
 import type { Workspace } from "../../domain/models/workspace";
 
 export class ConMateDatabase extends Dexie {
   workspaces!: EntityTable<Workspace, "id">;
   catalogs!: EntityTable<CatalogSnapshot, "workspaceId">;
+  recoverySnapshots!: EntityTable<RecoverySnapshot, "id">;
+  backupStatus!: EntityTable<BackupStatus, "workspaceId">;
   constructor(name = "conmate-workspaces-v1") {
     super(name);
     this.version(1).stores({ workspaces: "id, createdAt" });
@@ -127,6 +130,13 @@ export class ConMateDatabase extends Dexie {
             data.schemaVersion = 10;
           });
       });
+    // Local safety metadata is not part of the portable workspace schema.
+    this.version(11).stores({
+      workspaces: "id, createdAt",
+      catalogs: "workspaceId",
+      recoverySnapshots: "id, workspaceId, createdAt",
+      backupStatus: "workspaceId",
+    });
   }
 }
 export const database = new ConMateDatabase();

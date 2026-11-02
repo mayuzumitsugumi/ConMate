@@ -1,12 +1,30 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useWorkspaceStore } from "../../app/workspace-store";
-import { downloadProject } from "../../application/export-project";
+import { useCatalogStore } from "../../app/catalog-store";
+import {
+  downloadProject,
+  downloadSnapshot,
+} from "../../application/export-project";
+import { salesDraftRepository } from "../../application/sales-drafts";
 import { checkProjectFile } from "../../application/restore-project";
-import { restoreWorkspace } from "../../infrastructure/storage/restore";
+import {
+  restoreWorkspace,
+  previewWorkspaceRestore,
+  replaceWorkspace,
+} from "../../infrastructure/storage/restore";
+import { database } from "../../infrastructure/storage/workspaces";
+import {
+  confirmBackupSaved,
+  backupReminder,
+  type BackupStatus,
+  type RecoverySnapshot,
+} from "../../infrastructure/storage/local-backups";
+import { validateRestoreSnapshot } from "../../domain/validation/restore";
 import type { CatalogSnapshot } from "../../domain/models/catalog";
 import AppIcon from "../components/AppIcon.vue";
-const workspaces = useWorkspaceStore();
+const workspaces = useWorkspaceStore(),
+  catalog = useCatalogStore();
 const exporting = ref(false),
   notice = ref(""),
   error = ref("");
@@ -17,43 +35,163 @@ const checking = ref(false),
 const preview = ref<CatalogSnapshot | null>(null),
   filename = ref(""),
   confirmed = ref(false);
-const duplicate = computed(
+const restoreComparison = ref<Awaited<
+  ReturnType<typeof previewWorkspaceRestore>
+> | null>(null);
+const replaceChosen = ref(false),
+  replacePhrase = ref(""),
+  previewSource = ref<"file" | "recovery">("file");
+const duplicate = computed(() => !!restoreComparison.value?.local);
+const changes = computed(
   () =>
-    !!preview.value &&
-    workspaces.workspaces.some((w) => w.id === preview.value?.workspaceId),
+    restoreComparison.value?.differences.filter(
+      (d) => d.added || d.changed || d.removed,
+    ) || [],
 );
+const backups = ref<BackupStatus>(),
+  currentRevision = ref<number>(),
+  recoveries = ref<RecoverySnapshot[]>([]);
+const backupMessage = computed(() =>
+  currentRevision.value === undefined
+    ? ""
+    : backupReminder(backups.value, currentRevision.value),
+);
+const storageInfo = ref("尚未讀取儲存空間資訊。"),
+  storageBusy = ref(false),
+  savingConfirmation = ref(false);
+let loadRequest = 0;
+async function refreshLocal() {
+  const id = workspaces.activeWorkspaceId,
+    request = ++loadRequest;
+  if (!id) {
+    backups.value = undefined;
+    currentRevision.value = undefined;
+    recoveries.value = [];
+    return;
+  }
+  try {
+    const [status, workspace, rows] = await Promise.all([
+      database.backupStatus.get(id),
+      database.catalogs.get(id),
+      database.recoverySnapshots.where("workspaceId").equals(id).toArray(),
+    ]);
+    if (request !== loadRequest) return;
+    backups.value = status;
+    currentRevision.value = workspace?.revision ?? 0;
+    recoveries.value = rows.sort((a, b) =>
+      b.createdAt.localeCompare(a.createdAt),
+    );
+  } catch {
+    if (request === loadRequest)
+      error.value = "無法讀取本機備份狀態，請保留外部專案檔。";
+  }
+}
+watch(
+  () => workspaces.activeWorkspaceId,
+  () => {
+    void refreshLocal();
+  },
+  { immediate: true },
+);
+async function preparePreview(
+  snapshot: CatalogSnapshot,
+  source: "file" | "recovery",
+) {
+  restoreComparison.value = await previewWorkspaceRestore(snapshot);
+  preview.value = restoreComparison.value.incoming;
+  previewSource.value = source;
+  confirmed.value = false;
+  replaceChosen.value = false;
+  replacePhrase.value = "";
+}
 async function checkFile(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0];
+  if (checking.value || restoring.value) return;
   preview.value = null;
+  restoreComparison.value = null;
   confirmed.value = false;
   restoreError.value = "";
   restoreNotice.value = "";
-  if (!file || checking.value || restoring.value) return;
+  if (!file) return;
   checking.value = true;
   filename.value = file.name;
   try {
-    preview.value = await checkProjectFile(file);
+    await preparePreview(await checkProjectFile(file), "file");
   } catch (e) {
     restoreError.value = e instanceof Error ? e.message : "檔案檢查失敗。";
   } finally {
     checking.value = false;
   }
 }
+async function previewRecovery(row: RecoverySnapshot) {
+  if (checking.value || restoring.value) return;
+  checking.value = true;
+  restoreError.value = "";
+  restoreNotice.value = "";
+  try {
+    filename.value = `本機復原快照：${new Date(row.createdAt).toLocaleString("zh-TW")}`;
+    await preparePreview(JSON.parse(JSON.stringify(row.snapshot)), "recovery");
+  } catch (e) {
+    restoreError.value = e instanceof Error ? e.message : "無法預覽復原快照。";
+  } finally {
+    checking.value = false;
+  }
+}
+async function refreshPreview() {
+  if (!preview.value || checking.value || restoring.value) return;
+  checking.value = true;
+  restoreError.value = "";
+  try {
+    await preparePreview(
+      JSON.parse(JSON.stringify(preview.value)),
+      previewSource.value,
+    );
+  } catch (e) {
+    restoreError.value = e instanceof Error ? e.message : "無法重新檢查差異。";
+  } finally {
+    checking.value = false;
+  }
+}
 async function restore() {
-  if (!preview.value || !confirmed.value || duplicate.value || restoring.value)
+  if (!preview.value || !confirmed.value || restoring.value) return;
+  if (
+    duplicate.value &&
+    (!replaceChosen.value || replacePhrase.value !== "取代工作區")
+  )
     return;
   restoring.value = true;
   restoreError.value = "";
   try {
-    const id = await restoreWorkspace(
-      JSON.parse(JSON.stringify(preview.value)),
-    );
+    const input = JSON.parse(JSON.stringify(preview.value));
+    let id: string;
+    if (duplicate.value) {
+      const result = await replaceWorkspace(
+        input,
+        restoreComparison.value!.expectedLocalContent!,
+        previewSource.value,
+      );
+      id = result.workspaceId;
+      restoreNotice.value = `取代完成，修訂已更新為 ${result.revision}。取代前資料已保留在本機復原快照；請另行匯出外部備份。`;
+    } else {
+      id = await restoreWorkspace(input);
+      restoreNotice.value =
+        "還原完成。已選取還原的工作區，可前往商品或企劃頁檢視。";
+    }
+    if (duplicate.value) {
+      try {
+        await salesDraftRepository.remove(id);
+      } catch {
+        restoreNotice.value +=
+          " 購物車草稿清除未成功，請到販售頁確認並清空舊草稿。";
+      }
+    }
     await workspaces.load();
     workspaces.select(id);
+    await catalog.load(id);
+    await refreshLocal();
     preview.value = null;
+    restoreComparison.value = null;
     confirmed.value = false;
-    restoreNotice.value =
-      "還原完成。已選取還原的工作區，可前往商品或企劃頁檢視。";
   } catch (e) {
     restoreError.value =
       e instanceof Error ? e.message : "還原失敗，既有工作區未更動。";
@@ -67,13 +205,77 @@ async function download() {
   notice.value = "";
   error.value = "";
   try {
-    await downloadProject(workspaces.activeWorkspaceId);
-    notice.value =
-      "已產生一份完整建檔專案檔並發起下載。請確認已保存；下載不等於已存入雲端。";
+    const result = await downloadProject(workspaces.activeWorkspaceId);
+    notice.value = result.trackingStored
+      ? "已產生專案檔並發起下載。請確認檔案已保存，再按下方確認；發起下載不代表已保存。"
+      : "已發起下載，但無法記錄備份狀態。請自行確認檔案已保存。";
+    await refreshLocal();
   } catch (e) {
     error.value = e instanceof Error ? e.message : "匯出失敗，本機資料仍保留。";
   } finally {
     exporting.value = false;
+  }
+}
+async function confirmSaved() {
+  if (
+    !workspaces.activeWorkspaceId ||
+    !backups.value?.downloadedAt ||
+    savingConfirmation.value
+  )
+    return;
+  savingConfirmation.value = true;
+  error.value = "";
+  try {
+    await confirmBackupSaved(
+      workspaces.activeWorkspaceId,
+      backups.value.downloadedAt,
+    );
+    await refreshLocal();
+    notice.value =
+      "已記錄你的保存確認。建議仍保留多份備份，並定期檢查能否還原。";
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : "無法記錄保存確認。";
+  } finally {
+    savingConfirmation.value = false;
+  }
+}
+async function downloadRecovery(row: RecoverySnapshot) {
+  if (exporting.value) return;
+  exporting.value = true;
+  error.value = "";
+  try {
+    await downloadSnapshot(
+      validateRestoreSnapshot(JSON.parse(JSON.stringify(row.snapshot))),
+      true,
+    );
+    notice.value =
+      "已發起復原快照檔案下載。這不是目前工作區的最新備份，請確認檔案已保存。";
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : "復原快照匯出失敗。";
+  } finally {
+    exporting.value = false;
+  }
+}
+async function inspectStorage(requestPersist = false) {
+  if (storageBusy.value) return;
+  storageBusy.value = true;
+  try {
+    const storage = navigator.storage;
+    if (!storage) {
+      storageInfo.value = "此瀏覽器未提供儲存空間查詢，請持續保留外部備份。";
+      return;
+    }
+    const granted =
+      requestPersist && storage.persist ? await storage.persist() : undefined;
+    const persisted = storage.persisted ? await storage.persisted() : undefined;
+    const estimate = storage.estimate ? await storage.estimate() : {};
+    const usage = estimate.usage,
+      quota = estimate.quota;
+    storageInfo.value = `${persisted ? "已取得較持久的儲存資格" : "尚未取得較持久的儲存資格"}。${usage !== undefined && quota !== undefined ? `此網站來源約使用 ${(usage / 1048576).toFixed(1)} MB／總額度 ${(quota / 1048576).toFixed(1)} MB。` : "瀏覽器未回報容量。"}${requestPersist && granted === false ? "瀏覽器未批准申請。" : ""}清除網站資料、裝置故障仍可能遺失資料，請保留外部備份。`;
+  } catch {
+    storageInfo.value = "無法取得儲存資訊，請檢查瀏覽器設定並保留外部備份。";
+  } finally {
+    storageBusy.value = false;
   }
 }
 </script>
@@ -114,6 +316,27 @@ async function download() {
     <RouterLink v-else class="button primary" to="/">先建立工作區</RouterLink>
     <p v-if="notice" class="success-notice" role="status">{{ notice }}</p>
     <p v-if="error" class="error-notice" role="alert">{{ error }}</p>
+    <template v-if="workspaces.activeWorkspaceId">
+      <p>{{ backupMessage || "目前修訂已由你確認保存外部備份。" }}</p>
+      <p v-if="backups?.downloadedAt">
+        最近發起下載：修訂 {{ backups.downloadedRevision }}，{{
+          new Date(backups.downloadedAt).toLocaleString("zh-TW")
+        }}（不代表已保存）
+      </p>
+      <p v-if="backups?.confirmedAt">
+        最近由你確認保存：修訂 {{ backups.confirmedRevision }}，{{
+          new Date(backups.confirmedAt).toLocaleString("zh-TW")
+        }}
+      </p>
+      <button
+        v-if="backups?.downloadedAt"
+        class="button secondary"
+        :disabled="savingConfirmation || exporting"
+        @click="confirmSaved"
+      >
+        我已確認下載檔已保存
+      </button>
+    </template>
   </section>
   <section class="catalog-panel section-block" aria-labelledby="restore-title">
     <h2 id="restore-title">檢查與還原專案檔</h2>
@@ -158,9 +381,82 @@ async function download() {
           {{ preview.fields.length }} 個
         </li>
       </ul>
-      <p v-if="duplicate" class="error-notice" role="alert">
-        本機已有相同工作區。為保護資料，本版不會覆蓋或合併。若要驗證跨裝置還原，可在另一台裝置或另一個瀏覽器開啟網站後選取這份檔案。
-      </p>
+      <template v-if="duplicate">
+        <p class="error-notice" role="alert">
+          本機已有相同工作區。預設不會覆蓋或合併；你可以比對下列差異後，明確選擇用檔案取代整個工作區。
+        </p>
+        <p>
+          本機修訂 {{ restoreComparison?.local?.revision }} → 檔案修訂
+          {{
+            preview.revision
+          }}。較舊備份會取代後來的交易與修改；修訂號不代表內容比較結果。
+        </p>
+        <p
+          v-if="
+            restoreComparison?.local?.workspace.name !== preview.workspace.name
+          "
+        >
+          工作區名稱：{{ restoreComparison?.local?.workspace.name }} →
+          {{ preview.workspace.name }}
+        </p>
+        <div v-if="changes.length" class="difference-table">
+          <table>
+            <thead>
+              <tr>
+                <th>資料</th>
+                <th>新增</th>
+                <th>改變</th>
+                <th>移除</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in changes" :key="row.key">
+                <th>{{ row.label }}</th>
+                <td>{{ row.added }}</td>
+                <td>{{ row.changed }}</td>
+                <td>{{ row.removed }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p v-else>清單內容沒有差異；原始工作區資料及修訂仍以完整取代處理。</p>
+        <p>
+          取代前會在同一裝置保存復原快照。它仍會隨網站資料清除而消失，建議先匯出目前工作區到外部。
+        </p>
+        <label class="restore-confirm"
+          ><input
+            v-model="replaceChosen"
+            type="checkbox"
+            :disabled="restoring"
+          />我要以檔案完整取代本機同一工作區，不進行合併</label
+        >
+        <label for="replace-phrase">請輸入「取代工作區」確認</label
+        ><input
+          id="replace-phrase"
+          v-model="replacePhrase"
+          :disabled="restoring"
+          autocomplete="off"
+        />
+        <label class="restore-confirm"
+          ><input
+            v-model="confirmed"
+            type="checkbox"
+            :disabled="restoring"
+          />我已檢視差異，了解檔案以外的本機更新會被取代，且復原快照不是外部備份</label
+        >
+        <button
+          class="button primary"
+          :disabled="
+            !confirmed ||
+            !replaceChosen ||
+            replacePhrase !== '取代工作區' ||
+            restoring
+          "
+          @click="restore"
+        >
+          {{ restoring ? "正在取代…" : "確認取代本機工作區" }}
+        </button>
+      </template>
       <template v-else>
         <label class="restore-confirm"
           ><input
@@ -179,9 +475,17 @@ async function download() {
       </template>
       <button
         class="button secondary"
+        :disabled="checking || restoring"
+        @click="refreshPreview"
+      >
+        重新檢查差異
+      </button>
+      <button
+        class="button secondary"
         :disabled="restoring"
         @click="
           preview = null;
+          restoreComparison = null;
           confirmed = false;
         "
       >
@@ -191,8 +495,60 @@ async function download() {
     <p>
       目前支援網站專案格式
       2.1.0、2.2.0、2.3.0、2.4.0、2.5.0、2.6.0、2.7.0、2.8.0。還原保留原
-      ID、修訂與封存內容；不自動改編號，也不會覆蓋現有工作區。
+      ID與封存內容；新增還原保留原修訂，明確取代時提高修訂以避免其他分頁覆寫。
     </p>
+  </section>
+  <section class="catalog-panel section-block" aria-labelledby="recovery-title">
+    <h2 id="recovery-title">本機復原快照與儲存空間</h2>
+    <p>
+      每次明確取代工作區前，系統會在同一筆安全提交中保存原資料。這些快照只在此瀏覽器，不能取代外部備份。
+    </p>
+    <p v-if="!recoveries.length">目前工作區尚無取代前的復原快照。</p>
+    <article
+      v-for="row in recoveries.slice(0, 10)"
+      :key="row.id"
+      class="recovery-row"
+    >
+      <p>
+        {{ new Date(row.createdAt).toLocaleString("zh-TW") }} · 原修訂
+        {{ row.snapshot.revision }} · 商品
+        {{ row.snapshot.products.length }} 項／交易
+        {{ row.snapshot.sales.length }} 筆
+      </p>
+      <button
+        class="button secondary"
+        :disabled="checking || restoring"
+        @click="previewRecovery(row)"
+      >
+        預覽此復原快照
+      </button>
+      <button
+        class="button secondary"
+        :disabled="exporting"
+        @click="downloadRecovery(row)"
+      >
+        下載此復原快照
+      </button>
+    </article>
+    <p v-if="recoveries.length > 10">
+      顯示最近10份，共保留 {{ recoveries.length }} 份。
+    </p>
+    <p>{{ storageInfo }}</p>
+    <div class="storage-actions">
+      <button
+        class="button secondary"
+        :disabled="storageBusy"
+        @click="inspectStorage(false)"
+      >
+        查看儲存空間</button
+      ><button
+        class="button secondary"
+        :disabled="storageBusy"
+        @click="inspectStorage(true)"
+      >
+        申請較持久的本機儲存
+      </button>
+    </div>
   </section>
   <section class="section-block">
     <div class="section-title">
@@ -254,6 +610,41 @@ async function download() {
   </aside>
 </template>
 <style scoped>
+.difference-table {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  border: 1px solid #acbda8;
+  padding: 9px;
+  text-align: left;
+}
+.recovery-row {
+  border: 1px solid #acbda8;
+  padding: 14px;
+  border-radius: 8px;
+}
+.recovery-row button {
+  margin: 4px 8px 4px 0;
+}
+.storage-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+#replace-phrase {
+  font: inherit;
+  padding: 12px;
+  border: 1px solid #94a58b;
+  border-radius: 6px;
+  max-width: 100%;
+  min-width: 0;
+}
+
 .restore-preview {
   border: 1px solid #acbda8;
   border-radius: 8px;

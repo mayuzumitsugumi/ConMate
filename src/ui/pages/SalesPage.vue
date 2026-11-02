@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { salesDraftRepository } from "../../application/sales-drafts";
+import type { SalesDraft } from "../../application/sales-drafts";
+import { onBeforeRouteLeave } from "vue-router";
 import SaleRefundPanel from "../components/SaleRefundPanel.vue";
 import { saleNetRevenue } from "../../domain/sales/refunds";
 import type { RefundRecord } from "../../domain/models/catalog";
@@ -39,6 +42,10 @@ const availablePlans = computed(
 const selectedPlan = computed(() =>
   availablePlans.value.find((p) => p.id === selectedPlanId.value),
 );
+const draftReady = ref(false);
+const draftNotice = ref("");
+let draftRequest = 0;
+let lastDraftSave: Promise<unknown> = Promise.resolve();
 const operationId = ref<string>(crypto.randomUUID());
 const context = reactive({
   locationId: "",
@@ -98,6 +105,9 @@ const netRevenue = computed(() =>
 watch(
   () => workspaces.activeWorkspaceId,
   async (id) => {
+    const request = ++draftRequest;
+    draftReady.value = false;
+    draftNotice.value = "";
     cart.value = [];
     replacesRefundId.value = "";
     selectedPlanId.value = "";
@@ -113,10 +123,65 @@ watch(
       cashReceived: null,
     });
     operationId.value = crypto.randomUUID();
-    if (id) await catalog.load(id);
+    if (id) {
+      await catalog.load(id);
+      if (request !== draftRequest || !catalog.snapshot) return;
+      try {
+        const draft = await salesDraftRepository.read(catalog.snapshot);
+        if (request !== draftRequest) return;
+        if (draft) {
+          Object.assign(context, draft.context);
+          cart.value = draft.cart;
+          operationId.value = draft.operationId;
+          selectedPlanId.value = draft.selectedPlanId;
+          replacesRefundId.value = draft.replacesRefundId;
+          if (draft.cart.length)
+            draftNotice.value =
+              "已恢復這台裝置的未成交購物車，請重新核對庫存、方案及收款。草稿不算銷售，也不保留庫存。";
+        }
+      } catch (e) {
+        if (request === draftRequest)
+          draftNotice.value =
+            e instanceof Error ? e.message : "無法恢復購物車草稿。";
+      }
+      if (request === draftRequest) draftReady.value = true;
+    }
   },
   { immediate: true },
 );
+function persistDraft() {
+  if (!draftReady.value || !workspaces.activeWorkspaceId) return;
+  const id = workspaces.activeWorkspaceId;
+  try {
+    const draft: SalesDraft = JSON.parse(
+      JSON.stringify({
+        version: 1,
+        workspaceId: id,
+        operationId: operationId.value,
+        selectedPlanId: selectedPlanId.value,
+        replacesRefundId: replacesRefundId.value,
+        context,
+        cart: cart.value,
+      }),
+    );
+    lastDraftSave = salesDraftRepository.save(draft).catch(() => {
+      if (workspaces.activeWorkspaceId === id)
+        draftNotice.value =
+          "購物車草稿未能保存，離開前請先完成交易或稍後重試。";
+    });
+  } catch {
+    draftNotice.value = "草稿含無法保存的輸入，請檢查數量及金額。";
+  }
+}
+watch(
+  [context, cart, operationId, selectedPlanId, replacesRefundId],
+  persistDraft,
+  { deep: true, flush: "post" },
+);
+onBeforeRouteLeave(async () => {
+  persistDraft();
+  await lastDraftSave;
+});
 function clearCart() {
   cart.value = [];
   replacesRefundId.value = "";
@@ -183,6 +248,12 @@ async function submit() {
     context.notes = "";
     confirming.value = false;
     operationId.value = crypto.randomUUID();
+    await salesDraftRepository
+      .remove(workspaces.activeWorkspaceId)
+      .catch(() => {
+        draftNotice.value =
+          "交易已完成，但舊草稿清理失敗；下次開啟會依成交紀錄排除重複。";
+      });
     notice.value = "交易已完成，已同步扣除實際商品庫存。";
   } catch (e) {
     error.value = e instanceof Error ? e.message : "成交失敗，請重試。";
@@ -245,6 +316,9 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
         </option></select
       ><small v-if="cart.length">請先完成或清空購物車，再切換工作區。</small>
     </div>
+    <p v-if="draftNotice" class="info-banner" role="status">
+      {{ draftNotice }}
+    </p>
     <p v-if="notice" role="status" class="success-notice">{{ notice }}</p>
     <p v-if="error || catalog.error" role="alert" class="error-notice">
       {{ error || catalog.error
@@ -256,7 +330,10 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
         重新讀取
       </button>
     </p>
-    <template v-if="catalog.snapshot">
+    <p v-if="catalog.snapshot && !draftReady" role="status">
+      正在讀取本機購物車草稿…
+    </p>
+    <template v-if="catalog.snapshot && draftReady">
       <section class="business-panel section-block">
         <h2>本次販售</h2>
         <div class="form-grid">
@@ -390,7 +467,8 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
             </button>
           </p>
           <p v-if="!cart.length">
-            先選出貨庫位，再點選商品。購物車尚不扣庫或保留庫存；離開頁面後不保留未成交購物車。
+            先選出貨庫位，再點選商品。購物車尚不扣庫或保留庫存。未成交草稿會保存在這台裝置，回到此頁或重新開啟可恢復；草稿不包含在
+            Excel 備份內。
           </p>
           <fieldset :disabled="catalog.busy">
             <article v-for="line in cart" :key="line.key" class="cart-line">

@@ -77,7 +77,7 @@ test("website-first catalog, custom options and one-file export", async ({
   expect(book.getWorksheet("01_商品")!.getCell("J2").value).toBe("首販");
   expect(book.getWorksheet("_ConMate資料")!.state).toBe("hidden");
   await expect(page.getByRole("status")).toContainText(
-    "已產生一份完整建檔專案檔",
+    "已產生專案檔並發起下載",
   );
 });
 test("name-only entry works offline and new workspaces stay separate", async ({

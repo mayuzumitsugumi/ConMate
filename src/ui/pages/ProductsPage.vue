@@ -9,6 +9,26 @@ const catalog = useCatalogStore();
 const editingId = ref<string>();
 const archiveId = ref<string>();
 const showArchived = ref(false);
+const productSearch = ref("");
+const bulkNames = ref("");
+const bulkPreview = computed(() =>
+  bulkNames.value
+    .split(/\r?\n/)
+    .map((n) => n.trim())
+    .filter(Boolean),
+);
+async function saveBulk() {
+  localError.value = "";
+  notice.value = "";
+  try {
+    const count = bulkPreview.value.length;
+    await catalog.bulkSaveProducts([...bulkPreview.value]);
+    bulkNames.value = "";
+    notice.value = `已一次建立 ${count} 項商品，可逐項補上資料。`;
+  } catch (e) {
+    localError.value = e instanceof Error ? e.message : "無法批量建立商品。";
+  }
+}
 const notice = ref("");
 const localError = ref("");
 const nameInput = ref<HTMLInputElement>();
@@ -28,7 +48,26 @@ const form = reactive<ProductInput>({
 const products = computed(
   () =>
     catalog.snapshot?.products.filter(
-      (item) => showArchived.value || !item.archived,
+      (item) =>
+        (showArchived.value || !item.archived) &&
+        (!productSearch.value.trim() ||
+          [
+            item.name,
+            item.code,
+            item.specification,
+            item.artwork,
+            item.notes,
+            catalog.snapshot?.parties.find((p) => p.id === item.creatorId)
+              ?.name,
+            catalog.snapshot?.projects.find((p) => p.id === item.projectId)
+              ?.name,
+            catalog.snapshot?.productTypes.find((t) => t.id === item.typeId)
+              ?.name,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLocaleLowerCase()
+            .includes(productSearch.value.trim().toLocaleLowerCase())),
     ) ?? [],
 );
 function reset() {
@@ -52,6 +91,8 @@ watch(
   () => workspaces.activeWorkspaceId,
   async (id) => {
     reset();
+    bulkNames.value = "";
+    productSearch.value = "";
     archiveId.value = undefined;
     notice.value = "";
     if (id) await catalog.load(id);
@@ -178,6 +219,40 @@ async function archive() {
     </p>
     <p v-if="catalog.busy && !catalog.snapshot" role="status">正在讀取商品…</p>
     <template v-if="catalog.snapshot">
+      <section class="catalog-panel section-block">
+        <details>
+          <summary>一次建立多項商品</summary>
+          <form @submit.prevent="saveBulk">
+            <p>
+              每行填一個商品名稱，一次最多100項。先建立名稱，創作者、款式與其他資料稍後逐項補上；這不會增加庫存。
+            </p>
+            <div class="field">
+              <label for="bulk-product-names">商品名稱清單（每行一項）</label
+              ><textarea
+                id="bulk-product-names"
+                v-model="bulkNames"
+                rows="5"
+                :disabled="catalog.busy"
+                placeholder="星空徽章&#10;星空吊飾"
+              ></textarea>
+            </div>
+            <p>
+              即將新增
+              {{ bulkPreview.length }} 項。重複或已存在的名稱會阻止整批建立。
+            </p>
+            <button
+              class="button primary"
+              :disabled="
+                catalog.busy ||
+                bulkPreview.length < 1 ||
+                bulkPreview.length > 100
+              "
+            >
+              確認批量建立商品
+            </button>
+          </form>
+        </details>
+      </section>
       <section
         class="catalog-panel section-block"
         aria-labelledby="product-form-title"
@@ -377,6 +452,10 @@ async function archive() {
             <h2 id="product-list-title">商品清單（{{ products.length }}）</h2>
             <p>編輯基本資料，或將不再使用的商品封存。</p>
           </div>
+        </div>
+        <div class="field">
+          <label for="product-search">搜尋商品、創作者、企劃或種類</label
+          ><input id="product-search" type="search" v-model="productSearch" />
         </div>
         <label class="check-option"
           ><input v-model="showArchived" type="checkbox" />顯示封存商品</label

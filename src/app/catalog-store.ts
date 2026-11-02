@@ -1,3 +1,4 @@
+import { putProductNames } from "../domain/catalog/bulk";
 import { refundSale as putRefund } from "../domain/sales/refunds";
 import type { RefundInput } from "../domain/models/catalog";
 import {
@@ -221,7 +222,12 @@ export const useCatalogStore = defineStore("catalog", () => {
     mutate((s) => {
       putRefund(s, input);
     });
+  const bulkSaveProducts = (names: string[]) =>
+    mutate((s) => {
+      putProductNames(s, names);
+    });
   return {
+    bulkSaveProducts,
     recordRefund,
     startStocktake,
     updateStocktake,

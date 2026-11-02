@@ -9,6 +9,7 @@ import {
   updateAvailable,
   updateServiceWorker,
 } from "../infrastructure/pwa/status";
+import BackupReminder from "./components/BackupReminder.vue";
 import AppIcon from "./components/AppIcon.vue";
 import { version } from "../../package.json";
 const store = useWorkspaceStore();
@@ -77,6 +78,7 @@ onMounted(() => {
           更新並重新開啟
         </button>
       </div>
+      <BackupReminder />
       <main id="main-content" tabindex="-1"><RouterView /></main>
       <footer class="site-footer">
         <span>ConMate 場次小秘書</span><span>陪每一份創作，走到攤位前。</span
