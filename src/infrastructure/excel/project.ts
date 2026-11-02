@@ -1,7 +1,8 @@
+import { balance, movementLabels } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.1.0";
+export const PROJECT_VERSION = "2.2.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -88,7 +89,7 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
     ],
     [
       "資料範圍",
-      "本檔包含此工作區目前可建立的商品、創作者、企劃、場次、參場關聯、標記與自訂欄位；尚不包含未開放的銷售、庫存及財務功能。",
+      "本檔包含此工作區目前可建立的商品、創作者、企劃、場次、參場關聯、標記、自訂欄位及庫存異動；尚不包含未開放的銷售及財務功能。",
     ],
     [
       "格式",
@@ -216,6 +217,51 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
         e.notes,
         e.archived ? "已封存" : "使用中",
       ]);
+  }
+  if (snapshot.movements.length || snapshot.locations.length) {
+    const stock = sheet("05_庫存", ["商品", "庫位", "現存數量"]);
+    const ledger = sheet("06_庫存異動", [
+      "異動編號",
+      "商品",
+      "類型",
+      "數量",
+      "來源庫位",
+      "目的庫位",
+      "原因",
+      "時間",
+      "沖銷來源",
+    ]);
+    const label = (records: { id: string; name: string }[], id: string) =>
+      records.find((r) => r.id === id)?.name || "";
+    for (const p of snapshot.products)
+      for (const l of snapshot.locations) {
+        const value = balance(snapshot, p.id, l.id);
+        if (
+          value ||
+          snapshot.movements.some(
+            (m) =>
+              m.productId === p.id &&
+              (m.fromLocationId === l.id || m.toLocationId === l.id),
+          )
+        ) {
+          const row = stock.addRow([p.name, l.name, value]);
+          row.getCell(3).numFmt = "0";
+        }
+      }
+    for (const m of snapshot.movements) {
+      const row = ledger.addRow([
+        m.code,
+        label(snapshot.products, m.productId),
+        movementLabels[m.kind],
+        m.quantity,
+        label(snapshot.locations, m.fromLocationId),
+        label(snapshot.locations, m.toLocationId),
+        m.reason,
+        m.createdAt,
+        m.reversesId,
+      ]);
+      row.getCell(4).numFmt = "0";
+    }
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);
   raw.state = "hidden";

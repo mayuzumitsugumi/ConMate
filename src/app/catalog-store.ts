@@ -1,4 +1,10 @@
 import {
+  addLocation,
+  addMovement,
+  reverseMovement,
+} from "../domain/inventory/operations";
+import type { MovementInput } from "../domain/models/catalog";
+import {
   putProject,
   putEvent,
   toggleProjectArchive,
@@ -103,7 +109,22 @@ export const useCatalogStore = defineStore("catalog", () => {
   const archiveProject = (id: string) =>
     mutate((s) => toggleProjectArchive(s, id));
   const archiveEvent = (id: string) => mutate((s) => toggleEventArchive(s, id));
+  const saveLocation = (name: string) =>
+    mutate((s) => {
+      addLocation(s, name);
+    });
+  const saveMovement = (input: MovementInput) =>
+    mutate((s) => {
+      addMovement(s, input);
+    });
+  const cancelMovement = (id: string, reason: string) =>
+    mutate((s) => {
+      reverseMovement(s, id, reason);
+    });
   return {
+    saveLocation,
+    saveMovement,
+    cancelMovement,
     saveProject,
     saveEvent,
     archiveProject,

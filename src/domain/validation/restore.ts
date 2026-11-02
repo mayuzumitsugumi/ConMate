@@ -56,10 +56,17 @@ const keys = [
   "products",
   "tags",
   "fields",
+  "locations",
+  "movements",
 ] as const;
 export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
-  const s = obj(input);
-  if (s.schemaVersion !== 3) fail("目前僅支援網站資料版本 3。");
+  // Older backups gain empty inventory; never invent physical stock.
+  const original = obj(input);
+  const s =
+    original.schemaVersion === 3
+      ? { ...original, schemaVersion: 4, locations: [], movements: [] }
+      : original;
+  if (s.schemaVersion !== 4) fail("目前僅支援網站資料版本 3、4。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -220,5 +227,57 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
       }
     }
   }
-  return input as CatalogSnapshot;
+  const seenMovements = new Map<string, any>(),
+    reversed = new Set<string>(),
+    balances = new Map<string, number>();
+  const apply = (product: string, location: string, delta: number) => {
+    if (!location) return;
+    const key = JSON.stringify([product, location]);
+    const next = (balances.get(key) || 0) + delta;
+    if (!Number.isSafeInteger(next) || next < 0)
+      fail("庫存異動造成負數或超過安全範圍。");
+    balances.set(key, next);
+  };
+  for (const m of s.movements) {
+    ref("products", m.productId);
+    ref("locations", m.fromLocationId, true);
+    ref("locations", m.toLocationId, true);
+    integer(m.quantity);
+    if (
+      m.quantity === 0 ||
+      m.fromLocationId === m.toLocationId ||
+      (!m.fromLocationId && !m.toLocationId)
+    )
+      fail("庫存異動數量或庫位不正確。");
+    time(m.createdAt);
+    str(m.reason, "異動原因", 2000, true);
+    str(m.reversesId, "沖銷來源", 100);
+    if (["receipt", "adjust-in"].includes(m.kind)) {
+      if (m.fromLocationId || !m.toLocationId || m.reversesId)
+        fail("入庫來源不正確。");
+    } else if (["free", "damage", "adjust-out"].includes(m.kind)) {
+      if (!m.fromLocationId || m.toLocationId || m.reversesId)
+        fail("出庫來源不正確。");
+    } else if (m.kind === "transfer") {
+      if (!m.fromLocationId || !m.toLocationId || m.reversesId)
+        fail("調撥庫位不正確。");
+    } else if (m.kind === "reversal") {
+      const old = seenMovements.get(m.reversesId);
+      if (
+        !old ||
+        old.kind === "reversal" ||
+        reversed.has(old.id) ||
+        old.productId !== m.productId ||
+        old.quantity !== m.quantity ||
+        old.fromLocationId !== m.toLocationId ||
+        old.toLocationId !== m.fromLocationId
+      )
+        fail("沖銷來源不正確或重複。");
+    } else fail("未知庫存異動類型。");
+    apply(m.productId, m.fromLocationId, -m.quantity);
+    apply(m.productId, m.toLocationId, m.quantity);
+    seenMovements.set(m.id, m);
+    if (m.reversesId) reversed.add(m.reversesId);
+  }
+  return s as unknown as CatalogSnapshot;
 }

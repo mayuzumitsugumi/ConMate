@@ -1,3 +1,4 @@
+import InventoryPage from "../ui/pages/InventoryPage.vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import OverviewPage from "../ui/pages/OverviewPage.vue";
 import TemplatesPage from "../ui/pages/TemplatesPage.vue";
@@ -37,7 +38,7 @@ export const sections = [
     path: "/inventory",
     label: "庫存與盤點",
     icon: "layers",
-    ready: false,
+    ready: true,
     description:
       "支援跨兩場的庫存調撥、免費發放、退貨與收攤核對，不把盤差自動算成銷售。",
   },
@@ -63,13 +64,15 @@ export const router = createRouter({
           ? OverviewPage
           : section.path === "/templates"
             ? DataPage
-            : section.path === "/projects"
-              ? ProjectsPage
-              : section.path === "/products"
-                ? ProductsPage
-                : section.path === "/customize"
-                  ? CustomizationPage
-                  : UpcomingPage,
+            : section.path === "/inventory"
+              ? InventoryPage
+              : section.path === "/projects"
+                ? ProjectsPage
+                : section.path === "/products"
+                  ? ProductsPage
+                  : section.path === "/customize"
+                    ? CustomizationPage
+                    : UpcomingPage,
       meta: { title: section.label },
     })),
     {

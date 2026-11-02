@@ -65,7 +65,7 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 3;
+  schemaVersion: 4;
   workspaceId: string;
   workspace: Workspace;
   revision: number;
@@ -81,6 +81,8 @@ export interface CatalogSnapshot {
   products: CatalogItem[];
   tags: CatalogTag[];
   fields: CustomField[];
+  locations: NamedRecord[];
+  movements: InventoryMovement[];
 }
 export interface ProductInput {
   name: string;
@@ -99,4 +101,31 @@ export interface FieldInput {
   name: string;
   type: FieldType;
   options: { id?: string; label: string; archived?: boolean }[];
+}
+
+export type MovementKind =
+  | "receipt"
+  | "free"
+  | "damage"
+  | "adjust-in"
+  | "adjust-out"
+  | "transfer"
+  | "reversal";
+export interface InventoryMovement extends NamedRecord {
+  productId: string;
+  kind: MovementKind;
+  quantity: number;
+  fromLocationId: string;
+  toLocationId: string;
+  reason: string;
+  createdAt: string;
+  reversesId: string;
+}
+export interface MovementInput {
+  productId: string;
+  kind: Exclude<MovementKind, "reversal">;
+  quantity: number;
+  fromLocationId: string;
+  toLocationId: string;
+  reason: string;
 }
