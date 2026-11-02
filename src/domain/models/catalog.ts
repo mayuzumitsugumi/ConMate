@@ -65,7 +65,7 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 9;
+  schemaVersion: 10;
   workspaceId: string;
   workspace: Workspace;
   revision: number;
@@ -88,6 +88,7 @@ export interface CatalogSnapshot {
   sales: SaleRecord[];
   salePlans: SalePlan[];
   stocktakes: StocktakeRecord[];
+  refunds: RefundRecord[];
   costs: CostRecord[];
   advances: AdvanceRecord[];
 }
@@ -118,12 +119,14 @@ export type MovementKind =
   | "adjust-out"
   | "transfer"
   | "reversal"
-  | "sale";
+  | "sale"
+  | "refund-return";
 export interface InventoryMovement extends NamedRecord {
   productId: string;
   kind: MovementKind;
   movementTypeId?: string;
   saleId?: string;
+  refundId?: string;
   quantity: number;
   fromLocationId: string;
   toLocationId: string;
@@ -133,7 +136,7 @@ export interface InventoryMovement extends NamedRecord {
 }
 export interface MovementInput {
   productId: string;
-  kind: Exclude<MovementKind, "reversal" | "sale">;
+  kind: Exclude<MovementKind, "reversal" | "sale" | "refund-return">;
   movementTypeId?: string;
   quantity: number;
   fromLocationId: string;
@@ -187,6 +190,7 @@ export interface SaleLineInput {
   unitPrice: number;
 }
 export interface SaleInput {
+  replacesRefundId?: string;
   operationId: string;
   locationId: string;
   eventId: string;
@@ -202,6 +206,7 @@ export interface SaleLine extends SaleLineInput {
   movementId: string;
 }
 export interface SaleRecord extends NamedRecord {
+  replacesRefundId?: string;
   operationId: string;
   locationId: string;
   eventId: string;
@@ -280,4 +285,30 @@ export interface StocktakeCountInput {
   actual: number | null;
   action: "pending" | "adjust";
   reason: string;
+}
+
+export interface RefundLineInput {
+  saleLineId: string;
+  amount: number;
+  restockQuantity: number;
+  damagedQuantity: number;
+  returnLocationId: string;
+}
+export interface RefundInput {
+  operationId: string;
+  saleId: string;
+  reason: string;
+  lines: RefundLineInput[];
+}
+export interface RefundLine extends RefundLineInput {
+  id: string;
+  movementId: string;
+}
+export interface RefundRecord extends NamedRecord {
+  operationId: string;
+  saleId: string;
+  reason: string;
+  createdAt: string;
+  total: number;
+  lines: RefundLine[];
 }

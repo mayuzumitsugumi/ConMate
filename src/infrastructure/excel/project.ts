@@ -3,7 +3,7 @@ import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.7.0";
+export const PROJECT_VERSION = "2.8.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -532,6 +532,43 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
     }
     for (const c of [7, 8]) ws.getColumn(c).numFmt = "0";
     for (const c of [3, 4, 5]) lines.getColumn(c).numFmt = "0";
+  }
+  if (snapshot.refunds.length) {
+    const ws = sheet("17_退款退貨", [
+      "退款編號",
+      "原交易編號",
+      "時間",
+      "實際退款金額",
+      "原因",
+    ]);
+    const detail = sheet("18_退款退貨明細", [
+      "退款編號",
+      "原明細ID",
+      "成交商品",
+      "實際退款",
+      "可售回庫數量",
+      "損壞退回數量",
+      "回庫庫位",
+      "回庫異動編號",
+    ]);
+    for (const r of snapshot.refunds) {
+      const sale = snapshot.sales.find((s) => s.id === r.saleId)!;
+      ws.addRow([r.code, sale.code, r.createdAt, r.total, r.reason]);
+      for (const l of r.lines)
+        detail.addRow([
+          r.code,
+          l.saleLineId,
+          sale.lines.find((x) => x.id === l.saleLineId)?.productName || "",
+          l.amount,
+          l.restockQuantity,
+          l.damagedQuantity,
+          snapshot.locations.find((x) => x.id === l.returnLocationId)?.name ||
+            "",
+          snapshot.movements.find((x) => x.id === l.movementId)?.code || "",
+        ]);
+    }
+    ws.getColumn(4).numFmt = "0";
+    for (const col of [4, 5, 6]) detail.getColumn(col).numFmt = "0";
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);
   raw.state = "hidden";

@@ -143,13 +143,20 @@ export async function inspectProject(bytes: ArrayBuffer) {
   });
   if (
     meta.get("format") !== "ConMate網站專案" ||
-    !["2.1.0", "2.2.0", "2.3.0", "2.4.0", "2.5.0", "2.6.0", "2.7.0"].includes(
-      meta.get("version") || "",
-    ) ||
+    ![
+      "2.1.0",
+      "2.2.0",
+      "2.3.0",
+      "2.4.0",
+      "2.5.0",
+      "2.6.0",
+      "2.7.0",
+      "2.8.0",
+    ].includes(meta.get("version") || "") ||
     meta.get("payloadEncoding") !== "utf8-base64"
   )
     reject(
-      "目前僅支援 ConMate 網站專案 2.1.0、2.2.0、2.3.0、2.4.0 、2.5.0 、2.6.0 或 2.7.0。",
+      "目前僅支援 ConMate 網站專案 2.1.0、2.2.0、2.3.0、2.4.0 、2.5.0 、2.6.0 、2.7.0 或 2.8.0。",
     );
   const chunks = [...meta.keys()]
     .filter((k) => k.startsWith("payload-"))
@@ -195,6 +202,7 @@ export async function inspectProject(bytes: ArrayBuffer) {
     "2.5.0": 7,
     "2.6.0": 8,
     "2.7.0": 9,
+    "2.8.0": 10,
   }[meta.get("version") as "2.1.0"];
   if (input?.schemaVersion !== expectedSchema)
     reject("專案格式版本與資料版本不一致。");

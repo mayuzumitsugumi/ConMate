@@ -14,6 +14,7 @@ export const movementLabels = {
   transfer: "移動庫存",
   reversal: "沖銷更正",
   sale: "販售出庫",
+  "refund-return": "退款商品回庫",
 };
 export function balance(
   s: CatalogSnapshot,
@@ -119,6 +120,8 @@ export function reverseMovement(
     s.movements.some((m) => m.reversesId === id)
   )
     throw new Error("找不到可沖銷的異動，或此筆已沖銷。");
+  if (old.refundId)
+    throw new Error("退款回庫請到攤位販售頁處理，不能單獨沖銷。");
   if (old.saleId && old.saleId !== sourceSaleId)
     throw new Error("販售出庫請到攤位販售頁取消交易，避免款項與庫存不一致。");
   const m: InventoryMovement = {

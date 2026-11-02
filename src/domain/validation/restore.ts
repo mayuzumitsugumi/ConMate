@@ -66,6 +66,7 @@ const keys = [
   "sales",
   "salePlans",
   "stocktakes",
+  "refunds",
   "costs",
   "advances",
 ] as const;
@@ -92,11 +93,15 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     business.schemaVersion === 7
       ? { ...business, schemaVersion: 8, salePlans: [] }
       : business;
-  const s =
+  const counted =
     planned.schemaVersion === 8
       ? { ...planned, schemaVersion: 9, stocktakes: [] }
       : planned;
-  if (s.schemaVersion !== 9) fail("目前僅支援網站資料版本 3 至 9。");
+  const s =
+    counted.schemaVersion === 9
+      ? { ...counted, schemaVersion: 10, refunds: [] }
+      : counted;
+  if (s.schemaVersion !== 10) fail("目前僅支援網站資料版本 3 至 10。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -279,10 +284,19 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     if (m.saleId !== undefined) {
       ref("sales", m.saleId);
       if (
-        !["sale", "reversal"].includes(m.kind) ||
+        !["sale", "reversal", "refund-return"].includes(m.kind) ||
         m.movementTypeId !== undefined
       )
         fail("販售庫存來源不正確。");
+    }
+    if (m.refundId !== undefined) {
+      ref("refunds", m.refundId);
+      if (
+        m.kind !== "refund-return" ||
+        !m.saleId ||
+        m.movementTypeId !== undefined
+      )
+        fail("退款回庫來源不正確。");
     }
     if (m.movementTypeId !== undefined) {
       ref("movementTypes", m.movementTypeId);
@@ -307,7 +321,7 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     time(m.createdAt);
     str(m.reason, "異動原因", 2000, true);
     str(m.reversesId, "沖銷來源", 100);
-    if (["receipt", "adjust-in"].includes(m.kind)) {
+    if (["receipt", "adjust-in", "refund-return"].includes(m.kind)) {
       if (m.fromLocationId || !m.toLocationId || m.reversesId)
         fail("入庫來源不正確。");
     } else if (["free", "damage", "adjust-out", "sale"].includes(m.kind)) {
@@ -584,9 +598,94 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     )
       fail("交易沖銷來源不一致。");
   }
+  const refundOperations = new Set<string>(),
+    refundTotals = new Map<string, { amount: bigint; quantity: bigint }>();
+  for (const refund of s.refunds) {
+    ref("sales", refund.saleId);
+    const sale = maps.sales!.get(refund.saleId);
+    if (sale.cancelledAt) fail("已取消交易不可另有退款。");
+    str(refund.operationId, "退款操作識別", 100, true);
+    if (refundOperations.has(refund.operationId)) fail("重複退款操作識別。");
+    refundOperations.add(refund.operationId);
+    str(refund.reason, "退款原因", 2000, true);
+    time(refund.createdAt);
+    integer(refund.total);
+    if (
+      !Array.isArray(refund.lines) ||
+      !refund.lines.length ||
+      refund.lines.length > 100
+    )
+      fail("退款明細不完整。");
+    const seenLines = new Set<string>();
+    let sum = 0n;
+    for (const line of refund.lines) {
+      nestedId(line.id);
+      str(line.saleLineId, "原交易明細", 100, true);
+      const original = sale.lines.find((l: any) => l.id === line.saleLineId);
+      if (!original || seenLines.has(line.saleLineId))
+        fail("退款原明細不正確或重複。");
+      seenLines.add(line.saleLineId);
+      integer(line.amount);
+      integer(line.restockQuantity);
+      integer(line.damagedQuantity);
+      if (!line.amount && !line.restockQuantity && !line.damagedQuantity)
+        fail("退款明細不可全為零。");
+      const totals = refundTotals.get(original.id) || {
+        amount: 0n,
+        quantity: 0n,
+      };
+      totals.amount += BigInt(line.amount);
+      totals.quantity +=
+        BigInt(line.restockQuantity) + BigInt(line.damagedQuantity);
+      if (
+        totals.amount >
+          BigInt(original.quantity) * BigInt(original.unitPrice) ||
+        totals.quantity > BigInt(original.quantity)
+      )
+        fail("累計退款或退回數量超過原交易。");
+      refundTotals.set(original.id, totals);
+      sum += BigInt(line.amount);
+      str(line.movementId, "退款回庫異動", 100);
+      str(line.returnLocationId, "退款回庫庫位", 100);
+      if (line.restockQuantity) {
+        ref("locations", line.returnLocationId);
+        ref("movements", line.movementId);
+        const m = maps.movements!.get(line.movementId);
+        if (
+          linkedMovements.has(m.id) ||
+          m.kind !== "refund-return" ||
+          m.refundId !== refund.id ||
+          m.saleId !== sale.id ||
+          m.productId !== original.productId ||
+          m.quantity !== line.restockQuantity ||
+          m.toLocationId !== line.returnLocationId ||
+          m.fromLocationId ||
+          m.createdAt !== refund.createdAt
+        )
+          fail("退款回庫與明細不一致。");
+        linkedMovements.add(m.id);
+      } else if (line.movementId || line.returnLocationId)
+        fail("未回可售庫存不應有回庫異動或庫位。");
+    }
+    if (sum !== BigInt(refund.total)) fail("退款總額與明細不一致。");
+  }
+  const replacementSources = new Set<string>();
+  for (const sale of s.sales)
+    if (sale.replacesRefundId !== undefined) {
+      ref("refunds", sale.replacesRefundId);
+      const refund = maps.refunds!.get(sale.replacesRefundId);
+      if (
+        replacementSources.has(refund.id) ||
+        s.sales.indexOf(maps.sales!.get(refund.saleId)) >= s.sales.indexOf(sale)
+      )
+        fail("換貨來源重複或交易順序不正確。");
+      replacementSources.add(refund.id);
+    }
   for (const m of s.movements)
     if (
-      (m.kind === "sale" || m.saleId !== undefined) &&
+      (["sale", "refund-return"].includes(m.kind) ||
+        m.saleId !== undefined ||
+        m.refundId !== undefined) &&
       !linkedMovements.has(m.id)
     )
       fail("販售出庫沒有對應交易。");

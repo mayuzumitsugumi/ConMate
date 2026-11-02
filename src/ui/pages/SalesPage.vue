@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import SaleRefundPanel from "../components/SaleRefundPanel.vue";
+import { saleNetRevenue } from "../../domain/sales/refunds";
+import type { RefundRecord } from "../../domain/models/catalog";
 import SalePlansPanel from "../components/SalePlansPanel.vue";
 import { computed, reactive, ref, watch } from "vue";
 import { useWorkspaceStore } from "../../app/workspace-store";
@@ -12,6 +15,18 @@ const notice = ref(""),
   error = ref(""),
   search = ref(""),
   confirming = ref(false);
+const replacesRefundId = ref("");
+function startReplacement(refund: RefundRecord) {
+  if (cart.value.length) {
+    error.value = "請先完成或清空購物車，再建立換貨交易。";
+    return;
+  }
+  replacesRefundId.value = refund.id;
+  context.notes = `換貨來源 ${refund.code}`;
+  notice.value =
+    "已連結退款紀錄。請選擇新交付商品，並獨立填寫本筆實際應收與收款；系統不會自動抵扣退款。";
+  document.getElementById("sales-plan")?.focus();
+}
 const selectedPlanId = ref("");
 const availablePlans = computed(
   () =>
@@ -77,13 +92,14 @@ const change = computed(() =>
 const netRevenue = computed(() =>
   (catalog.snapshot?.sales || [])
     .filter((s) => !s.cancelledAt)
-    .reduce((sum, s) => sum + BigInt(s.total), 0n)
+    .reduce((sum, s) => sum + BigInt(saleNetRevenue(catalog.snapshot!, s)), 0n)
     .toString(),
 );
 watch(
   () => workspaces.activeWorkspaceId,
   async (id) => {
     cart.value = [];
+    replacesRefundId.value = "";
     selectedPlanId.value = "";
     confirming.value = false;
     cancelId.value = "";
@@ -103,6 +119,7 @@ watch(
 );
 function clearCart() {
   cart.value = [];
+  replacesRefundId.value = "";
   confirming.value = false;
   context.cashReceived = null;
   operationId.value = crypto.randomUUID();
@@ -147,6 +164,9 @@ async function submit() {
       ...context,
       cashReceived: context.cashReceived!,
       operationId: operationId.value,
+      ...(replacesRefundId.value
+        ? { replacesRefundId: replacesRefundId.value }
+        : {}),
       lines: cart.value.map(
         ({ productId, mode, quantity, unitPrice, planId, planVersion }) => ({
           ...(planId ? { planId, planVersion } : {}),
@@ -158,6 +178,7 @@ async function submit() {
       ),
     } satisfies SaleInput);
     cart.value = [];
+    replacesRefundId.value = "";
     context.cashReceived = null;
     context.notes = "";
     confirming.value = false;
@@ -203,7 +224,7 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
     <div>
       <strong>先開放指定購買與已知款式的抽選記錄。</strong>
       <p>
-        抽選按實際交付商品逐筆登記，不替你抽獎。可先建立指定價或混合抽選池，也能手動填寫價格；同商品共用實物庫存。尚未提供部分退款、換貨或損壞退貨。取消交易僅適用「已全額退款且商品全數回到原庫位」。
+        抽選按實際交付商品逐筆登記，不替你抽獎。可先建立指定價或混合抽選池，也能手動填寫價格；同商品共用實物庫存。可分開記錄實退金額、可售回庫及瑕疵退回。換貨以退款加上另一筆實際交付交易記錄，不會自動抵扣價差。整筆取消僅適用「已全額退款且商品全數回到原庫位」。
       </p>
     </div>
   </aside>
@@ -359,6 +380,15 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
         </section>
         <section class="business-panel section-block cart">
           <h2>購物車</h2>
+          <p v-if="replacesRefundId">
+            這是一筆連結退款紀錄的新交付交易，金額請按實際約定填寫。<button
+              type="button"
+              class="text-button"
+              @click="replacesRefundId = ''"
+            >
+              解除換貨連結
+            </button>
+          </p>
           <p v-if="!cart.length">
             先選出貨庫位，再點選商品。購物車尚不扣庫或保留庫存；離開頁面後不保留未成交購物車。
           </p>
@@ -488,7 +518,7 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
         <h2>交易紀錄（{{ recent.length }}）</h2>
         <p>
           工作區有效交易營收：{{ netRevenue }}
-          元（不含已全額退款交易；不是利潤）。
+          元（扣除已記錄退款；不是利潤）。
         </p>
         <article v-for="sale in recent" :key="sale.id" class="business-panel">
           <h3>
@@ -513,12 +543,22 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
               >
             </li>
           </ul>
+          <p v-if="sale.replacesRefundId">
+            換貨來源：{{
+              catalog.snapshot.refunds.find(
+                (r) => r.id === sale.replacesRefundId,
+              )?.code
+            }}
+          </p>
+          <SaleRefundPanel :sale="sale" @replacement="startReplacement" />
           <p v-if="sale.notes">{{ sale.notes }}</p>
           <p v-if="sale.cancelledAt">
             {{ when(sale.cancelledAt) }} 取消原因：{{ sale.cancelReason }}
           </p>
           <button
-            v-else
+            v-else-if="
+              !catalog.snapshot.refunds.some((r) => r.saleId === sale.id)
+            "
             class="button secondary"
             :disabled="catalog.busy"
             @click="

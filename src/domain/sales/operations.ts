@@ -22,6 +22,7 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
     if (prior.cancelledAt)
       throw new Error("此操作的原交易已取消，請清空購物車後建立新交易。");
     const same =
+      prior.replacesRefundId === input.replacesRefundId &&
       prior.locationId === input.locationId &&
       prior.eventId === input.eventId &&
       prior.collectorId === input.collectorId &&
@@ -55,6 +56,12 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
     throw new Error("請選擇啟用的場次。");
   if (input.collectorId && !s.parties.some((p) => p.id === input.collectorId))
     throw new Error("收款者不存在。");
+  if (input.replacesRefundId !== undefined) {
+    if (!s.refunds.some((r) => r.id === input.replacesRefundId))
+      throw new Error("換貨來源退款不存在。");
+    if (s.sales.some((r) => r.replacesRefundId === input.replacesRefundId))
+      throw new Error("此退款已連結換貨交易，請先核對紀錄。");
+  }
   const total = saleTotal(input.lines);
   const cashReceived = whole(input.cashReceived, "收到金額");
   if (cashReceived < total) throw new Error("收到金額不足，尚未成交。");
@@ -63,6 +70,9 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
   const sale: SaleRecord = {
     ...record(s, "SAL", "攤位交易"),
     operationId,
+    ...(input.replacesRefundId
+      ? { replacesRefundId: input.replacesRefundId }
+      : {}),
     locationId: location.id,
     eventId: input.eventId,
     collectorId: input.collectorId,
@@ -125,6 +135,10 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
 export function cancelSale(s: CatalogSnapshot, id: string, reason: string) {
   const sale = s.sales.find((r) => r.id === id);
   if (!sale || sale.cancelledAt) throw new Error("交易不存在，或已經取消。");
+  if (s.refunds.some((r) => r.saleId === sale.id))
+    throw new Error(
+      "此交易已有部分退款或退貨，請以退款／退貨功能處理剩餘部分。",
+    );
   reason = text(reason, "取消原因", 2000);
   const reversals = sale.lines.map(
     (l) =>

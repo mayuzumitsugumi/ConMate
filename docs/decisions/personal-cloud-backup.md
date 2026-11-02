@@ -40,6 +40,9 @@ GitHub Pages只提供網站檔案，不能因為使用者在另一分頁登入Gi
 
 ## 授權技術前置驗證
 
+2026-11-03 已完成[授權可行性研究](github-backup-feasibility.md)：標準網頁 OAuth code 交換仍需 secret；PKCE 不自動移除此要求。純靜態可先驗證使用者自行建立的限定私有 repository fine-grained PAT、僅記憶體保存模式。此為技術候選，尚未提供線上連接或請求使用者憑證。
+
+
 目前GitHub Pages純靜態與無後端的限制仍生效。實作前先驗證官方授權流程是否能在目標瀏覽器安全完成，尤其登入回呼、token交換、CORS與撤銷。
 
 - 公開前端、repository、Service Worker及專案檔不得放client secret或共用寫入token。

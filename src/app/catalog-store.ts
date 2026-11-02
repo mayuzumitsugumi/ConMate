@@ -1,3 +1,5 @@
+import { refundSale as putRefund } from "../domain/sales/refunds";
+import type { RefundInput } from "../domain/models/catalog";
 import {
   beginStocktake,
   saveStocktakeCounts,
@@ -215,7 +217,12 @@ export const useCatalogStore = defineStore("catalog", () => {
       saveStocktakeCounts(s, id, inputs);
       finishStocktake(s, id);
     });
+  const recordRefund = (input: RefundInput) =>
+    mutate((s) => {
+      putRefund(s, input);
+    });
   return {
+    recordRefund,
     startStocktake,
     updateStocktake,
     closeStocktake,

@@ -3,6 +3,7 @@ import { computed, reactive, ref, watch } from "vue";
 import { useWorkspaceStore } from "../../app/workspace-store";
 import { useCatalogStore } from "../../app/catalog-store";
 import { costSummary, advanceRepaid } from "../../domain/finance/operations";
+import { saleNetRevenue } from "../../domain/sales/refunds";
 import type {
   CostInput,
   CostRecord,
@@ -200,8 +201,7 @@ const party = (id: string) =>
   catalog.snapshot?.parties.find((p) => p.id === id)?.name || "未指定";
 const netRevenue = computed(() =>
   (catalog.snapshot?.sales || [])
-    .filter((s) => !s.cancelledAt)
-    .reduce((sum, s) => sum + BigInt(s.total), 0n)
+    .reduce((sum, s) => sum + BigInt(saleNetRevenue(catalog.snapshot!, s)), 0n)
     .toString(),
 );
 const pending = computed(() =>

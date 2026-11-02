@@ -1,3 +1,4 @@
+import { saleRefundedTotal } from "../sales/refunds";
 import { record, text } from "../catalog/operations";
 import { addMovement, balance } from "./operations";
 import { whole } from "../money";
@@ -115,9 +116,11 @@ export function finishStocktake(s: CatalogSnapshot, id: string) {
 export function eventSummary(s: CatalogSnapshot, eventId: string) {
   const sales = s.sales.filter((sale) => sale.eventId === eventId);
   const gross = sales.reduce((a, sale) => a + BigInt(sale.total), 0n);
-  const refunds = sales
-    .filter((sale) => sale.cancelledAt)
-    .reduce((a, sale) => a + BigInt(sale.total), 0n);
+  const refunds = sales.reduce(
+    (a, sale) =>
+      a + BigInt(sale.cancelledAt ? sale.total : saleRefundedTotal(s, sale.id)),
+    0n,
+  );
   return {
     count: sales.length,
     activeCount: sales.filter((sale) => !sale.cancelledAt).length,
