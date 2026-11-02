@@ -58,6 +58,13 @@ watch(
   },
   { immediate: true },
 );
+async function addRelated(kind: "creator" | "project") {
+  if (catalog.busy) return;
+  if (kind === "creator") form.creatorId = "";
+  else form.projectId = "";
+  await nextTick();
+  document.getElementById(`${kind}-name`)?.focus();
+}
 async function edit(item: CatalogItem) {
   reset();
   editingId.value = item.id;
@@ -207,7 +214,7 @@ async function archive() {
                   id="product-creator"
                   v-model="form.creatorId"
                 >
-                  <option value="">輸入新創作者／未指定</option>
+                  <option value="">未指定／輸入新創作者</option>
                   <option
                     v-for="party in catalog.snapshot.parties"
                     :key="party.id"
@@ -215,15 +222,28 @@ async function archive() {
                   >
                     {{ party.name }}
                   </option></select
+                ><button
+                  type="button"
+                  class="button secondary add-related"
+                  :disabled="catalog.busy"
+                  @click="addRelated('creator')"
+                >
+                  新增創作者</button
                 ><label v-if="!form.creatorId" for="creator-name"
                   >新創作者名稱</label
                 ><input
                   v-if="!form.creatorId"
                   id="creator-name"
+                  aria-describedby="creator-name-help"
                   v-model="form.creatorName"
                   maxlength="80"
                   placeholder="可留白"
-                />
+                /><small
+                  v-if="!form.creatorId"
+                  id="creator-name-help"
+                  class="field-help"
+                  >輸入新創作者名稱後，會隨商品一起儲存；留白則不指定創作者。</small
+                >
               </div>
               <div class="field">
                 <label
@@ -235,7 +255,7 @@ async function archive() {
                   id="product-project"
                   v-model="form.projectId"
                 >
-                  <option value="">輸入新企劃／未指定</option>
+                  <option value="">未指定／輸入新企劃</option>
                   <option
                     v-for="project in catalog.snapshot.projects.filter(
                       (p) => !p.archived || p.id === form.projectId,
@@ -245,15 +265,28 @@ async function archive() {
                   >
                     {{ project.name }}{{ project.archived ? "（已封存）" : "" }}
                   </option></select
+                ><button
+                  type="button"
+                  class="button secondary add-related"
+                  :disabled="catalog.busy"
+                  @click="addRelated('project')"
+                >
+                  新增企劃</button
                 ><label v-if="!form.projectId" for="project-name"
                   >新企劃名稱</label
                 ><input
                   v-if="!form.projectId"
                   id="project-name"
+                  aria-describedby="project-name-help"
                   v-model="form.projectName"
                   maxlength="80"
                   placeholder="可留白"
-                />
+                /><small
+                  v-if="!form.projectId"
+                  id="project-name-help"
+                  class="field-help"
+                  >輸入新企劃名稱後，會隨商品一起儲存；留白則不指定企劃。</small
+                >
               </div>
               <div class="field">
                 <label for="product-type">周邊種類</label
@@ -458,6 +491,15 @@ async function archive() {
   </template>
 </template>
 <style scoped>
+.add-related {
+  justify-self: start;
+}
+.field-help {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #58674f;
+}
+
 .catalog-panel {
   background: white;
   border: 1px solid var(--line);
