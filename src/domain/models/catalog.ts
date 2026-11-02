@@ -65,7 +65,7 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 5;
+  schemaVersion: 6;
   workspaceId: string;
   workspace: Workspace;
   revision: number;
@@ -83,6 +83,7 @@ export interface CatalogSnapshot {
   fields: CustomField[];
   locations: NamedRecord[];
   movements: InventoryMovement[];
+  movementTypes: InventoryMovementType[];
   onlineListings: OnlineListing[];
 }
 export interface ProductInput {
@@ -115,6 +116,7 @@ export type MovementKind =
 export interface InventoryMovement extends NamedRecord {
   productId: string;
   kind: MovementKind;
+  movementTypeId?: string;
   quantity: number;
   fromLocationId: string;
   toLocationId: string;
@@ -125,6 +127,7 @@ export interface InventoryMovement extends NamedRecord {
 export interface MovementInput {
   productId: string;
   kind: Exclude<MovementKind, "reversal">;
+  movementTypeId?: string;
   quantity: number;
   fromLocationId: string;
   toLocationId: string;
@@ -147,4 +150,10 @@ export interface OnlineListingInput {
   url: string;
   quantity: number;
   notes: string;
+}
+
+export type StockEffect = "increase" | "decrease" | "transfer";
+export interface InventoryMovementType extends NamedRecord {
+  effect: StockEffect;
+  archived: boolean;
 }

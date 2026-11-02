@@ -7,8 +7,10 @@ import {
   addLocation,
   addMovement,
   reverseMovement,
+  putMovementType,
+  toggleMovementType,
 } from "../domain/inventory/operations";
-import type { MovementInput } from "../domain/models/catalog";
+import type { MovementInput, StockEffect } from "../domain/models/catalog";
 import {
   putProject,
   putEvent,
@@ -134,7 +136,15 @@ export const useCatalogStore = defineStore("catalog", () => {
     mutate((s) => {
       toggleOnlineListing(s, id);
     });
+  const saveMovementType = (name: string, effect: StockEffect, id?: string) =>
+    mutate((s) => {
+      putMovementType(s, name, effect, id);
+    });
+  const archiveMovementType = (id: string) =>
+    mutate((s) => toggleMovementType(s, id));
   return {
+    saveMovementType,
+    archiveMovementType,
     saveOnlineListing,
     archiveOnlineListing,
     saveLocation,

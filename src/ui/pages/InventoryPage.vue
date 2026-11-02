@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
+import MovementTypesPanel from "../components/MovementTypesPanel.vue";
 import OnlineStockPanel from "../components/OnlineStockPanel.vue";
 import { useWorkspaceStore } from "../../app/workspace-store";
 import { useCatalogStore } from "../../app/catalog-store";
-import { balance, movementLabels } from "../../domain/inventory/operations";
+import { balance } from "../../domain/inventory/operations";
 import type { MovementInput } from "../../domain/models/catalog";
 const workspaces = useWorkspaceStore(),
   catalog = useCatalogStore();
@@ -21,6 +22,32 @@ const form = reactive<MovementInput>({
   toLocationId: "",
   reason: "",
 });
+const selectedType = ref("receipt");
+watch(selectedType, (value) => {
+  const custom = catalog.snapshot?.movementTypes.find(
+    (t) => `type:${t.id}` === value,
+  );
+  form.movementTypeId = custom?.id;
+  form.kind = custom
+    ? (
+        {
+          increase: "adjust-in",
+          decrease: "adjust-out",
+          transfer: "transfer",
+        } as const
+      )[custom.effect]
+    : (value as MovementInput["kind"]);
+});
+watch(
+  () => catalog.snapshot,
+  (s) => {
+    if (
+      form.movementTypeId &&
+      !s?.movementTypes.some((t) => t.id === form.movementTypeId && !t.archived)
+    )
+      selectedType.value = "receipt";
+  },
+);
 const incoming = computed(() => ["receipt", "adjust-in"].includes(form.kind));
 const outgoing = computed(() =>
   ["free", "damage", "adjust-out"].includes(form.kind),
@@ -68,6 +95,8 @@ watch(
       reason: "",
     });
     locationName.value = "";
+    selectedType.value = "receipt";
+    form.movementTypeId = undefined;
     if (id) await catalog.load(id);
   },
   { immediate: true },
@@ -88,6 +117,8 @@ async function run(action: () => Promise<void>, success: string) {
 async function location() {
   if (await run(() => catalog.saveLocation(locationName.value), "庫位已建立。"))
     locationName.value = "";
+  selectedType.value = "receipt";
+  form.movementTypeId = undefined;
 }
 async function save() {
   if (await run(() => catalog.saveMovement({ ...form }), "庫存異動已儲存。")) {
@@ -122,7 +153,7 @@ const when = (time: string) =>
     <div>
       <div class="eyebrow">KEEP EVERY ITEM IN VIEW</div>
       <h1>庫存與盤點</h1>
-      <p>登記製作入庫、無料、損耗與庫位調撥，每筆異動都留下原因。</p>
+      <p>用自己的類型名稱登記庫存增加、減少或移動，每筆都保留紀錄。</p>
     </div>
   </section>
   <section class="info-banner">
@@ -195,6 +226,7 @@ const when = (time: string) =>
           }}
         </p>
       </section>
+      <MovementTypesPanel />
       <section class="inventory-panel section-block">
         <h2>登記庫存異動</h2>
         <p>
@@ -225,17 +257,34 @@ const when = (time: string) =>
             </div>
             <div class="field">
               <label for="movement-kind">異動類型</label
-              ><select id="movement-kind" v-model="form.kind">
-                <option
-                  v-for="(label, kind) in movementLabels"
-                  v-show="kind !== 'reversal'"
-                  :key="kind"
-                  :value="kind"
-                  :disabled="kind === 'reversal'"
+              ><select id="movement-kind" v-model="selectedType">
+                <optgroup label="基本方式">
+                  <option value="receipt">增加庫存</option>
+                  <option value="adjust-out">減少庫存</option>
+                  <option value="transfer">移動庫存</option>
+                </optgroup>
+                <optgroup
+                  v-if="catalog.snapshot.movementTypes.some((t) => !t.archived)"
+                  label="我的類型"
                 >
-                  {{ label }}
-                </option>
+                  <option
+                    v-for="t in catalog.snapshot.movementTypes.filter(
+                      (t) => !t.archived,
+                    )"
+                    :key="t.id"
+                    :value="`type:${t.id}`"
+                  >
+                    {{ t.name }}
+                  </option>
+                </optgroup>
               </select>
+              <small>{{
+                incoming
+                  ? "數量加入目的庫位。"
+                  : outgoing
+                    ? "數量從來源庫位扣除。"
+                    : "從來源移到目的，總數量不變。"
+              }}</small>
             </div>
             <div class="field" v-if="!incoming">
               <label for="movement-from">來源庫位</label
@@ -338,8 +387,8 @@ const when = (time: string) =>
           <div>
             <span class="soft-label">{{ m.code }}</span>
             <h3>
-              {{ movementLabels[m.kind] }} ·
-              {{ name("products", m.productId) }} × {{ m.quantity }}
+              {{ m.name }} · {{ name("products", m.productId) }} ×
+              {{ m.quantity }}
             </h3>
             <p>
               {{ name("locations", m.fromLocationId) }} →

@@ -59,6 +59,7 @@ const keys = [
   "fields",
   "locations",
   "movements",
+  "movementTypes",
   "onlineListings",
 ] as const;
 export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
@@ -68,11 +69,15 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     original.schemaVersion === 3
       ? { ...original, schemaVersion: 4, locations: [], movements: [] }
       : original;
-  const s =
+  const online =
     inventory.schemaVersion === 4
       ? { ...inventory, schemaVersion: 5, onlineListings: [] }
       : inventory;
-  if (s.schemaVersion !== 5) fail("目前僅支援網站資料版本 3、4、5。");
+  const s =
+    online.schemaVersion === 5
+      ? { ...online, schemaVersion: 6, movementTypes: [] }
+      : online;
+  if (s.schemaVersion !== 6) fail("目前僅支援網站資料版本 3、4、5、6。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -233,6 +238,11 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
       }
     }
   }
+  for (const type of s.movementTypes) {
+    bool(type.archived);
+    if (!["increase", "decrease", "transfer"].includes(type.effect))
+      fail("異動類型的庫存變化方式不正確。");
+  }
   const seenMovements = new Map<string, any>(),
     reversed = new Set<string>(),
     balances = new Map<string, number>();
@@ -246,6 +256,17 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   };
   for (const m of s.movements) {
     ref("products", m.productId);
+    if (m.movementTypeId !== undefined) {
+      ref("movementTypes", m.movementTypeId);
+      const type = maps.movementTypes!.get(m.movementTypeId);
+      const expected = {
+        increase: "adjust-in",
+        decrease: "adjust-out",
+        transfer: "transfer",
+      }[type.effect as "increase" | "decrease" | "transfer"];
+      if (m.kind !== "reversal" && m.kind !== expected)
+        fail("異動類型與庫存方向不符。");
+    }
     ref("locations", m.fromLocationId, true);
     ref("locations", m.toLocationId, true);
     integer(m.quantity);

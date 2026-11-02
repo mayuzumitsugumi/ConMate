@@ -2,15 +2,16 @@ import type {
   CatalogSnapshot,
   InventoryMovement,
   MovementInput,
+  StockEffect,
 } from "../models/catalog";
 import { record, text } from "../catalog/operations";
 export const movementLabels = {
-  receipt: "製作入庫",
+  receipt: "增加庫存",
   free: "無料發放",
   damage: "瑕疵／損耗",
-  "adjust-in": "盤差調增",
-  "adjust-out": "盤差調減",
-  transfer: "庫位調撥",
+  "adjust-in": "增加庫存",
+  "adjust-out": "減少庫存",
+  transfer: "移動庫存",
   reversal: "沖銷更正",
 };
 export function balance(
@@ -60,6 +61,21 @@ function validateMovement(s: CatalogSnapshot, m: InventoryMovement) {
     throw new Error("庫存數量超過安全範圍。");
 }
 export function addMovement(s: CatalogSnapshot, input: MovementInput) {
+  const type = input.movementTypeId
+    ? s.movementTypes.find((t) => t.id === input.movementTypeId)
+    : undefined;
+  if (input.movementTypeId && (!type || type.archived))
+    throw new Error("請選擇啟用的自訂類型。");
+  const effectKind = type
+    ? (
+        {
+          increase: "adjust-in",
+          decrease: "adjust-out",
+          transfer: "transfer",
+        } as const
+      )[type.effect]
+    : input.kind;
+  input = { ...input, kind: effectKind };
   const product = s.products.find((p) => p.id === input.productId);
   if (!product || product.archived) throw new Error("請選擇未封存的商品。");
   if (
@@ -77,7 +93,7 @@ export function addMovement(s: CatalogSnapshot, input: MovementInput) {
     outgoing = ["free", "damage", "adjust-out"].includes(input.kind);
   const reason = text(input.reason, "異動原因", 2000);
   const m: InventoryMovement = {
-    ...record(s, "MOV", movementLabels[input.kind]),
+    ...record(s, "MOV", type?.name || movementLabels[input.kind]),
     ...input,
     reason,
     fromLocationId: incoming ? "" : input.fromLocationId,
@@ -114,4 +130,38 @@ export function reverseMovement(
   validateMovement(s, m);
   s.movements.push(m);
   return m;
+}
+
+export const stockEffectLabels = {
+  increase: "增加庫存",
+  decrease: "減少庫存",
+  transfer: "移動庫存",
+};
+export function putMovementType(
+  s: CatalogSnapshot,
+  name: string,
+  effect: StockEffect,
+  id?: string,
+) {
+  name = text(name, "類型名稱", 80);
+  if (!["increase", "decrease", "transfer"].includes(effect))
+    throw new Error("請選擇庫存變化方式。");
+  const existing = id ? s.movementTypes.find((t) => t.id === id) : undefined;
+  if (id && !existing) throw new Error("找不到異動類型。");
+  if (existing && existing.effect !== effect)
+    throw new Error("類型的庫存變化方式不可修改，請另建類型。");
+  if (s.movementTypes.some((t) => t.id !== id && t.name === name))
+    throw new Error("已有相同名稱的類型。");
+  if (existing) {
+    existing.name = name;
+    return existing;
+  }
+  const type = { ...record(s, "MVT", name), effect, archived: false };
+  s.movementTypes.push(type);
+  return type;
+}
+export function toggleMovementType(s: CatalogSnapshot, id: string) {
+  const type = s.movementTypes.find((t) => t.id === id);
+  if (!type) throw new Error("找不到異動類型。");
+  type.archived = !type.archived;
 }

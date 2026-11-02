@@ -1,8 +1,8 @@
-import { balance, movementLabels } from "../../domain/inventory/operations";
+import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.3.0";
+export const PROJECT_VERSION = "2.4.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -252,7 +252,7 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
       const row = ledger.addRow([
         m.code,
         label(snapshot.products, m.productId),
-        movementLabels[m.kind],
+        m.name,
         m.quantity,
         label(snapshot.locations, m.fromLocationId),
         label(snapshot.locations, m.toLocationId),
@@ -286,6 +286,17 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
         l.archived ? "已封存" : "使用中",
       ]);
     ws.getColumn(5).numFmt = "0";
+  }
+  if (snapshot.movementTypes.length) {
+    const ws = sheet("08_異動類型", ["類型名稱", "庫存變化", "狀態"]);
+    for (const t of snapshot.movementTypes)
+      ws.addRow([
+        t.name,
+        { increase: "增加庫存", decrease: "減少庫存", transfer: "移動庫存" }[
+          t.effect
+        ],
+        t.archived ? "已封存" : "使用中",
+      ]);
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);
   raw.state = "hidden";
