@@ -4,6 +4,12 @@
 
 目前狀態：**v0.1 網站起步版**。已提供手機／桌面總覽、分頁導覽、本機工作區名稱保存，以及 Excel 空白／虛構範例模板下載。
 
+## 首畫面預覽
+
+![ConMate 桌面總覽](docs/images/overview-desktop.png)
+
+[查看手機版畫面](docs/images/overview-mobile.png)
+
 ## 本機開啟
 
 需要 Node.js 22.12 以上，建議 Node.js 24。
