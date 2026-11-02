@@ -73,6 +73,21 @@ export class ConMateDatabase extends Dexie {
             data.schemaVersion = 6;
           });
       });
+    this.version(7)
+      .stores({ workspaces: "id, createdAt", catalogs: "workspaceId" })
+      .upgrade(async (tx) => {
+        await tx
+          .table("catalogs")
+          .toCollection()
+          .modify((data) => {
+            if (data.schemaVersion !== 6)
+              throw new Error("不支援的資料版本，原始資料未刪除。");
+            data.sales = [];
+            data.costs = [];
+            data.advances = [];
+            data.schemaVersion = 7;
+          });
+      });
   }
 }
 export const database = new ConMateDatabase();

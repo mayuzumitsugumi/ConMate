@@ -27,7 +27,7 @@ test("overview, local workspace and responsive navigation", async ({
     .getByRole("link", { name: "攤位販售" })
     .click();
   await expect(
-    page.getByRole("heading", { name: "小秘書正在準備這一頁" }),
+    page.getByRole("heading", { name: "攤位販售", exact: true }),
   ).toBeVisible();
 });
 

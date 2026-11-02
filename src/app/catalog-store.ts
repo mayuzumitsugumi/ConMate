@@ -1,3 +1,16 @@
+import { completeSale, cancelSale } from "../domain/sales/operations";
+import {
+  putCost,
+  putAdvance,
+  repayAdvance,
+  reverseRepayment as undoRepayment,
+  voidAdvance as cancelAdvance,
+} from "../domain/finance/operations";
+import type {
+  SaleInput,
+  CostInput,
+  AdvanceInput,
+} from "../domain/models/catalog";
 import {
   putOnlineListing,
   toggleOnlineListing,
@@ -142,7 +155,37 @@ export const useCatalogStore = defineStore("catalog", () => {
     });
   const archiveMovementType = (id: string) =>
     mutate((s) => toggleMovementType(s, id));
+  const finishSale = (input: SaleInput) =>
+    mutate((s) => {
+      completeSale(s, input);
+    });
+  const refundSale = (id: string, reason: string) =>
+    mutate((s) => cancelSale(s, id, reason));
+  const saveCost = (input: CostInput, id?: string) =>
+    mutate((s) => putCost(s, input, id));
+  const archiveCost = (id: string) =>
+    mutate((s) => {
+      const c = s.costs.find((c) => c.id === id);
+      if (!c) throw new Error("找不到成本紀錄。");
+      c.archived = !c.archived;
+    });
+  const saveAdvance = (input: AdvanceInput) =>
+    mutate((s) => putAdvance(s, input));
+  const payAdvance = (id: string, amount: number, notes: string) =>
+    mutate((s) => repayAdvance(s, id, amount, notes));
+  const reverseRepayment = (id: string, repaymentId: string, reason: string) =>
+    mutate((s) => undoRepayment(s, id, repaymentId, reason));
+  const voidAdvance = (id: string, reason: string) =>
+    mutate((s) => cancelAdvance(s, id, reason));
   return {
+    finishSale,
+    refundSale,
+    saveCost,
+    archiveCost,
+    saveAdvance,
+    payAdvance,
+    reverseRepayment,
+    voidAdvance,
     saveMovementType,
     archiveMovementType,
     saveOnlineListing,

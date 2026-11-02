@@ -1,8 +1,9 @@
+import { costSummary, advanceRepaid } from "../../domain/finance/operations";
 import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.4.0";
+export const PROJECT_VERSION = "2.5.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -89,7 +90,7 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
     ],
     [
       "資料範圍",
-      "本檔包含此工作區目前可建立的商品、創作者、企劃、場次、參場關聯、標記、自訂欄位及庫存異動；尚不包含未開放的銷售及財務功能。",
+      "本檔包含此工作區目前可建立的商品、創作者、企劃、場次、參場關聯、標記、自訂欄位及庫存異動；也包含攤位交易、批次成本與代墊還款；尚未開放的抽選池與分潤規則不包含在內。",
     ],
     [
       "格式",
@@ -297,6 +298,155 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
         ],
         t.archived ? "已封存" : "使用中",
       ]);
+  }
+  const label = (records: { id: string; name: string }[], id: string) =>
+    records.find((r) => r.id === id)?.name || "";
+  if (snapshot.sales.length) {
+    const ws = sheet("09_銷售交易", [
+      "交易編號",
+      "成交時間",
+      "場次",
+      "出貨庫位",
+      "收款者",
+      "應收總額",
+      "收到金額",
+      "找零",
+      "狀態",
+      "取消時間",
+      "取消原因",
+      "備註",
+    ]);
+    const lines = sheet("10_銷售明細", [
+      "交易編號",
+      "成交商品名稱",
+      "商品編號",
+      "售法",
+      "數量",
+      "單價",
+      "金額",
+      "出庫編號",
+    ]);
+    for (const sale of snapshot.sales) {
+      ws.addRow([
+        sale.code,
+        sale.createdAt,
+        label(snapshot.events, sale.eventId),
+        label(snapshot.locations, sale.locationId),
+        label(snapshot.parties, sale.collectorId),
+        sale.total,
+        sale.cashReceived,
+        sale.change,
+        sale.cancelledAt ? "已全額退款並回庫" : "有效",
+        sale.cancelledAt,
+        sale.cancelReason,
+        sale.notes,
+      ]);
+      for (const l of sale.lines)
+        lines.addRow([
+          sale.code,
+          l.productName,
+          snapshot.products.find((p) => p.id === l.productId)?.code || "",
+          l.mode === "draw" ? "抽選實際交付" : "指定購買",
+          l.quantity,
+          l.unitPrice,
+          Number(BigInt(l.quantity) * BigInt(l.unitPrice)),
+          snapshot.movements.find((m) => m.id === l.movementId)?.code || "",
+        ]);
+    }
+    for (const col of [6, 7, 8]) ws.getColumn(col).numFmt = "0";
+    for (const col of [5, 6, 7]) lines.getColumn(col).numFmt = "0";
+  }
+  if (snapshot.costs.length) {
+    const ws = sheet("11_批次成本", [
+      "成本名稱",
+      "商品",
+      "製作數量",
+      "預估印製費",
+      "實際印製費",
+      "柄圖分配費",
+      "其他成本",
+      "試算售價",
+      "成本總額",
+      "單件綜合成本",
+      "全部售出預估毛利",
+      "回本所需銷量",
+      "印製費付款者註記",
+      "成本負擔者註記",
+      "狀態",
+      "備註",
+    ]);
+    for (const c of snapshot.costs) {
+      const result = costSummary(c);
+      ws.addRow([
+        c.name,
+        label(snapshot.products, c.productId),
+        c.quantity,
+        c.estimatedPrint,
+        c.actualPrint,
+        c.artworkAllocated,
+        c.otherCost,
+        c.unitSalePrice,
+        result?.total ?? null,
+        result ? Number(result.unitCost) : null,
+        result?.profit == null ? null : Number(result.profit),
+        result?.breakEven == null ? null : Number(result.breakEven),
+        label(snapshot.parties, c.paidById),
+        label(snapshot.parties, c.burdenPartyId),
+        c.archived ? "已封存" : "啟用",
+        c.notes,
+      ]);
+    }
+    for (const col of [3, 4, 5, 6, 7, 8, 9, 11, 12])
+      ws.getColumn(col).numFmt = "0";
+    ws.getColumn(10).numFmt = "0.0000";
+  }
+  if (snapshot.advances.length) {
+    const ws = sheet("12_代墊本金", [
+      "代墊編號",
+      "名稱",
+      "付款者",
+      "約定負擔者",
+      "實付可追收本金",
+      "有效已還本金",
+      "未還本金",
+      "狀態",
+      "作廢原因",
+      "備註",
+    ]);
+    const payments = sheet("13_本金還款", [
+      "代墊編號",
+      "時間",
+      "類型",
+      "金額",
+      "沖銷來源",
+      "備註",
+    ]);
+    for (const a of snapshot.advances) {
+      const paid = advanceRepaid(a);
+      ws.addRow([
+        a.code,
+        a.name,
+        label(snapshot.parties, a.payerId),
+        label(snapshot.parties, a.debtorId),
+        a.principal,
+        paid,
+        a.voidedAt ? 0 : a.principal - paid,
+        a.voidedAt ? "已作廢" : "有效",
+        a.voidReason,
+        a.notes,
+      ]);
+      for (const r of a.repayments)
+        payments.addRow([
+          a.code,
+          r.createdAt,
+          r.reversesId ? "沖銷還款" : "本金償還",
+          r.amount,
+          r.reversesId,
+          r.notes,
+        ]);
+    }
+    for (const col of [5, 6, 7]) ws.getColumn(col).numFmt = "0";
+    payments.getColumn(4).numFmt = "0";
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);
   raw.state = "hidden";

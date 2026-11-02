@@ -1,3 +1,5 @@
+import SalesPage from "../ui/pages/SalesPage.vue";
+import FinancePage from "../ui/pages/FinancePage.vue";
 import InventoryPage from "../ui/pages/InventoryPage.vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import OverviewPage from "../ui/pages/OverviewPage.vue";
@@ -30,9 +32,8 @@ export const sections = [
     path: "/sales",
     label: "攤位販售",
     icon: "bag",
-    ready: false,
-    description:
-      "直接登記抽中款式與指定購買，共用庫存。先做好你急用的混池與快速收款流程。",
+    ready: true,
+    description: "登記實際交付款式、指定購買與收款找零，成交時同步扣庫。",
   },
   {
     path: "/inventory",
@@ -46,9 +47,9 @@ export const sections = [
     path: "/finance",
     label: "成本與財務",
     icon: "chart",
-    ready: false,
+    ready: true,
     description:
-      "分開呈現成本、代墊、抽成、試算與實際付款。最後如何分款與結案由你決定。",
+      "記錄商品批次成本、代墊本金與還款；分潤與進階規則逐步開發，分款與結案由你決定。",
   },
   { path: "/customize", label: "自訂商品資料", icon: "layers", ready: true },
   { path: "/templates", label: "專案檔與備份", icon: "file", ready: true },
@@ -64,15 +65,19 @@ export const router = createRouter({
           ? OverviewPage
           : section.path === "/templates"
             ? DataPage
-            : section.path === "/inventory"
-              ? InventoryPage
-              : section.path === "/projects"
-                ? ProjectsPage
-                : section.path === "/products"
-                  ? ProductsPage
-                  : section.path === "/customize"
-                    ? CustomizationPage
-                    : UpcomingPage,
+            : section.path === "/sales"
+              ? SalesPage
+              : section.path === "/finance"
+                ? FinancePage
+                : section.path === "/inventory"
+                  ? InventoryPage
+                  : section.path === "/projects"
+                    ? ProjectsPage
+                    : section.path === "/products"
+                      ? ProductsPage
+                      : section.path === "/customize"
+                        ? CustomizationPage
+                        : UpcomingPage,
       meta: { title: section.label },
     })),
     {

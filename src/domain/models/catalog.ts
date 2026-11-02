@@ -65,7 +65,7 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 6;
+  schemaVersion: 7;
   workspaceId: string;
   workspace: Workspace;
   revision: number;
@@ -85,6 +85,9 @@ export interface CatalogSnapshot {
   movements: InventoryMovement[];
   movementTypes: InventoryMovementType[];
   onlineListings: OnlineListing[];
+  sales: SaleRecord[];
+  costs: CostRecord[];
+  advances: AdvanceRecord[];
 }
 export interface ProductInput {
   name: string;
@@ -112,11 +115,13 @@ export type MovementKind =
   | "adjust-in"
   | "adjust-out"
   | "transfer"
-  | "reversal";
+  | "reversal"
+  | "sale";
 export interface InventoryMovement extends NamedRecord {
   productId: string;
   kind: MovementKind;
   movementTypeId?: string;
+  saleId?: string;
   quantity: number;
   fromLocationId: string;
   toLocationId: string;
@@ -126,7 +131,7 @@ export interface InventoryMovement extends NamedRecord {
 }
 export interface MovementInput {
   productId: string;
-  kind: Exclude<MovementKind, "reversal">;
+  kind: Exclude<MovementKind, "reversal" | "sale">;
   movementTypeId?: string;
   quantity: number;
   fromLocationId: string;
@@ -156,4 +161,78 @@ export type StockEffect = "increase" | "decrease" | "transfer";
 export interface InventoryMovementType extends NamedRecord {
   effect: StockEffect;
   archived: boolean;
+}
+
+export interface SaleLineInput {
+  productId: string;
+  mode: "direct" | "draw";
+  quantity: number;
+  unitPrice: number;
+}
+export interface SaleInput {
+  operationId: string;
+  locationId: string;
+  eventId: string;
+  collectorId: string;
+  cashReceived: number;
+  notes: string;
+  lines: SaleLineInput[];
+}
+export interface SaleLine extends SaleLineInput {
+  id: string;
+  productName: string;
+  movementId: string;
+}
+export interface SaleRecord extends NamedRecord {
+  operationId: string;
+  locationId: string;
+  eventId: string;
+  collectorId: string;
+  cashReceived: number;
+  total: number;
+  change: number;
+  notes: string;
+  createdAt: string;
+  cancelledAt: string;
+  cancelReason: string;
+  lines: SaleLine[];
+  reversalIds: string[];
+}
+export interface CostInput {
+  name: string;
+  productId: string;
+  quantity: number;
+  estimatedPrint: number | null;
+  actualPrint: number | null;
+  artworkAllocated: number | null;
+  otherCost: number | null;
+  unitSalePrice: number | null;
+  paidById: string;
+  burdenPartyId: string;
+  notes: string;
+}
+export interface CostRecord extends NamedRecord, CostInput {
+  archived: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface AdvanceInput {
+  name: string;
+  payerId: string;
+  debtorId: string;
+  principal: number;
+  notes: string;
+}
+export interface RepaymentRecord {
+  id: string;
+  amount: number;
+  notes: string;
+  createdAt: string;
+  reversesId: string;
+}
+export interface AdvanceRecord extends NamedRecord, AdvanceInput {
+  createdAt: string;
+  voidedAt: string;
+  voidReason: string;
+  repayments: RepaymentRecord[];
 }

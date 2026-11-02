@@ -1,0 +1,529 @@
+<script setup lang="ts">
+import { computed, reactive, ref, watch } from "vue";
+import { useWorkspaceStore } from "../../app/workspace-store";
+import { useCatalogStore } from "../../app/catalog-store";
+import { balance } from "../../domain/inventory/operations";
+import { saleTotal } from "../../domain/sales/operations";
+import type { SaleInput, SaleLineInput } from "../../domain/models/catalog";
+const workspaces = useWorkspaceStore(),
+  catalog = useCatalogStore();
+const notice = ref(""),
+  error = ref(""),
+  search = ref(""),
+  confirming = ref(false);
+const operationId = ref<string>(crypto.randomUUID());
+const context = reactive({
+  locationId: "",
+  eventId: "",
+  collectorId: "",
+  notes: "",
+  cashReceived: null as number | null,
+});
+const cart = ref<
+  (Omit<SaleLineInput, "unitPrice"> & {
+    key: string;
+    productName: string;
+    unitPrice: number | null;
+  })[]
+>([]);
+const cancelId = ref(""),
+  cancelReason = ref(""),
+  refundConfirmed = ref(false);
+const products = computed(
+  () =>
+    catalog.snapshot?.products.filter(
+      (p) => !p.archived && (!search.value || p.name.includes(search.value)),
+    ) || [],
+);
+const recent = computed(() => [...(catalog.snapshot?.sales || [])].reverse());
+const total = computed(() => {
+  try {
+    if (
+      !cart.value.length ||
+      cart.value.some(
+        (l) => l.unitPrice === null || l.unitPrice === ("" as unknown),
+      )
+    )
+      return null;
+    return saleTotal(cart.value as SaleLineInput[]);
+  } catch {
+    return null;
+  }
+});
+const change = computed(() =>
+  total.value === null ||
+  context.cashReceived === null ||
+  !Number.isSafeInteger(context.cashReceived) ||
+  context.cashReceived < total.value
+    ? null
+    : context.cashReceived - total.value,
+);
+const netRevenue = computed(() =>
+  (catalog.snapshot?.sales || [])
+    .filter((s) => !s.cancelledAt)
+    .reduce((sum, s) => sum + BigInt(s.total), 0n)
+    .toString(),
+);
+watch(
+  () => workspaces.activeWorkspaceId,
+  async (id) => {
+    cart.value = [];
+    confirming.value = false;
+    cancelId.value = "";
+    notice.value = "";
+    error.value = "";
+    Object.assign(context, {
+      locationId: "",
+      eventId: "",
+      collectorId: "",
+      notes: "",
+      cashReceived: null,
+    });
+    operationId.value = crypto.randomUUID();
+    if (id) await catalog.load(id);
+  },
+  { immediate: true },
+);
+function clearCart() {
+  cart.value = [];
+  confirming.value = false;
+  context.cashReceived = null;
+  operationId.value = crypto.randomUUID();
+}
+function add(productId: string, mode: "direct" | "draw") {
+  const p = catalog.snapshot?.products.find((p) => p.id === productId);
+  if (!p || catalog.busy) return;
+  const line = cart.value.find(
+    (l) => l.productId === productId && l.mode === mode,
+  );
+  if (line) line.quantity++;
+  else
+    cart.value.push({
+      key: crypto.randomUUID(),
+      productId,
+      productName: p.name,
+      mode,
+      quantity: 1,
+      unitPrice: null,
+    });
+  confirming.value = false;
+}
+function stock(id: string) {
+  return catalog.snapshot && context.locationId
+    ? balance(catalog.snapshot, id, context.locationId)
+    : "—";
+}
+async function submit() {
+  if (catalog.busy || total.value === null || change.value === null) return;
+  error.value = "";
+  notice.value = "";
+  try {
+    await catalog.finishSale({
+      ...context,
+      cashReceived: context.cashReceived!,
+      operationId: operationId.value,
+      lines: cart.value.map(({ productId, mode, quantity, unitPrice }) => ({
+        productId,
+        mode,
+        quantity,
+        unitPrice: unitPrice!,
+      })),
+    } satisfies SaleInput);
+    cart.value = [];
+    context.cashReceived = null;
+    context.notes = "";
+    confirming.value = false;
+    operationId.value = crypto.randomUUID();
+    notice.value = "交易已完成，已同步扣除實際商品庫存。";
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : "成交失敗，請重試。";
+    confirming.value = false;
+  }
+}
+async function cancel() {
+  if (catalog.busy || !refundConfirmed.value) return;
+  error.value = "";
+  notice.value = "";
+  try {
+    await catalog.refundSale(cancelId.value, cancelReason.value);
+    cancelId.value = "";
+    cancelReason.value = "";
+    refundConfirmed.value = false;
+    notice.value = "已記錄全額退款並全數回庫，原交易仍保留。";
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : "無法取消交易。";
+  }
+}
+const when = (v: string) =>
+  new Intl.DateTimeFormat("zh-TW", {
+    timeZone: "Asia/Taipei",
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(v));
+const named = (key: "locations" | "events" | "parties", id: string) =>
+  catalog.snapshot?.[key].find((r) => r.id === id)?.name || "未指定";
+</script>
+<template>
+  <section class="page-heading">
+    <div>
+      <div class="eyebrow">QUICK BOOTH SALES</div>
+      <h1>攤位販售</h1>
+      <p>選擇實際交付的商品、確認收款，成交時一起扣庫。</p>
+    </div>
+  </section>
+  <aside class="info-banner">
+    <div>
+      <strong>先開放指定購買與已知款式的抽選記錄。</strong>
+      <p>
+        抽選按實際交付商品逐筆登記，不替你抽獎。每項價格自行填寫，同商品的指定與抽選共用實物庫存。尚未提供抽選池設定、部分退款、換貨或損壞退貨。取消交易僅適用「已全額退款且商品全數回到原庫位」。
+      </p>
+    </div>
+  </aside>
+  <RouterLink v-if="!workspaces.activeWorkspaceId" to="/" class="button primary"
+    >先建立工作區</RouterLink
+  >
+  <template v-else>
+    <div class="field workspace-picker">
+      <label for="sales-workspace">目前工作區</label
+      ><select
+        id="sales-workspace"
+        :value="workspaces.activeWorkspaceId"
+        :disabled="catalog.busy || cart.length > 0"
+        @change="workspaces.select(($event.target as HTMLSelectElement).value)"
+      >
+        <option v-for="w in workspaces.workspaces" :key="w.id" :value="w.id">
+          {{ w.name }}
+        </option></select
+      ><small v-if="cart.length">請先完成或清空購物車，再切換工作區。</small>
+    </div>
+    <p v-if="notice" role="status" class="success-notice">{{ notice }}</p>
+    <p v-if="error || catalog.error" role="alert" class="error-notice">
+      {{ error || catalog.error
+      }}<button
+        class="text-button"
+        :disabled="catalog.busy"
+        @click="catalog.load(workspaces.activeWorkspaceId)"
+      >
+        重新讀取
+      </button>
+    </p>
+    <template v-if="catalog.snapshot">
+      <section class="business-panel section-block">
+        <h2>本次販售</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label for="sales-location">出貨庫位（必填）</label
+            ><select
+              id="sales-location"
+              v-model="context.locationId"
+              :disabled="catalog.busy || cart.length > 0"
+            >
+              <option value="">請選擇庫位</option>
+              <option
+                v-for="l in catalog.snapshot.locations"
+                :key="l.id"
+                :value="l.id"
+              >
+                {{ l.name }}
+              </option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sales-event">場次</label
+            ><select
+              id="sales-event"
+              v-model="context.eventId"
+              :disabled="catalog.busy"
+            >
+              <option value="">未指定</option>
+              <option
+                v-for="e in catalog.snapshot.events.filter((e) => !e.archived)"
+                :key="e.id"
+                :value="e.id"
+              >
+                {{ e.name }}
+              </option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sales-collector">實際收款者</label
+            ><select
+              id="sales-collector"
+              v-model="context.collectorId"
+              :disabled="catalog.busy"
+            >
+              <option value="">未指定</option>
+              <option
+                v-for="p in catalog.snapshot.parties"
+                :key="p.id"
+                :value="p.id"
+              >
+                {{ p.name }}
+              </option></select
+            ><small>持款者不等於收入所有者；未指定不會自動認定歸屬。</small>
+          </div>
+        </div>
+        <RouterLink v-if="!catalog.snapshot.locations.length" to="/inventory"
+          >先建立庫位並登記入庫 →</RouterLink
+        >
+      </section>
+      <div class="sales-layout">
+        <section class="section-block">
+          <h2>選擇交付商品</h2>
+          <div class="field">
+            <label for="sales-search">搜尋商品</label
+            ><input id="sales-search" type="search" v-model="search" />
+          </div>
+          <p v-if="!products.length">
+            尚無符合的啟用商品，請先到商品建檔建立。
+          </p>
+          <div class="product-grid">
+            <article v-for="p in products" :key="p.id" class="business-panel">
+              <h3>{{ p.name }}</h3>
+              <p>{{ p.code }} · 目前庫位現存 {{ stock(p.id) }}</p>
+              <div class="actions">
+                <button
+                  type="button"
+                  class="button primary"
+                  :disabled="
+                    catalog.busy || !context.locationId || stock(p.id) === 0
+                  "
+                  @click="add(p.id, 'direct')"
+                >
+                  指定購買</button
+                ><button
+                  type="button"
+                  class="button secondary"
+                  :disabled="
+                    catalog.busy || !context.locationId || stock(p.id) === 0
+                  "
+                  @click="add(p.id, 'draw')"
+                >
+                  抽選結果
+                </button>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section class="business-panel section-block cart">
+          <h2>購物車</h2>
+          <p v-if="!cart.length">
+            先選出貨庫位，再點選商品。購物車尚不扣庫或保留庫存；離開頁面後不保留未成交購物車。
+          </p>
+          <fieldset :disabled="catalog.busy">
+            <article v-for="line in cart" :key="line.key" class="cart-line">
+              <h3>
+                {{ line.productName }} ·
+                {{ line.mode === "draw" ? "抽選" : "指定" }}
+              </h3>
+              <div class="form-grid">
+                <div class="field">
+                  <label :for="'qty-' + line.key">數量</label
+                  ><input
+                    :id="'qty-' + line.key"
+                    v-model.number="line.quantity"
+                    type="number"
+                    min="1"
+                    step="1"
+                    required
+                    @input="confirming = false"
+                  />
+                </div>
+                <div class="field">
+                  <label :for="'price-' + line.key">單價（新台幣整元）</label
+                  ><input
+                    :id="'price-' + line.key"
+                    v-model.number="line.unitPrice"
+                    type="number"
+                    min="0"
+                    step="1"
+                    required
+                    placeholder="請輸入售價"
+                    @input="confirming = false"
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                class="text-button"
+                :aria-label="'移除 ' + line.productName + ' ' + line.mode"
+                @click="
+                  cart = cart.filter((l) => l.key !== line.key);
+                  confirming = false;
+                "
+              >
+                移除
+              </button>
+            </article>
+            <p class="amount">
+              應收：{{ total === null ? "請填完整數量與單價" : total + " 元" }}
+            </p>
+            <div class="field">
+              <label for="sales-cash">收到金額（新台幣整元）</label
+              ><input
+                id="sales-cash"
+                v-model.number="context.cashReceived"
+                type="number"
+                min="0"
+                step="1"
+                @input="confirming = false"
+              />
+            </div>
+            <p>找零：{{ change === null ? "尚無法計算" : change + " 元" }}</p>
+            <div class="field">
+              <label for="sales-notes">交易備註</label
+              ><input
+                id="sales-notes"
+                v-model="context.notes"
+                maxlength="2000"
+              />
+            </div>
+          </fieldset>
+          <div class="actions">
+            <button
+              class="button primary"
+              :disabled="
+                catalog.busy ||
+                !cart.length ||
+                change === null ||
+                !context.locationId
+              "
+              @click="confirming = true"
+            >
+              確認收款</button
+            ><button
+              type="button"
+              class="button secondary"
+              :disabled="catalog.busy || !cart.length"
+              @click="clearCart"
+            >
+              清空購物車
+            </button>
+          </div>
+          <section
+            v-if="confirming"
+            class="confirmation"
+            role="region"
+            aria-label="成交確認"
+          >
+            <h3>確認已收款並交付商品？</h3>
+            <p>
+              應收 {{ total }} 元，收到 {{ context.cashReceived }} 元，找零
+              {{ change }} 元。確認後會正式記帳並扣庫。
+            </p>
+            <button
+              class="button primary"
+              :disabled="catalog.busy"
+              @click="submit"
+            >
+              {{ catalog.busy ? "儲存中…" : "完成交易並扣庫" }}</button
+            ><button
+              class="button secondary"
+              :disabled="catalog.busy"
+              @click="confirming = false"
+            >
+              返回檢查
+            </button>
+          </section>
+        </section>
+      </div>
+      <section class="section-block">
+        <h2>交易紀錄（{{ recent.length }}）</h2>
+        <p>
+          工作區有效交易營收：{{
+            netRevenue
+          }}
+          元（不含已全額退款交易；不是利潤）。
+        </p>
+        <article v-for="sale in recent" :key="sale.id" class="business-panel">
+          <h3>
+            {{ sale.code }} · {{ sale.total }} 元
+            <span v-if="sale.cancelledAt" class="soft-label"
+              >已全額退款並回庫</span
+            >
+          </h3>
+          <p>
+            {{ when(sale.createdAt) }} · {{ named("events", sale.eventId) }} ·
+            {{ named("locations", sale.locationId) }}
+          </p>
+          <p>
+            收款者：{{ named("parties", sale.collectorId) }}；收到
+            {{ sale.cashReceived }} 元，找零 {{ sale.change }} 元。
+          </p>
+          <ul>
+            <li v-for="l in sale.lines" :key="l.id">
+              {{ l.productName }} · {{ l.mode === "draw" ? "抽選" : "指定" }} ×
+              {{ l.quantity }} · 單價 {{ l.unitPrice }} 元
+            </li>
+          </ul>
+          <p v-if="sale.notes">{{ sale.notes }}</p>
+          <p v-if="sale.cancelledAt">
+            {{ when(sale.cancelledAt) }} 取消原因：{{ sale.cancelReason }}
+          </p>
+          <button
+            v-else
+            class="button secondary"
+            :disabled="catalog.busy"
+            @click="
+              cancelId = sale.id;
+              cancelReason = '';
+              refundConfirmed = false;
+            "
+          >
+            取消／全額退款並回庫
+          </button>
+          <form
+            v-if="cancelId === sale.id"
+            class="confirmation"
+            @submit.prevent="cancel"
+          >
+            <h4>確認整筆取消</h4>
+            <p>
+              此操作記錄全額退款
+              {{
+                sale.total
+              }}
+              元，並把全部商品回到原庫位；尚未退款、部分退款或損壞退貨不適用。
+            </p>
+            <div class="field">
+              <label :for="'cancel-' + sale.id">取消原因</label
+              ><input
+                :id="'cancel-' + sale.id"
+                v-model="cancelReason"
+                required
+                maxlength="2000"
+                :disabled="catalog.busy"
+              />
+            </div>
+            <label class="check-option"
+              ><input
+                type="checkbox"
+                v-model="refundConfirmed"
+                :disabled="catalog.busy"
+              />我已全額退款，且全部商品已回到原庫位</label
+            >
+            <div class="actions">
+              <button
+                class="button primary"
+                :disabled="
+                  catalog.busy || !refundConfirmed || !cancelReason.trim()
+                "
+              >
+                記錄退款並回庫</button
+              ><button
+                type="button"
+                class="button secondary"
+                :disabled="catalog.busy"
+                @click="cancelId = ''"
+              >
+                返回
+              </button>
+            </div>
+          </form>
+        </article>
+        <p v-if="!recent.length">尚無交易紀錄。</p>
+      </section>
+    </template>
+  </template>
+</template>
+<style scoped src="./business.css"></style>

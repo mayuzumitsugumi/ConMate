@@ -160,7 +160,7 @@ const when = (time: string) =>
     <div>
       <strong>目前提供基本庫存異動。</strong>
       <p>
-        先建立商品與庫位，再登記數量。盤差可手動調整並註記原因；正式盤點單、製作批次、預留庫存及販售扣庫尚未開放。本頁數量不代表營收。
+        先建立商品與庫位，再登記數量。盤差可手動調整並註記原因；攤位販售頁成交時會同步扣庫；正式盤點單、製作批次與預留庫存尚未開放。要記錄營收請到攤位販售頁；自行命名的減少類型不會產生營收。
       </p>
     </div>
   </section>
@@ -403,9 +403,10 @@ const when = (time: string) =>
               }}
             </p>
             <p v-if="reversed(m.id)">此筆已沖銷。</p>
+            <p v-if="m.saleId">販售連動紀錄，請在攤位販售頁處理取消。</p>
           </div>
           <button
-            v-if="m.kind !== 'reversal' && !reversed(m.id)"
+            v-if="m.kind !== 'reversal' && !m.saleId && !reversed(m.id)"
             type="button"
             class="button secondary"
             :disabled="catalog.busy"

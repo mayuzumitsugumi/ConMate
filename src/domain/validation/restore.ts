@@ -1,3 +1,5 @@
+import { saleTotal } from "../sales/operations";
+import { costSummary } from "../finance/operations";
 import { safeShopUrl } from "../inventory/online";
 import type { CatalogSnapshot } from "../models/catalog";
 const fail = (message: string): never => {
@@ -61,6 +63,9 @@ const keys = [
   "movements",
   "movementTypes",
   "onlineListings",
+  "sales",
+  "costs",
+  "advances",
 ] as const;
 export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   // Older backups gain empty inventory; never invent physical stock.
@@ -73,11 +78,15 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     inventory.schemaVersion === 4
       ? { ...inventory, schemaVersion: 5, onlineListings: [] }
       : inventory;
-  const s =
+  const customized =
     online.schemaVersion === 5
       ? { ...online, schemaVersion: 6, movementTypes: [] }
       : online;
-  if (s.schemaVersion !== 6) fail("目前僅支援網站資料版本 3、4、5、6。");
+  const s =
+    customized.schemaVersion === 6
+      ? { ...customized, schemaVersion: 7, sales: [], costs: [], advances: [] }
+      : customized;
+  if (s.schemaVersion !== 7) fail("目前僅支援網站資料版本 3 至 7。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -245,7 +254,8 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   }
   const seenMovements = new Map<string, any>(),
     reversed = new Set<string>(),
-    balances = new Map<string, number>();
+    balances = new Map<string, number>(),
+    reversalBySource = new Map<string, any>();
   const apply = (product: string, location: string, delta: number) => {
     if (!location) return;
     const key = JSON.stringify([product, location]);
@@ -256,6 +266,14 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   };
   for (const m of s.movements) {
     ref("products", m.productId);
+    if (m.saleId !== undefined) {
+      ref("sales", m.saleId);
+      if (
+        !["sale", "reversal"].includes(m.kind) ||
+        m.movementTypeId !== undefined
+      )
+        fail("販售庫存來源不正確。");
+    }
     if (m.movementTypeId !== undefined) {
       ref("movementTypes", m.movementTypeId);
       const type = maps.movementTypes!.get(m.movementTypeId);
@@ -282,7 +300,7 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     if (["receipt", "adjust-in"].includes(m.kind)) {
       if (m.fromLocationId || !m.toLocationId || m.reversesId)
         fail("入庫來源不正確。");
-    } else if (["free", "damage", "adjust-out"].includes(m.kind)) {
+    } else if (["free", "damage", "adjust-out", "sale"].includes(m.kind)) {
       if (!m.fromLocationId || m.toLocationId || m.reversesId)
         fail("出庫來源不正確。");
     } else if (m.kind === "transfer") {
@@ -304,7 +322,10 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     apply(m.productId, m.fromLocationId, -m.quantity);
     apply(m.productId, m.toLocationId, m.quantity);
     seenMovements.set(m.id, m);
-    if (m.reversesId) reversed.add(m.reversesId);
+    if (m.reversesId) {
+      reversed.add(m.reversesId);
+      reversalBySource.set(m.reversesId, m);
+    }
   }
   const onlineTotals = new Map<string, number>();
   for (const listing of s.onlineListings) {
@@ -322,6 +343,157 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
       if (!Number.isSafeInteger(total)) fail("網店合計數量超過安全範圍。");
       onlineTotals.set(key, total);
     }
+  }
+
+  const nestedId = (id: unknown) => {
+    str(id, "明細ID", 100, true);
+    if (allIds.has(id)) fail("明細ID重複。");
+    allIds.add(id);
+  };
+  const operationIds = new Set<string>(),
+    linkedMovements = new Set<string>();
+  for (const sale of s.sales) {
+    str(sale.operationId, "交易操作識別", 100, true);
+    if (operationIds.has(sale.operationId)) fail("重複交易操作識別。");
+    operationIds.add(sale.operationId);
+    ref("locations", sale.locationId);
+    ref("events", sale.eventId, true);
+    ref("parties", sale.collectorId, true);
+    str(sale.notes, "交易備註");
+    time(sale.createdAt);
+    integer(sale.total);
+    integer(sale.cashReceived);
+    integer(sale.change);
+    if (
+      sale.cashReceived < sale.total ||
+      sale.change !== sale.cashReceived - sale.total
+    )
+      fail("交易收款與找零不一致。");
+    str(sale.cancelledAt, "取消時間", 40);
+    str(sale.cancelReason, "取消原因", 2000);
+    if (
+      !Array.isArray(sale.lines) ||
+      !sale.lines.length ||
+      sale.lines.length > 100 ||
+      !Array.isArray(sale.reversalIds)
+    )
+      fail("交易明細格式不正確。");
+    if (sale.cancelledAt) {
+      time(sale.cancelledAt);
+      if (
+        !sale.cancelReason.trim() ||
+        Date.parse(sale.cancelledAt) < Date.parse(sale.createdAt) ||
+        sale.reversalIds.length !== sale.lines.length
+      )
+        fail("取消交易資料不完整。");
+    } else if (sale.cancelReason || sale.reversalIds.length)
+      fail("有效交易不應有取消資料。");
+    const expectedReversals = new Set<string>();
+    for (const line of sale.lines) {
+      nestedId(line.id);
+      ref("products", line.productId);
+      str(line.productName, "成交商品名稱", 80, true);
+      integer(line.quantity);
+      integer(line.unitPrice);
+      if (!line.quantity || !["direct", "draw"].includes(line.mode))
+        fail("交易數量或售法不正確。");
+      ref("movements", line.movementId);
+      const m = maps.movements!.get(line.movementId);
+      if (
+        linkedMovements.has(m.id) ||
+        m.saleId !== sale.id ||
+        m.kind !== "sale" ||
+        m.productId !== line.productId ||
+        m.quantity !== line.quantity ||
+        m.fromLocationId !== sale.locationId ||
+        m.toLocationId
+      )
+        fail("交易與出庫明細不一致。");
+      linkedMovements.add(m.id);
+      const reversal = reversalBySource.get(m.id);
+      if (sale.cancelledAt) {
+        if (!reversal || reversal.saleId !== sale.id)
+          fail("取消交易缺少回庫沖銷。");
+        expectedReversals.add(reversal.id);
+        linkedMovements.add(reversal.id);
+      } else if (reversal) fail("有效交易不可有回庫沖銷。");
+    }
+    if (sale.total !== saleTotal(sale.lines)) fail("交易總額與明細不一致。");
+    if (
+      new Set(sale.reversalIds).size !== sale.reversalIds.length ||
+      sale.reversalIds.some((id: any) => !expectedReversals.has(id))
+    )
+      fail("交易沖銷來源不一致。");
+  }
+  for (const m of s.movements)
+    if (
+      (m.kind === "sale" || m.saleId !== undefined) &&
+      !linkedMovements.has(m.id)
+    )
+      fail("販售出庫沒有對應交易。");
+  for (const c of s.costs) {
+    ref("products", c.productId);
+    ref("parties", c.paidById, true);
+    ref("parties", c.burdenPartyId, true);
+    integer(c.quantity);
+    if (!c.quantity) fail("製作數量必須大於零。");
+    for (const key of [
+      "estimatedPrint",
+      "actualPrint",
+      "artworkAllocated",
+      "otherCost",
+      "unitSalePrice",
+    ])
+      if (c[key] !== null) integer(c[key]);
+    str(c.notes, "成本備註");
+    bool(c.archived);
+    time(c.createdAt);
+    time(c.updatedAt);
+    costSummary(c);
+  }
+  for (const a of s.advances) {
+    ref("parties", a.payerId);
+    ref("parties", a.debtorId);
+    integer(a.principal);
+    if (!a.principal || a.payerId === a.debtorId)
+      fail("代墊本金或負擔者不正確。");
+    str(a.notes, "代墊備註");
+    time(a.createdAt);
+    str(a.voidedAt, "作廢時間", 40);
+    str(a.voidReason, "作廢原因");
+    if (!Array.isArray(a.repayments) || a.repayments.length > 100000)
+      fail("還款清單不正確。");
+    const seen = new Map<string, any>(),
+      undone = new Set<string>();
+    let paid = 0n;
+    for (const r of a.repayments) {
+      nestedId(r.id);
+      integer(r.amount);
+      if (!r.amount) fail("還款金額必須大於零。");
+      time(r.createdAt);
+      str(r.notes, "還款備註");
+      str(r.reversesId, "還款沖銷來源", 100);
+      if (r.reversesId) {
+        const old = seen.get(r.reversesId);
+        if (
+          !old ||
+          old.reversesId ||
+          undone.has(old.id) ||
+          old.amount !== r.amount ||
+          !r.notes.trim()
+        )
+          fail("還款沖銷來源不正確。");
+        undone.add(old.id);
+        paid -= BigInt(r.amount);
+      } else paid += BigInt(r.amount);
+      if (paid < 0n || paid > BigInt(a.principal))
+        fail("已還本金超過代墊本金。");
+      seen.set(r.id, r);
+    }
+    if (a.voidedAt) {
+      time(a.voidedAt);
+      if (!a.voidReason.trim() || paid !== 0n) fail("作廢代墊仍有有效還款。");
+    } else if (a.voidReason) fail("代墊作廢資料不一致。");
   }
   return s as unknown as CatalogSnapshot;
 }

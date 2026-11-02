@@ -143,10 +143,12 @@ export async function inspectProject(bytes: ArrayBuffer) {
   });
   if (
     meta.get("format") !== "ConMate網站專案" ||
-    !["2.1.0", "2.2.0", "2.3.0", "2.4.0"].includes(meta.get("version") || "") ||
+    !["2.1.0", "2.2.0", "2.3.0", "2.4.0", "2.5.0"].includes(
+      meta.get("version") || "",
+    ) ||
     meta.get("payloadEncoding") !== "utf8-base64"
   )
-    reject("目前僅支援 ConMate 網站專案 2.1.0、2.2.0、2.3.0 或 2.4.0。");
+    reject("目前僅支援 ConMate 網站專案 2.1.0、2.2.0、2.3.0、2.4.0 或 2.5.0。");
   const chunks = [...meta.keys()]
     .filter((k) => k.startsWith("payload-"))
     .sort();
@@ -180,9 +182,19 @@ export async function inspectProject(bytes: ArrayBuffer) {
     .join("");
   if (hash !== meta.get("payloadSha256"))
     reject("專案完整性校驗失敗，檔案可能已被修改或損壞。");
-  const snapshot = validateRestoreSnapshot(
-    JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(payload)),
+  const input = JSON.parse(
+    new TextDecoder("utf-8", { fatal: true }).decode(payload),
   );
+  const expectedSchema = {
+    "2.1.0": 3,
+    "2.2.0": 4,
+    "2.3.0": 5,
+    "2.4.0": 6,
+    "2.5.0": 7,
+  }[meta.get("version") as "2.1.0"];
+  if (input?.schemaVersion !== expectedSchema)
+    reject("專案格式版本與資料版本不一致。");
+  const snapshot = validateRestoreSnapshot(input);
   if (
     meta.get("workspaceId") !== snapshot.workspaceId ||
     meta.get("revision") !== String(snapshot.revision)

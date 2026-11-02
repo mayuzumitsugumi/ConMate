@@ -1,0 +1,146 @@
+.business-panel {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 16px;
+  overflow-wrap: anywhere;
+}
+.business-panel p {
+  line-height: 1.8;
+}
+.business-panel h3 {
+  font-size: 18px;
+}
+.field {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+}
+.field label {
+  font-weight: 600;
+}
+.workspace-picker {
+  max-width: 440px;
+  margin-top: 24px;
+}
+input:not([type="checkbox"]),
+select,
+textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid #94a58b;
+  border-radius: 6px;
+  background: #fcfdf9;
+  color: var(--text);
+  font: inherit;
+}
+textarea {
+  resize: vertical;
+}
+small {
+  line-height: 1.7;
+  color: #53634e;
+}
+fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.form-grid,
+.product-grid {
+  display: grid;
+  gap: 16px;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+.button {
+  min-height: 46px;
+}
+.confirmation {
+  margin-top: 20px;
+  padding: 18px;
+  background: #f0f4e8;
+  border: 1px solid #b5c5a5;
+  border-radius: 8px;
+}
+.confirmation .button {
+  margin: 6px;
+}
+.cart-line {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+.amount {
+  font-size: 20px;
+  font-weight: 600;
+}
+.check-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.check-option input {
+  width: 22px;
+  height: 22px;
+}
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.report-grid div {
+  background: #f1f5ec;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.report-grid dt {
+  font-size: 14px;
+  line-height: 1.7;
+}
+.report-grid dd {
+  margin: 8px 0 0;
+  font-size: 19px;
+  font-weight: 600;
+}
+.report-grid .unknown {
+  font-size: 15px;
+}
+.sales-layout {
+  display: grid;
+  gap: 24px;
+}
+ul {
+  padding-left: 22px;
+  line-height: 1.9;
+}
+:focus-visible {
+  outline: 3px solid #a6bd72;
+  outline-offset: 3px;
+}
+@media (min-width: 700px) {
+  .form-grid,
+  .product-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .report-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1100px) {
+  .sales-layout {
+    grid-template-columns: 1.15fr 1fr;
+  }
+  .cart {
+    align-self: start;
+  }
+}
