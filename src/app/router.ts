@@ -1,3 +1,5 @@
+import ActivitiesPage from "../ui/pages/ActivitiesPage.vue";
+import ActivityPage from "../ui/pages/ActivityPage.vue";
 import MasterDataPage from "../ui/pages/MasterDataPage.vue";
 import HelpPage from "../ui/pages/HelpPage.vue";
 import SalesPage from "../ui/pages/SalesPage.vue";
@@ -14,6 +16,13 @@ import UpcomingPage from "../ui/pages/UpcomingPage.vue";
 
 export const sections = [
   { path: "/", label: "工作區總覽", icon: "grid", ready: true },
+  {
+    path: "/activities",
+    label: "活動配置與交接",
+    icon: "calendar",
+    ready: true,
+  },
+  { path: "/activity", label: "活動工作台", icon: "bag", ready: true },
   {
     path: "/projects",
     label: "企劃與場次",
@@ -64,27 +73,31 @@ export const router = createRouter({
     ...sections.map((section) => ({
       path: section.path,
       component:
-        section.path === "/creators"
-          ? MasterDataPage
-          : section.path === "/"
-            ? OverviewPage
-            : section.path === "/help"
-              ? HelpPage
-              : section.path === "/templates"
-                ? DataPage
-                : section.path === "/sales"
-                  ? SalesPage
-                  : section.path === "/finance"
-                    ? FinancePage
-                    : section.path === "/inventory"
-                      ? InventoryPage
-                      : section.path === "/projects"
-                        ? ProjectsPage
-                        : section.path === "/products"
-                          ? ProductsPage
-                          : section.path === "/customize"
-                            ? CustomizationPage
-                            : UpcomingPage,
+        section.path === "/activities"
+          ? ActivitiesPage
+          : section.path === "/activity"
+            ? ActivityPage
+            : section.path === "/creators"
+              ? MasterDataPage
+              : section.path === "/"
+                ? OverviewPage
+                : section.path === "/help"
+                  ? HelpPage
+                  : section.path === "/templates"
+                    ? DataPage
+                    : section.path === "/sales"
+                      ? SalesPage
+                      : section.path === "/finance"
+                        ? FinancePage
+                        : section.path === "/inventory"
+                          ? InventoryPage
+                          : section.path === "/projects"
+                            ? ProjectsPage
+                            : section.path === "/products"
+                              ? ProductsPage
+                              : section.path === "/customize"
+                                ? CustomizationPage
+                                : UpcomingPage,
       meta: { title: section.label },
     })),
     {

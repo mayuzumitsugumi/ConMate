@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import { useWorkspaceStore } from "../app/workspace-store";
 import { sections } from "../app/router";
 import {
@@ -14,6 +15,19 @@ import AppIcon from "./components/AppIcon.vue";
 import { version } from "../../package.json";
 const store = useWorkspaceStore();
 const base = import.meta.env.BASE_URL;
+const route = useRoute();
+const activityMode = computed(
+  () =>
+    route.path === "/activity" ||
+    (route.path === "/help" && route.query.topic === "activity"),
+);
+const visibleSections = computed(() =>
+  activityMode.value
+    ? sections.filter(
+        (section) => section.path === "/activity" || section.path === "/help",
+      )
+    : sections.filter((section) => section.path !== "/activity"),
+);
 onMounted(() => {
   void store.load();
 });
@@ -27,12 +41,26 @@ onMounted(() => {
           >ConMate<small>場次小秘書</small></span
         ></RouterLink
       >
-      <div class="sidebar-label">你的創作後援</div>
+      <div class="entrance-switch" aria-label="操作入口">
+        <RouterLink to="/" :class="{ active: !activityMode }"
+          >創作管理</RouterLink
+        >
+        <RouterLink to="/activity" :class="{ active: activityMode }"
+          >活動工作台</RouterLink
+        >
+      </div>
+      <div class="sidebar-label">
+        {{ activityMode ? "本次活動的現場作業" : "你的創作後援" }}
+      </div>
       <nav aria-label="主要導覽">
         <RouterLink
-          v-for="section in sections"
+          v-for="section in visibleSections"
           :key="section.path"
-          :to="section.path"
+          :to="
+            activityMode && section.path === '/help'
+              ? { path: '/help', query: { topic: 'activity' } }
+              : section.path
+          "
           class="nav-link"
           :class="{ current: $route.path === section.path }"
           ><AppIcon :name="section.icon" /><span>{{ section.label }}</span
@@ -94,7 +122,7 @@ onMounted(() => {
           更新並重新開啟
         </button>
       </div>
-      <BackupReminder />
+      <BackupReminder v-if="!activityMode" />
       <main id="main-content" tabindex="-1"><RouterView /></main>
       <footer class="site-footer">
         <span>ConMate 場次小秘書</span><span>陪每一份創作，走到攤位前。</span
@@ -110,6 +138,34 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.entrance-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin: 16px 18px 12px;
+  border: 1px solid #c9d8cb;
+  border-radius: 9px;
+  padding: 4px;
+}
+.entrance-switch a {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #275c50;
+  text-decoration: none;
+}
+.entrance-switch a.active {
+  background: #275c50;
+  color: white;
+}
+.entrance-switch a:focus-visible {
+  outline: 3px solid #a6bd72;
+  outline-offset: 2px;
+}
+
 .header-help {
   margin-left: auto;
   margin-right: 16px;
