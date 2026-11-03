@@ -1,3 +1,4 @@
+import { upgradeMasterData } from "../../domain/catalog/masterdata";
 import { upgradeBatches } from "../../domain/inventory/batches";
 import Dexie, { type EntityTable } from "dexie";
 import type { CatalogSnapshot } from "../../domain/models/catalog";
@@ -189,6 +190,22 @@ export class ConMateDatabase extends Dexie {
           .modify((data) => {
             if (data.schemaVersion !== 12) throw new Error("不支援資料版本。");
             upgradeBatches(data);
+          });
+      });
+    this.version(15)
+      .stores({
+        workspaces: "id, createdAt",
+        catalogs: "workspaceId",
+        recoverySnapshots: "id, workspaceId, createdAt",
+        backupStatus: "workspaceId",
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table("catalogs")
+          .toCollection()
+          .modify((data) => {
+            if (data.schemaVersion !== 13) throw new Error("不支援資料版本。");
+            upgradeMasterData(data);
           });
       });
   }

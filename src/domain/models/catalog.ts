@@ -8,6 +8,24 @@ export interface NamedRecord {
   code: string;
   name: string;
 }
+export interface CatalogParty extends NamedRecord {
+  notes: string;
+  archived: boolean;
+}
+export interface CatalogArtwork extends NamedRecord {
+  projectId: string;
+  authorIds: string[];
+  notes: string;
+  archived: boolean;
+}
+export interface PartyInput {
+  name: string;
+  notes: string;
+}
+export interface ArtworkInput extends PartyInput {
+  projectId: string;
+  authorIds: string[];
+}
 export interface CatalogTag extends NamedRecord {
   archived: boolean;
 }
@@ -22,6 +40,7 @@ export interface CustomField extends NamedRecord {
   archived: boolean;
 }
 export interface CatalogItem extends NamedRecord {
+  ownerId: string;
   creatorId: string;
   projectId: string;
   typeId: string;
@@ -65,20 +84,20 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 13;
+  schemaVersion: 14;
   batchTrackingStart: number;
   workspaceId: string;
   workspace: Workspace;
   revision: number;
   counters: Record<string, number>;
-  parties: NamedRecord[];
+  parties: CatalogParty[];
   projects: CatalogProject[];
   events: CatalogEvent[];
   projectEvents: ProjectEventLink[];
   productTypes: NamedRecord[];
   specs: (NamedRecord & { typeId: string })[];
   series: (NamedRecord & { projectId: string; typeId: string })[];
-  artworks: (NamedRecord & { projectId: string })[];
+  artworks: CatalogArtwork[];
   products: CatalogItem[];
   tags: CatalogTag[];
   fields: CustomField[];
@@ -98,6 +117,8 @@ export interface CatalogSnapshot {
 }
 export interface ProductInput {
   name: string;
+  ownerId?: string;
+  artworkId?: string;
   creatorId?: string;
   creatorName?: string;
   projectId?: string;
@@ -207,6 +228,16 @@ export interface SaleInput {
   lines: SaleLineInput[];
 }
 export interface SaleLine extends SaleLineInput {
+  attribution?: {
+    creatorId: string;
+    ownerId: string;
+    artworkId: string;
+    authorIds: string[];
+    creatorName: string;
+    ownerName: string;
+    artworkName: string;
+    authorNames: string[];
+  };
   id: string;
   productName: string;
   planName?: string;

@@ -120,6 +120,20 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
       id: crypto.randomUUID(),
       productId: p.id,
       productName: p.name,
+      attribution: {
+        creatorId: p.creatorId,
+        ownerId: p.ownerId,
+        artworkId: p.artworkId || "",
+        authorIds: [
+          ...(s.artworks.find((a) => a.id === p.artworkId)?.authorIds || []),
+        ],
+        creatorName: s.parties.find((a) => a.id === p.creatorId)?.name || "",
+        ownerName: s.parties.find((a) => a.id === p.ownerId)?.name || "",
+        artworkName: s.artworks.find((a) => a.id === p.artworkId)?.name || "",
+        authorNames: (
+          s.artworks.find((a) => a.id === p.artworkId)?.authorIds || []
+        ).map((id) => s.parties.find((a) => a.id === id)?.name || ""),
+      },
       ...(plan
         ? { planId: plan.id, planVersion: plan.version, planName: plan.name }
         : {}),

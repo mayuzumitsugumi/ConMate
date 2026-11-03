@@ -64,7 +64,9 @@ function named(
   const created = record(s, kind, clean);
   if (key === "projects")
     s.projects.push({ ...created, description: "", archived: false });
-  else s[key].push(created);
+  else if (key === "parties")
+    s.parties.push({ ...created, notes: "", archived: false });
+  else s.productTypes.push(created);
   return created.id;
 }
 export function putTag(s: CatalogSnapshot, name: string, id?: string) {
@@ -139,6 +141,18 @@ export function putProduct(
     input.creatorId || input.creatorName?.trim()
       ? named(s, "parties", "PTY", input.creatorId, input.creatorName)
       : "";
+  if (
+    creatorId &&
+    s.parties.find((p) => p.id === creatorId)?.archived &&
+    old?.creatorId !== creatorId
+  )
+    throw new Error("不能新選已封存創作者，請先恢復。");
+  const ownerId = input.ownerId ?? old?.ownerId ?? "";
+  if (ownerId) {
+    const p = s.parties.find((p) => p.id === ownerId);
+    if (!p || (p.archived && old?.ownerId !== ownerId))
+      throw new Error("請選擇使用中的商品擁有者。");
+  }
   const projectId =
     input.projectId || input.projectName?.trim()
       ? named(s, "projects", "PRJ", input.projectId, input.projectName)
@@ -180,12 +194,33 @@ export function putProduct(
     s.series.push(series);
   }
   let artworkId: string | undefined;
-  if (input.artwork.trim()) {
-    let art = s.artworks.find(
-      (r) => r.name === input.artwork.trim() && r.projectId === projectId,
+  let artworkName = input.artwork.trim();
+  if (input.artworkId) {
+    const art = s.artworks.find((a) => a.id === input.artworkId);
+    if (
+      !art ||
+      art.projectId !== projectId ||
+      (art.archived && old?.artworkId !== art.id)
+    )
+      throw new Error("柄圖不屬於此企劃、已封存或不存在。");
+    artworkId = art.id;
+    artworkName = art.name;
+  } else if (artworkName) {
+    const matches = s.artworks.filter(
+      (a) => a.name === artworkName && a.projectId === projectId,
     );
+    if (matches.length > 1) throw new Error("有同名柄圖，請從既有清單選擇。");
+    let art = matches[0];
+    if (art?.archived && old?.artworkId !== art.id)
+      throw new Error("此柄圖已封存，請先恢復。");
     if (!art) {
-      art = { ...record(s, "ART", input.artwork.trim()), projectId };
+      art = {
+        ...record(s, "ART", artworkName),
+        projectId,
+        authorIds: [],
+        notes: "",
+        archived: false,
+      };
       s.artworks.push(art);
     }
     artworkId = art.id;
@@ -255,12 +290,13 @@ export function putProduct(
     ...(old || record(s, "SKU", name)),
     name,
     creatorId,
+    ownerId,
     projectId,
     typeId,
     seriesId: series.id,
     specId: spec.id,
     specification,
-    artwork: input.artwork.trim(),
+    artwork: artworkName,
     artworkId,
     notes: input.notes.trim(),
     tagIds,

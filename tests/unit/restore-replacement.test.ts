@@ -50,7 +50,7 @@ it("preview reports additions/changes/removals without writes", async () => {
     incoming = structuredClone(current);
   incoming.products[0]!.name = "新名稱";
   putProduct(incoming, product("新商品"));
-  incoming.parties.push({
+  incoming.parties.push({notes:"",archived:false,
     id: crypto.randomUUID(),
     workspaceId: incoming.workspaceId,
     code: "PTY-000001",
@@ -234,7 +234,7 @@ it("previews and restores old schema10 recovery snapshots after the finance upgr
   });
   const row = await database.recoverySnapshots.get("old-recovery");
   const preview = await previewWorkspaceRestore(row!.snapshot);
-  expect(preview.incoming.schemaVersion).toBe(13);
+  expect(preview.incoming.schemaVersion).toBe(14);
   expect(preview.incoming.artworkExpenses).toEqual([]);
   expect(preview.differences.some((d) => d.key === "expensePayments")).toBe(
     true,

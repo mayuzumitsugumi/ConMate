@@ -4,7 +4,7 @@ import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.11.0";
+export const PROJECT_VERSION = "2.12.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -111,6 +111,7 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
       "備註",
       "狀態",
       ...fields.map((f) => `自訂｜${f.name}`),
+      "商品擁有者",
     ]);
     const name = (records: { id: string; name: string }[], id: string) =>
       records.find((r) => r.id === id)?.name || "";
@@ -136,11 +137,12 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
         name(snapshot.projects, p.projectId),
         name(snapshot.productTypes, p.typeId),
         p.specification,
-        p.artwork,
+        snapshot.artworks.find((a) => a.id === p.artworkId)?.name || p.artwork,
         p.tagIds.map((id) => name(snapshot.tags, id)).join("、"),
         p.notes,
         p.archived ? "已封存" : "使用中",
         ...values,
+        name(snapshot.parties, p.ownerId),
       ]);
       fields.forEach((f, i) => {
         if (f.type === "number") row.getCell(10 + i).numFmt = "General";
@@ -328,6 +330,10 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
       "出庫編號",
       "成交方案名稱",
       "成交方案版本",
+      "成交創作者",
+      "成交商品擁有者",
+      "成交柄圖",
+      "成交柄圖作者",
     ]);
     for (const sale of snapshot.sales) {
       ws.addRow([
@@ -356,6 +362,10 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
           snapshot.movements.find((m) => m.id === l.movementId)?.code || "",
           l.planName || "",
           l.planVersion ?? null,
+          l.attribution?.creatorName || "",
+          l.attribution?.ownerName || "",
+          l.attribution?.artworkName || "",
+          l.attribution?.authorNames.join("、") || "",
         ]);
     }
     for (const col of [6, 7, 8]) ws.getColumn(col).numFmt = "0";
@@ -898,6 +908,30 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
     for (const m of snapshot.movements)
       for (const a of m.batchAllocations)
         allocations.addRow([m.code, a.batchId, a.quantity]);
+  }
+  if (snapshot.parties.length) {
+    const ws = sheet("32_創作者與參與方", ["名稱", "編號", "備註", "狀態"]);
+    for (const p of snapshot.parties)
+      ws.addRow([p.name, p.code, p.notes, p.archived ? "已封存" : "使用中"]);
+  }
+  if (snapshot.artworks.length) {
+    const ws = sheet("33_柄圖主檔", [
+      "柄圖名稱",
+      "企劃",
+      "作者",
+      "備註",
+      "狀態",
+    ]);
+    for (const a of snapshot.artworks)
+      ws.addRow([
+        a.name,
+        snapshot.projects.find((p) => p.id === a.projectId)?.name || "",
+        a.authorIds
+          .map((id) => snapshot.parties.find((p) => p.id === id)?.name || "")
+          .join("、"),
+        a.notes,
+        a.archived ? "已封存" : "使用中",
+      ]);
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);
   raw.state = "hidden";

@@ -51,7 +51,7 @@ function fixture() {
     }),
     owner = s.parties[0]!;
   const manager = record(s, "PTY", "總召");
-  s.parties.push(manager);
+  s.parties.push({...manager,notes:"",archived:false});
   const l = addLocation(s, "攤位");
   addMovement(s, {
     productId: p.id,
@@ -521,7 +521,7 @@ it("upgrades old schema11 in database and restore without inventing settlement",
   const next = new ConMateDatabase(name);
   try {
     const got = await next.catalogs.get(s.workspaceId);
-    expect(got?.schemaVersion).toBe(13);
+    expect(got?.schemaVersion).toBe(14);
     expect(got?.settlements).toEqual([]);
     expect(got?.sales).toEqual(s.sales);
   } finally {

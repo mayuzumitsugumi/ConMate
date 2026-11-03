@@ -1,4 +1,11 @@
 import {
+  putParty,
+  putArtwork,
+  togglePartyArchive,
+  toggleArtworkArchive,
+} from "../domain/catalog/masterdata";
+import type { PartyInput, ArtworkInput } from "../domain/models/catalog";
+import {
   recordSettlementCash as putSettlementCash,
   reverseSettlementCash as undoSettlementCash,
   reopenSettlement as reopenSettlementGroup,
@@ -326,7 +333,22 @@ export const useCatalogStore = defineStore("catalog", () => {
     mutate((s) => {
       declareSettlementHoldings(s, id, input);
     });
+  const saveParty = (input: PartyInput, id?: string) =>
+    mutate((s) => {
+      putParty(s, input, id);
+    });
+  const archiveParty = (id: string) => mutate((s) => togglePartyArchive(s, id));
+  const saveArtwork = (input: ArtworkInput, id?: string) =>
+    mutate((s) => {
+      putArtwork(s, input, id);
+    });
+  const archiveArtwork = (id: string) =>
+    mutate((s) => toggleArtworkArchive(s, id));
   return {
+    saveParty,
+    archiveParty,
+    saveArtwork,
+    archiveArtwork,
     recordSettlementCash,
     reverseSettlementCash,
     reopenSettlement,

@@ -1,3 +1,4 @@
+import { upgradeMasterData } from "../catalog/masterdata";
 import { upgradeBatches, validateBatchLedger } from "../inventory/batches";
 import { validateSettlements } from "./settlements";
 import { previewArtworkAllocation } from "../finance/artwork";
@@ -122,7 +123,8 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
       ? { ...financial, schemaVersion: 12, settlements: [] }
       : financial;
   if (s.schemaVersion === 12) s = upgradeBatches({ ...s });
-  if (s.schemaVersion !== 13) fail("目前僅支援網站資料版本 3 至 13。");
+  if (s.schemaVersion === 13) s = upgradeMasterData({ ...s });
+  if (s.schemaVersion !== 14) fail("目前僅支援網站資料版本 3 至 14。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -199,7 +201,21 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     ref("projects", r.projectId, true);
     ref("productTypes", r.typeId, true);
   }
-  for (const r of s.artworks) ref("projects", r.projectId, true);
+  for (const p of s.parties) {
+    str(p.notes, "參與方備註");
+    bool(p.archived);
+  }
+  for (const r of s.artworks) {
+    ref("projects", r.projectId, true);
+    str(r.notes, "柄圖備註");
+    bool(r.archived);
+    if (
+      !Array.isArray(r.authorIds) ||
+      new Set(r.authorIds).size !== r.authorIds.length
+    )
+      fail("柄圖作者格式不正確。");
+    for (const id of r.authorIds) ref("parties", id);
+  }
   for (const t of s.tags) bool(t.archived);
   for (const f of s.fields) {
     bool(f.archived);
@@ -228,6 +244,7 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     str(p.artwork, "柄圖", 120);
     str(p.notes, "備註");
     ref("parties", p.creatorId, true);
+    ref("parties", p.ownerId, true);
     ref("projects", p.projectId, true);
     ref("productTypes", p.typeId, true);
     ref("series", p.seriesId, true);
@@ -573,6 +590,25 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
       nestedId(line.id);
       ref("products", line.productId);
       str(line.productName, "成交商品名稱", 80, true);
+      if (line.attribution !== undefined) {
+        const a = obj(line.attribution);
+        ref("parties", a.creatorId, true);
+        ref("parties", a.ownerId, true);
+        ref("artworks", a.artworkId, true);
+        str(a.creatorName, "成交創作者", 80);
+        str(a.ownerName, "成交擁有者", 80);
+        str(a.artworkName, "成交柄圖", 120);
+        if (
+          !Array.isArray(a.authorIds) ||
+          !Array.isArray(a.authorNames) ||
+          a.authorIds.length !== a.authorNames.length ||
+          new Set(a.authorIds).size !== a.authorIds.length
+        )
+          fail("成交作者快照不正確。");
+        for (const id of a.authorIds) ref("parties", id);
+        for (const name of a.authorNames) str(name, "成交柄圖作者", 80);
+      }
+
       integer(line.quantity);
       integer(line.unitPrice);
       if (!line.quantity || !["direct", "draw"].includes(line.mode))

@@ -142,7 +142,7 @@ it("migrates schema4 restore and installed database preserving physical ledger",
   oldData.schemaVersion = 4;
   delete oldData.onlineListings;
   const checked = validateRestoreSnapshot(oldData);
-  expect(checked.schemaVersion).toBe(13);
+  expect(checked.schemaVersion).toBe(14);
   expect(checked.onlineListings).toEqual([]);
   expect(balance(checked, p.id, a.id)).toBe(10);
   const dbname = "online-migration-" + crypto.randomUUID();

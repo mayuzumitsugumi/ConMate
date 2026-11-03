@@ -34,6 +34,8 @@ const localError = ref("");
 const nameInput = ref<HTMLInputElement>();
 const form = reactive<ProductInput>({
   name: "",
+  ownerId: "",
+  artworkId: "",
   creatorId: "",
   creatorName: "",
   projectId: "",
@@ -74,6 +76,8 @@ function reset() {
   editingId.value = undefined;
   Object.assign(form, {
     name: "",
+    ownerId: "",
+    artworkId: "",
     creatorId: "",
     creatorName: "",
     projectId: "",
@@ -112,6 +116,8 @@ async function edit(item: CatalogItem) {
   Object.assign(form, {
     name: item.name,
     creatorId: item.creatorId,
+    ownerId: item.ownerId,
+    artworkId: item.artworkId || "",
     projectId: item.projectId,
     productType:
       catalog.snapshot?.productTypes.find((type) => type.id === item.typeId)
@@ -291,7 +297,9 @@ async function archive() {
                 >
                   <option value="">未指定／輸入新創作者</option>
                   <option
-                    v-for="party in catalog.snapshot.parties"
+                    v-for="party in catalog.snapshot.parties.filter(
+                      (p) => !p.archived || p.id === form.creatorId,
+                    )"
                     :key="party.id"
                     :value="party.id"
                   >
@@ -364,6 +372,21 @@ async function archive() {
                 >
               </div>
               <div class="field">
+                <label for="product-owner">商品擁有者</label
+                ><select id="product-owner" v-model="form.ownerId">
+                  <option value="">未指定（不自動視為創作者）</option>
+                  <option
+                    v-for="party in catalog.snapshot.parties.filter(
+                      (p) => !p.archived || p.id === form.ownerId,
+                    )"
+                    :key="party.id"
+                    :value="party.id"
+                  >
+                    {{ party.name }}{{ party.archived ? "（已封存）" : "" }}
+                  </option></select
+                ><small>代表商品歸屬，與創作者、費用付款人、收款人分開。</small>
+              </div>
+              <div class="field">
                 <label for="product-type">周邊種類</label
                 ><input
                   id="product-type"
@@ -381,8 +404,30 @@ async function archive() {
                 />
               </div>
               <div class="field">
-                <label for="product-artwork">款式／圖樣</label
-                ><input id="product-artwork" v-model="form.artwork" />
+                <label for="product-artwork-select">既有柄圖</label
+                ><select id="product-artwork-select" v-model="form.artworkId">
+                  <option value="">輸入新柄圖／未指定</option>
+                  <option
+                    v-for="art in catalog.snapshot.artworks.filter(
+                      (a) =>
+                        a.projectId === form.projectId &&
+                        (!a.archived || a.id === form.artworkId),
+                    )"
+                    :key="art.id"
+                    :value="art.id"
+                  >
+                    {{ art.name }}{{ art.archived ? "（已封存）" : "" }}
+                  </option>
+                </select>
+                <label v-if="!form.artworkId" for="product-artwork"
+                  >款式／圖樣</label
+                ><input
+                  v-if="!form.artworkId"
+                  id="product-artwork"
+                  v-model="form.artwork"
+                /><small
+                  >柄圖作者請到「創作者與柄圖」明確設定，不會由商品創作者推定。</small
+                >
               </div>
             </div>
             <div class="field">

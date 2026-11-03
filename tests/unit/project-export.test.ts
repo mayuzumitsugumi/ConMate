@@ -65,6 +65,8 @@ describe("single-file website project export", () => {
       "01_商品",
       "02_自訂設定",
       "03_企劃",
+      "32_創作者與參與方",
+      "33_柄圖主檔",
       "_ConMate資料",
     ]);
     expect(b.getWorksheet("_ConMate資料")!.state).toBe("hidden");

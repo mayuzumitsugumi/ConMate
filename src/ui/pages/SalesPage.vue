@@ -619,6 +619,18 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
               {{ l.quantity }} · 單價 {{ l.unitPrice }} 元<span v-if="l.planId">
                 · {{ l.planName }}（版本 {{ l.planVersion }}）</span
               >
+              <small v-if="l.attribution" style="display: block"
+                >成交時創作者：{{
+                  l.attribution.creatorName || "未指定"
+                }}；商品擁有者：{{
+                  l.attribution.ownerName || "未指定"
+                }}；柄圖作者：{{
+                  l.attribution.authorNames.join("、") || "未指定"
+                }}</small
+              >
+              <small v-else style="display: block"
+                >舊交易未記錄歸屬快照，不以目前商品設定回填。</small
+              >
             </li>
           </ul>
           <p v-if="sale.replacesRefundId">
