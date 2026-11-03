@@ -122,6 +122,15 @@ test("split activity handoff is private, resumes offline, closes immutably and m
     const fresh = await freshContext.newPage();
     const base = page.url().split("#")[0];
     await fresh.goto(base + "#/activity");
+    await expect(
+      fresh.getByText("· 已可離線開啟", { exact: true }),
+    ).toBeAttached({ timeout: 30000 });
+    await fresh.reload();
+    await expect
+      .poll(() => fresh.evaluate(() => !!navigator.serviceWorker.controller))
+      .toBe(true);
+    await freshContext.setOffline(true);
+    await fresh.reload();
     await fresh
       .getByLabel("匯入活動進行檔／結案檔（XLSX）")
       .setInputFiles(outgoing);
@@ -310,11 +319,9 @@ test("split activity handoff is private, resumes offline, closes immutably and m
       page.getByRole("heading", { name: "臨時追加徽章", exact: true }),
     ).toBeVisible();
     await page.goto("#/activities");
-    const morning = page
-      .locator("article.packet-card")
-      .filter({
-        has: page.getByRole("heading", { name: "上午交接份", exact: true }),
-      });
+    const morning = page.locator("article.packet-card").filter({
+      has: page.getByRole("heading", { name: "上午交接份", exact: true }),
+    });
     await morning
       .getByRole("button", { name: "確認實物退回", exact: true })
       .click();
