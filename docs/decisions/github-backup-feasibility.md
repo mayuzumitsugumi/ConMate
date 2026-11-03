@@ -1,12 +1,12 @@
 # GitHub 個人備份授權可行性
 
-調查日期：2026-11-03（台灣時間）。本文件完成 C02 技術研究；不代表已發布登入、遠端備份或還原功能。沒有使用使用者憑證，也沒有建立 OAuth App、GitHub App 或遠端專案檔。
+調查日期：2026-11-03（台灣時間）。本文件記錄 C02 技術研究。v0.16.0 已依此實作 fine-grained PAT 連接、手動備份與遠端還原；仍沒有 OAuth 登入，也未建立 OAuth／GitHub App。測試使用模擬 API，未取得真實使用者權杖。
 
 ## 結論
 
 維持 GitHub Pages 純靜態、無後端與前端不放 client secret 的前提下，**目前不能直接承諾「按登入 GitHub 就能備份」的標準網頁 OAuth 流程**。
 
-最適合先驗證的無後端替代是：使用者自行建立只授權專用私有 repository 的 fine-grained personal access token（PAT），每次工作階段輸入，網站僅在記憶體保存，再直接呼叫 GitHub REST Contents API。這可保留免費靜態架構，但操作比登入授權複雜，尚需明確選擇此互動方式及完整瀏覽器實測。
+最適合先驗證的無後端替代是：使用者自行建立只授權專用私有 repository 的 fine-grained personal access token（PAT），每次工作階段輸入，網站僅在記憶體保存，再直接呼叫 GitHub REST Contents API。這可保留免費靜態架構，但操作比登入授權複雜，使用者已接受自行設定儲存庫的替代路徑；v0.16.0 已提供此流程。實際帳戶權限與 iOS／Android 實機仍需使用者驗證。
 
 ## 官方事實與判斷
 

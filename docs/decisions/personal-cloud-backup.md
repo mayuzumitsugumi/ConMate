@@ -1,6 +1,6 @@
 # 已納入路線圖：個人 GitHub 雲端備份（選配）
 
-狀態：已確認產品方向，尚未實作。依使用者要求新增；不代表目前已有 GitHub 登入、上傳或還原功能。
+狀態：v0.16.0 已實作使用者自行設定私有儲存庫、fine-grained PAT 連接、手動上傳、歷史版本與遠端還原預覽。這是權杖連接，不是 OAuth 登入；未串接 Google／Microsoft。
 
 ## 定位與邊界
 
@@ -40,7 +40,7 @@ GitHub Pages只提供網站檔案，不能因為使用者在另一分頁登入Gi
 
 ## 授權技術前置驗證
 
-2026-11-03 已完成[授權可行性研究](github-backup-feasibility.md)：標準網頁 OAuth code 交換仍需 secret；PKCE 不自動移除此要求。純靜態可先驗證使用者自行建立的限定私有 repository fine-grained PAT、僅記憶體保存模式。此為技術候選，尚未提供線上連接或請求使用者憑證。
+2026-11-03 已完成[授權可行性研究](github-backup-feasibility.md)：標準網頁 OAuth code 交換仍需 secret；PKCE 不自動移除此要求。純靜態可先驗證使用者自行建立的限定私有 repository fine-grained PAT、僅記憶體保存模式。v0.16.0 已採用此限定私有儲存庫、記憶體權杖模式，並提供設定指南。
 
 
 目前GitHub Pages純靜態與無後端的限制仍生效。實作前先驗證官方授權流程是否能在目標瀏覽器安全完成，尤其登入回呼、token交換、CORS與撤銷。
@@ -49,7 +49,7 @@ GitHub Pages只提供網站檔案，不能因為使用者在另一分頁登入Gi
 - 最小化至使用者指定repository的必要Contents讀寫權限，不要求工作流程、組織或其他repository管理權限。
 - 存取token不寫入匯出檔、錯誤報告、網址、日誌或預設的localStorage／IndexedDB；首版以工作階段記憶體保存，持久登入需另做安全設計。
 - 若純靜態「登入即授權」無法安全完成，不自行加後端或要求大家共享token。提出可行替代（例如由使用者建立限定權限的授權）及取捨，再確認操作方式。
-- 若最終需要額外服務，須另行確認成本、資料接觸範圍與原架構限制；不能因為納入本規劃就視為已授權引入後端。
+- 目前不加入額外授權後端。若未來需要額外服務，須另行確認成本、資料接觸範圍與原架構限制；不能因為納入本規劃就視為已授權引入後端。
 
 ## 開發任務與依賴
 
@@ -83,3 +83,12 @@ GitHub Pages只提供網站檔案，不能因為使用者在另一分頁登入Gi
 - [GitHub方案：免費個人帳號支援私有repository](https://docs.github.com/en/get-started/learning-about-github/githubs-plans)
 - [GitHub Contents API：檔案讀寫與權限](https://docs.github.com/en/rest/repos/contents)
 - [GitHub Pages：靜態網站託管](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages)
+
+## v0.16.0 實作與驗證限制
+
+- 支援單一工作區最大10 MB，GitHub API目的固定為api.github.com；不追蹤重新導向、不傳瀏覽器Cookie。
+- 預覽遠端檔案會通過同一本機完整安全檢查。遠端修訂較高或同修訂不同內容時拒絕上傳；本機較高也不代表沒有分歧，仍需使用者核對完整取代。
+- 送出前核對分支head，更新使用原blob SHA；衝突不自動重試。網路中斷可能已寫入遠端，需重新讀取核對，不宣稱一定未寫入。
+- 每次成功上傳只在本機保存修訂、目的地、時間與commit等無憑證資訊。該紀錄不證明遠端之後未被使用者刪除。
+- 版本清單提供最近20次該檔案提交；不是即時同步或所有歷史的完整瀏覽器。
+- 模擬API的桌面／手機流程涵蓋確認、上傳、權限失敗、記憶體憑證清除、歷史下載及隔離還原。未以真實個人PAT寫入私有儲存庫；不宣稱完成真實授權的端對端驗證。

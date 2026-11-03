@@ -23,6 +23,7 @@ import {
 import { validateRestoreSnapshot } from "../../domain/validation/restore";
 import type { CatalogSnapshot } from "../../domain/models/catalog";
 import AppIcon from "../components/AppIcon.vue";
+import CloudBackupPanel from "../components/CloudBackupPanel.vue";
 const workspaces = useWorkspaceStore(),
   catalog = useCatalogStore();
 const exporting = ref(false),
@@ -103,6 +104,20 @@ async function preparePreview(
   confirmed.value = false;
   replaceChosen.value = false;
   replacePhrase.value = "";
+}
+async function previewCloud(snapshot: CatalogSnapshot, label: string) {
+  if (checking.value || restoring.value) return;
+  checking.value = true;
+  restoreError.value = "";
+  restoreNotice.value = "";
+  try {
+    filename.value = label;
+    await preparePreview(snapshot, "file");
+  } catch (e) {
+    restoreError.value = e instanceof Error ? e.message : "無法預覽遠端備份。";
+  } finally {
+    checking.value = false;
+  }
 }
 async function checkFile(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0];
@@ -338,6 +353,7 @@ async function inspectStorage(requestPersist = false) {
       </button>
     </template>
   </section>
+  <CloudBackupPanel @preview="previewCloud" @backed-up="refreshLocal" />
   <section class="catalog-panel section-block" aria-labelledby="restore-title">
     <h2 id="restore-title">檢查與還原專案檔</h2>
     <p>
@@ -493,8 +509,7 @@ async function inspectStorage(requestPersist = false) {
       </button>
     </div>
     <p>
-      目前支援網站專案格式
-      2.1.0、2.2.0、2.3.0、2.4.0、2.5.0、2.6.0、2.7.0、2.8.0、2.9.0。還原保留原
+      目前支援網站專案格式 2.1.0 至 2.10.0。還原保留原
       ID與封存內容；新增還原保留原修訂，明確取代時提高修訂以避免其他分頁覆寫。
     </p>
   </section>
@@ -603,8 +618,9 @@ async function inspectStorage(requestPersist = false) {
     <div>
       <strong>備份放哪裡，由你決定。</strong>
       <p>
-        可自行把這份檔案放到裝置、Google Drive、OneDrive 或自己的私有 GitHub
-        repository。自動雲端備份尚未提供，網站不會上傳你的商品資料。
+        可下載到裝置、自行放進 Google
+        Drive／OneDrive，或選配以權杖連接自己的私有 GitHub
+        備份。只有在雲端區確認備份後才會上傳；沒有自動同步或背景備份。
       </p>
     </div>
   </aside>

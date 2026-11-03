@@ -2,7 +2,7 @@
 
 提供台灣創作者與攤主使用的離線優先周邊管理、販售記錄及財務計算工具。
 
-目前狀態：**v0.15.0 使用說明版**。新增可搜尋的使用說明、虛構練習流程，以及各分頁的說明入口。建檔、販售、盤點、財務與備份都有對應操作指南。詳見[決策更新](docs/decisions/website-first.md)與[版本說明](docs/releases/v0.15.0.md)。
+目前狀態：**v0.16.0 個人 GitHub 備份版**。選配以個人存取權杖連接自己的私有儲存庫，明確預覽後上傳、讀取版本並安全還原；基本功能仍免帳號、可離線。這不是 OAuth 登入或即時同步。詳見[版本說明](docs/releases/v0.16.0.md)。
 
 [開啟ConMate](https://mayuzumitsugumi.github.io/ConMate/)
 
@@ -35,6 +35,7 @@ npm run test:e2e
 
 ## 這一版可以做什麼
 
+- 選配 GitHub 個人備份：使用者自己設定專用私有儲存庫，權杖只留在目前頁面記憶體；確認後才上傳，遠端變更會阻擋提交，還原仍需驗證預覽。
 - [使用說明](https://mayuzumitsugumi.github.io/ConMate/#/help)：不需工作區即可閱讀，支援搜尋、主題導覽與從當前頁面開啟對應說明。
 
 - [企劃與場次分頁](https://mayuzumitsugumi.github.io/ConMate/#/projects)：新增、編輯、封存／恢復，支援同企劃跨多場、同場多企劃。
@@ -52,7 +53,7 @@ npm run test:e2e
 
 網站專案格式升至2.10.0/schema12，仍支援還原2.1.0至2.9.0舊檔。所有已開放資料保存在同一專案檔中；還原同一工作區需預覽差異並明確確認取代，取代前的本機資料會原子保留為本機復原點，Excel日常表的手動修改不會被採用。
 
-已將[個人GitHub雲端備份](docs/decisions/personal-cloud-backup.md)正式納入後續規劃：使用者選配授權自己的私有儲存庫，手動備份、版本核對與跨裝置還原；先完成本機還原及安全授權驗證。這不是即時同步，基本功能仍免帳號、可離線。
+已提供[個人 GitHub 備份](docs/decisions/personal-cloud-backup.md)的手動權杖連接方式，無額外後端、不建立 ConMate 帳號。Google／Microsoft 雲端登入尚未提供；使用者仍可手動把下載檔放進自己的雲端硬碟。這不是即時同步。
 
 ## GitHub Pages
 

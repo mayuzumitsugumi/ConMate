@@ -47,7 +47,7 @@ onMounted(() => {
         <AppIcon name="shield" :size="24" /><strong
           >你的資料，留在你手上</strong
         >
-        <p>不需要帳號，不上傳雲端。<br />記得定期保留外部備份。</p>
+        <p>基本功能免帳號、本機保存。<br />可選配備份到自己的 GitHub。</p>
       </div>
       <div class="sidebar-version">
         <span class="status-dot"></span> v{{ version }} · 起步版本

@@ -54,7 +54,7 @@ v0.3以Dexie version3升級網站資料schema2至schema3，保留全部既有建
 
 ## 雲端備份選配
 
-已正式納入後續路線圖，尚未實作，詳見[個人GitHub雲端備份規劃](personal-cloud-backup.md)。先完成本機檔案驗證與還原，再加入指定私有repository的授權、手動備份、版本核對及還原。基本功能仍免帳號／離線；雲端連線不建立ConMate帳號，也不把資料存到公開網站repository。登入與授權方式須先驗證能否符合純靜態限制，不直接假定無後端就能安全完成。
+v0.16.0已實作[個人GitHub雲端備份](personal-cloud-backup.md)：使用者自行設定專用私有repository與限定範圍的fine-grained PAT，提供手動備份、版本核對及安全還原。權杖僅在當前頁面記憶體保存，這不是OAuth登入；Google／Microsoft雲端授權尚未接入。基本功能仍免帳號／離線，也不把資料存到ConMate公開網站repository。
 
 ## 驗收
 
