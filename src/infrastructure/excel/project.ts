@@ -1,3 +1,4 @@
+import { internalSummary } from "../../domain/finance/internal-pricing";
 import { batchCostReport } from "../../domain/finance/batch-costs";
 import { batchBalances } from "../../domain/inventory/batches";
 import { costSummary, advanceRepaid } from "../../domain/finance/operations";
@@ -5,7 +6,7 @@ import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.13.0";
+export const PROJECT_VERSION = "2.14.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -975,6 +976,75 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
         l.netKnownCost,
         l.unknownQuantity,
         l.margin ?? "未知",
+      ]);
+  }
+  if (snapshot.internalAgreements.length) {
+    const w = sheet("36_內部計價約定", [
+      "約定編號",
+      "名稱",
+      "來源",
+      "負擔者",
+      "規劃數量",
+      "來源成本",
+      "內部負擔額",
+      "約定每件回收",
+      "規劃回收額",
+      "回收與成本差額",
+      "差額歸屬",
+      "差額處理",
+      "累計實收",
+      "尚待回收",
+      "前版",
+      "狀態",
+      "原因",
+    ]);
+    for (const a of snapshot.internalAgreements) {
+      const r = internalSummary(snapshot, a);
+      w.addRow([
+        a.code,
+        a.name,
+        a.sourceName,
+        snapshot.parties.find((p) => p.id === a.burdenPartyId)?.name ||
+          "未指定",
+        a.quantity,
+        r.sourceTotal ?? "未知",
+        a.internalTotal ?? "未知",
+        a.agreedUnit ?? "未知",
+        r.plannedTotal ?? "未知",
+        r.difference ?? "未知",
+        snapshot.parties.find((p) => p.id === a.differencePartyId)?.name ||
+          "未指定",
+        a.differenceTreatment,
+        r.collected,
+        r.remaining ?? "未知",
+        a.previousId,
+        a.voidedAt ? "作廢" : "保留",
+        a.notes,
+      ]);
+    }
+  }
+  if (snapshot.internalReceipts.length) {
+    const w = sheet("37_內部回收實收", [
+      "編號",
+      "約定",
+      "付款者",
+      "收款者",
+      "金額",
+      "時間",
+      "沖銷來源",
+      "原因",
+    ]);
+    for (const r of snapshot.internalReceipts)
+      w.addRow([
+        r.code,
+        snapshot.internalAgreements.find((a) => a.id === r.agreementId)?.name ||
+          r.agreementId,
+        snapshot.parties.find((p) => p.id === r.payerId)?.name || "",
+        snapshot.parties.find((p) => p.id === r.collectorId)?.name || "",
+        r.amount,
+        r.createdAt,
+        r.reversesId,
+        r.notes,
       ]);
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);

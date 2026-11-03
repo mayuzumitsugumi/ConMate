@@ -112,7 +112,7 @@ it("upgrades old schema3 backups with empty inventory without inventing quantiti
   delete old.locations;
   delete old.movements;
   const checked = validateRestoreSnapshot(old);
-  expect(checked.schemaVersion).toBe(15);
+  expect(checked.schemaVersion).toBe(16);
   expect(checked.locations).toEqual([]);
   expect(checked.movements).toEqual([]);
   expect(checked.products).toEqual(s.products);
@@ -187,7 +187,7 @@ it("migrates an installed schema3 database while preserving original IDs and rev
   const next = new ConMateDatabase(name);
   try {
     const data = await next.catalogs.get(s.workspaceId);
-    expect(data?.schemaVersion).toBe(15);
+    expect(data?.schemaVersion).toBe(16);
     expect(data?.products).toEqual(s.products);
     expect(data?.revision).toBe(s.revision);
     expect(data?.movements).toEqual([]);

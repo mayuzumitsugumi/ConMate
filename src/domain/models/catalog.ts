@@ -84,7 +84,9 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 15;
+  schemaVersion: 16;
+  internalAgreements: InternalAgreement[];
+  internalReceipts: InternalReceipt[];
   batchCostVersions: BatchCostVersion[];
   batchTrackingStart: number;
   workspaceId: string;
@@ -558,4 +560,36 @@ export interface BatchCostVersion extends NamedRecord {
   effectiveMovementCount: number;
   createdAt: string;
   notes: string;
+}
+
+export interface InternalAgreementInput {
+  name: string;
+  sourceType: "cost" | "artwork";
+  sourceId: string;
+  burdenPartyId: string;
+  quantity: number;
+  internalTotal: number | null;
+  agreedUnit: string | null;
+  differencePartyId: string;
+  differenceTreatment: string;
+  notes: string;
+}
+export interface InternalAgreement extends NamedRecord, InternalAgreementInput {
+  sourceName: string;
+  sourceExact: ExactFraction | null;
+  createdAt: string;
+  previousId: string;
+  voidedAt: string;
+  voidReason: string;
+}
+export interface InternalReceiptInput {
+  agreementId: string;
+  payerId: string;
+  collectorId: string;
+  amount: number;
+  notes: string;
+}
+export interface InternalReceipt extends NamedRecord, InternalReceiptInput {
+  createdAt: string;
+  reversesId: string;
 }

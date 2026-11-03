@@ -42,6 +42,8 @@ export interface RestoreDifference {
 }
 const groups = {
   batchCostVersions: "批次成本版本",
+  internalAgreements: "內部計價約定",
+  internalReceipts: "內部回收實收",
   products: "商品",
   parties: "創作者",
   projects: "企劃",

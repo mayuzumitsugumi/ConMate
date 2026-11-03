@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import InternalPricingPanel from "../components/InternalPricingPanel.vue";
 import BatchCostPanel from "../components/BatchCostPanel.vue";
 import SettlementPanel from "../components/SettlementPanel.vue";
 import ArtworkFinancePanel from "../components/ArtworkFinancePanel.vue";
@@ -272,6 +273,7 @@ const pending = computed(() =>
       </button>
     </p>
     <template v-if="catalog.snapshot">
+      <InternalPricingPanel />
       <SettlementPanel />
       <ArtworkFinancePanel />
       <BatchCostPanel />

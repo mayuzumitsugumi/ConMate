@@ -1,3 +1,4 @@
+import { validateInternalPricing } from "../finance/internal-pricing";
 import { validateBatchCosts } from "../finance/batch-costs";
 import { upgradeMasterData } from "../catalog/masterdata";
 import { upgradeBatches, validateBatchLedger } from "../inventory/batches";
@@ -79,6 +80,8 @@ const keys = [
   "expensePayments",
   "settlements",
   "batchCostVersions",
+  "internalAgreements",
+  "internalReceipts",
 ] as const;
 export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   // Older backups gain empty inventory; never invent physical stock.
@@ -128,7 +131,14 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   if (s.schemaVersion === 13) s = upgradeMasterData({ ...s });
   if (s.schemaVersion === 14)
     s = { ...s, schemaVersion: 15, batchCostVersions: [] };
-  if (s.schemaVersion !== 15) fail("目前僅支援網站資料版本 3 至 15。");
+  if (s.schemaVersion === 15)
+    s = {
+      ...s,
+      schemaVersion: 16,
+      internalAgreements: [],
+      internalReceipts: [],
+    };
+  if (s.schemaVersion !== 16) fail("目前僅支援網站資料版本 3 至 16。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -1018,5 +1028,6 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     time(v.createdAt);
   }
   validateBatchCosts(s as unknown as CatalogSnapshot);
+  validateInternalPricing(s as unknown as CatalogSnapshot);
   return s as unknown as CatalogSnapshot;
 }

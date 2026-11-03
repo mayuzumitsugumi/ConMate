@@ -1,3 +1,13 @@
+import {
+  createInternalAgreement as putInternalAgreement,
+  recordInternalReceipt as putInternalReceipt,
+  reverseInternalReceipt as undoInternalReceipt,
+  voidInternalAgreement as cancelInternalAgreement,
+} from "../domain/finance/internal-pricing";
+import type {
+  InternalAgreementInput,
+  InternalReceiptInput,
+} from "../domain/models/catalog";
 import { saveBatchCost as putBatchCost } from "../domain/finance/batch-costs";
 import {
   putParty,
@@ -349,7 +359,30 @@ export const useCatalogStore = defineStore("catalog", () => {
     mutate((s) => {
       putBatchCost(s, batchId, costId, notes);
     });
+  const createInternalAgreement = (
+    input: InternalAgreementInput,
+    previousId = "",
+  ) =>
+    mutate((s) => {
+      putInternalAgreement(s, input, previousId);
+    });
+  const recordInternalReceipt = (input: InternalReceiptInput) =>
+    mutate((s) => {
+      putInternalReceipt(s, input);
+    });
+  const reverseInternalReceipt = (id: string, reason: string) =>
+    mutate((s) => {
+      undoInternalReceipt(s, id, reason);
+    });
+  const voidInternalAgreement = (id: string, reason: string) =>
+    mutate((s) => {
+      cancelInternalAgreement(s, id, reason);
+    });
   return {
+    createInternalAgreement,
+    recordInternalReceipt,
+    reverseInternalReceipt,
+    voidInternalAgreement,
     saveBatchCost,
     saveParty,
     archiveParty,
