@@ -23,7 +23,7 @@ test("counts stock, preserves pending differences, applies explicit adjustment a
     .getByLabel("目的庫位", { exact: true })
     .selectOption({ label: "攤位" });
   await page.getByLabel("數量", { exact: true }).fill("10");
-  await page.getByLabel("異動原因／批次註記").fill("入庫");
+  await page.getByLabel("異動原因").fill("入庫");
   await page.getByRole("button", { name: "確認登記異動" }).click();
   await expect(page.getByRole("status")).toContainText("庫存異動已儲存");
   const panel = page.getByRole("region", { name: "收攤盤點與場次摘要" });

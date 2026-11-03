@@ -1,3 +1,4 @@
+import { allocateReturn } from "../inventory/batches";
 import { record, text } from "../catalog/operations";
 import { whole, safeAmount } from "../money";
 import { balance } from "../inventory/operations";
@@ -119,6 +120,7 @@ export function refundSale(s: CatalogSnapshot, input: RefundInput) {
     let movementId = "";
     if (inputLine.restockQuantity) {
       const movement = {
+        batchAllocations: [] as { batchId: string; quantity: number }[],
         ...record(s, "MOV", "退款商品回庫"),
         kind: "refund-return" as const,
         productId: original.productId,
@@ -131,6 +133,13 @@ export function refundSale(s: CatalogSnapshot, input: RefundInput) {
         createdAt: refund.createdAt,
         reversesId: "",
       };
+      const prior = lineReturnSummary(s, original.id);
+      allocateReturn(
+        s,
+        movement,
+        original.movementId,
+        prior.restockQuantity + prior.damagedQuantity,
+      );
       s.movements.push(movement);
       movementId = movement.id;
     }

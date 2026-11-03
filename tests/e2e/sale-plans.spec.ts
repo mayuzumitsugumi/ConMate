@@ -28,7 +28,7 @@ test("uses mixed draw pool and direct price with one shared stock and stable sal
       .getByLabel("目的庫位", { exact: true })
       .selectOption({ label: "攤位" });
     await page.getByLabel("數量", { exact: true }).fill("3");
-    await page.getByLabel("異動原因／批次註記").fill("入庫");
+    await page.getByLabel("異動原因").fill("入庫");
     await page.getByRole("button", { name: "確認登記異動" }).click();
     await expect(page.getByRole("status")).toContainText("庫存異動已儲存");
   }

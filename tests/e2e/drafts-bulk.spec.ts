@@ -36,7 +36,7 @@ test("bulk creates searchable products and restores a local uncommitted cart acr
     .getByLabel("目的庫位", { exact: true })
     .selectOption({ label: "攤位" });
   await page.getByLabel("數量", { exact: true }).fill("3");
-  await page.getByLabel("異動原因／批次註記").fill("入庫");
+  await page.getByLabel("異動原因").fill("入庫");
   await page.getByRole("button", { name: "確認登記異動" }).click();
   await expect(page.getByRole("status")).toContainText("庫存異動已儲存");
   await page.goto("#/sales");

@@ -277,7 +277,11 @@ it("upgrades schema9 snapshots and installed data without changing old cancellat
   cancelSale(s, sale.id, "舊版全退");
   const old: any = { ...s, schemaVersion: 9 };
   delete old.refunds;
-  expect(validateRestoreSnapshot(old)).toEqual(s);
+  expect(validateRestoreSnapshot(old)).toMatchObject({
+    ...s,
+    batchTrackingStart: s.movements.length,
+    movements: s.movements.map(({ batchAllocations, ...m }) => m),
+  });
   const Dexie = (await import("dexie")).default;
   const { ConMateDatabase } =
     await import("../../src/infrastructure/storage/workspaces");
@@ -292,7 +296,11 @@ it("upgrades schema9 snapshots and installed data without changing old cancellat
   db.close();
   const next = new ConMateDatabase(name);
   try {
-    expect(await next.catalogs.get(s.workspaceId)).toEqual(s);
+    expect(await next.catalogs.get(s.workspaceId)).toMatchObject({
+      ...s,
+      batchTrackingStart: s.movements.length,
+      movements: s.movements.map(({ batchAllocations, ...m }) => m),
+    });
   } finally {
     await next.delete();
   }

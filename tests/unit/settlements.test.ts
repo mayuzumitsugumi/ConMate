@@ -521,7 +521,7 @@ it("upgrades old schema11 in database and restore without inventing settlement",
   const next = new ConMateDatabase(name);
   try {
     const got = await next.catalogs.get(s.workspaceId);
-    expect(got?.schemaVersion).toBe(12);
+    expect(got?.schemaVersion).toBe(13);
     expect(got?.settlements).toEqual([]);
     expect(got?.sales).toEqual(s.sales);
   } finally {

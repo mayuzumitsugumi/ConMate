@@ -62,7 +62,7 @@ export const helpTopics: HelpTopic[] = [
       "填錯異動時使用沖銷並說明原因，系統新增反向紀錄，保留原紀錄。若要沖銷入庫，但實物已售出或移走，庫存不足時會阻擋。",
       "通販對照可填商店連結、出貨庫位及人工核對的可售數量；同商品同庫位的網店數量會加總和帳面比較。",
     ],
-    note: "通販連結不會自動讀取網店庫存，也不會同步、預留或扣庫。現有庫存尚未依製作批次 FIFO 配貨；備註的批次名稱不是批次追蹤功能。",
+    note: "通販連結不會自動讀取網店庫存，也不會同步、預留或扣庫。新增加庫存可填入庫批次名稱，出庫與調撥採 FIFO 並保存來源；退貨回原銷售批次。舊資料來源未知，不推算製造批次或已售成本。",
     path: "/inventory",
     action: "登記庫存異動",
   },
@@ -160,7 +160,8 @@ export const helpTopics: HelpTopic[] = [
   {
     id: "cloud",
     title: "自己的 GitHub：連接、備份、版本與還原",
-    intro: "選配功能，使用你自己的私有儲存庫；不是 ConMate 帳號或 GitHub OAuth 登入。",
+    intro:
+      "選配功能，使用你自己的私有儲存庫；不是 ConMate 帳號或 GitHub OAuth 登入。",
     steps: [
       "先在 GitHub 建立專用的 Private 儲存庫，勾選 README 初始化分支，不需要為備份儲存庫啟用 Pages。",
       "建立有到期日的 fine-grained personal access token，只選這個儲存庫並開 Contents 讀寫。權杖能存取整個所選儲存庫，請使用專用空間。",

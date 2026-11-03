@@ -102,7 +102,9 @@ it("upgrades schema5 installed data and backups without changing stock, IDs or h
   delete oldData.movementTypes;
   const normalized = validateRestoreSnapshot(oldData);
   expect(normalized.movementTypes).toEqual([]);
-  expect(normalized.movements).toEqual(s.movements);
+  expect(normalized.movements).toMatchObject(
+    s.movements.map(({ batchAllocations, ...m }) => m),
+  );
   const name = "type-migration-" + crypto.randomUUID(),
     old = new Dexie(name);
   old
@@ -114,8 +116,10 @@ it("upgrades schema5 installed data and backups without changing stock, IDs or h
   const upgraded = new ConMateDatabase(name);
   try {
     const data = (await upgraded.catalogs.get(s.workspaceId))!;
-    expect(data.schemaVersion).toBe(12);
-    expect(data.movements).toEqual(s.movements);
+    expect(data.schemaVersion).toBe(13);
+    expect(data.movements).toMatchObject(
+      s.movements.map(({ batchAllocations, ...m }) => m),
+    );
     expect(balance(data, p.id, a.id)).toBe(3);
     expect(data.movementTypes).toEqual([]);
   } finally {

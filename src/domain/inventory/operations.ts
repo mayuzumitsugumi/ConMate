@@ -1,3 +1,4 @@
+import { allocateMovement } from "./batches";
 import type {
   CatalogSnapshot,
   InventoryMovement,
@@ -95,15 +96,21 @@ export function addMovement(s: CatalogSnapshot, input: MovementInput) {
     outgoing = ["free", "damage", "adjust-out"].includes(input.kind);
   const reason = text(input.reason, "異動原因", 2000);
   const m: InventoryMovement = {
+    batchAllocations: [],
     ...record(s, "MOV", type?.name || movementLabels[input.kind]),
     ...input,
+    ...(incoming && input.batchName?.trim()
+      ? { batchName: text(input.batchName, "批次名稱", 120) }
+      : {}),
     reason,
     fromLocationId: incoming ? "" : input.fromLocationId,
     toLocationId: outgoing ? "" : input.toLocationId,
     createdAt: new Date().toISOString(),
     reversesId: "",
   };
+  if (!incoming) delete m.batchName;
   validateMovement(s, m);
+  allocateMovement(s, m);
   s.movements.push(m);
   return m;
 }
@@ -134,7 +141,9 @@ export function reverseMovement(
     createdAt: new Date().toISOString(),
     reversesId: old.id,
   };
+  delete m.batchName;
   validateMovement(s, m);
+  allocateMovement(s, m);
   s.movements.push(m);
   return m;
 }

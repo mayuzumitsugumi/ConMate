@@ -65,7 +65,8 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 12;
+  schemaVersion: 13;
+  batchTrackingStart: number;
   workspaceId: string;
   workspace: Workspace;
   revision: number;
@@ -125,6 +126,8 @@ export type MovementKind =
   | "sale"
   | "refund-return";
 export interface InventoryMovement extends NamedRecord {
+  batchAllocations: { batchId: string; quantity: number }[];
+  batchName?: string;
   productId: string;
   kind: MovementKind;
   movementTypeId?: string;
@@ -138,6 +141,7 @@ export interface InventoryMovement extends NamedRecord {
   reversesId: string;
 }
 export interface MovementInput {
+  batchName?: string;
   productId: string;
   kind: Exclude<MovementKind, "reversal" | "sale" | "refund-return">;
   movementTypeId?: string;

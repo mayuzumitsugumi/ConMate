@@ -374,9 +374,11 @@ describe("explicit cost and advance accounting", () => {
     const db = new ConMateDatabase(name);
     try {
       const next = await db.catalogs.get(s.workspaceId);
-      expect(next?.schemaVersion).toBe(12);
+      expect(next?.schemaVersion).toBe(13);
       expect(next?.products).toEqual(s.products);
-      expect(next?.movements).toEqual(s.movements);
+      expect(next?.movements).toMatchObject(
+        s.movements.map(({ batchAllocations, ...m }) => m),
+      );
       expect(next?.sales).toEqual([]);
       expect(next?.costs).toEqual([]);
     } finally {

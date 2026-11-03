@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
+import InventoryBatchesPanel from "../components/InventoryBatchesPanel.vue";
 import StocktakePanel from "../components/StocktakePanel.vue";
 import MovementTypesPanel from "../components/MovementTypesPanel.vue";
 import OnlineStockPanel from "../components/OnlineStockPanel.vue";
 import { useWorkspaceStore } from "../../app/workspace-store";
 import { useCatalogStore } from "../../app/catalog-store";
+import { batchBalances } from "../../domain/inventory/batches";
 import { balance } from "../../domain/inventory/operations";
 import type { MovementInput } from "../../domain/models/catalog";
 const workspaces = useWorkspaceStore(),
@@ -77,6 +79,9 @@ const rows = computed(() => {
         ),
     );
 });
+const batchState = computed(() =>
+  catalog.snapshot ? batchBalances(catalog.snapshot) : null,
+);
 const recent = computed(() =>
   [...(catalog.snapshot?.movements || [])].reverse(),
 );
@@ -94,6 +99,7 @@ watch(
       fromLocationId: "",
       toLocationId: "",
       reason: "",
+      batchName: "",
     });
     locationName.value = "";
     selectedType.value = "receipt";
@@ -125,6 +131,7 @@ async function save() {
   if (await run(() => catalog.saveMovement({ ...form }), "庫存異動已儲存。")) {
     form.quantity = 1;
     form.reason = "";
+    form.batchName = "";
   }
 }
 async function reverse() {
@@ -161,7 +168,7 @@ const when = (time: string) =>
     <div>
       <strong>目前提供基本庫存異動。</strong>
       <p>
-        先建立商品與庫位，再登記數量。盤差可手動調整並註記原因；攤位販售頁成交時會同步扣庫；可建立盤點單保存實點及待查差異；製作批次與預留庫存尚未開放。要記錄營收請到攤位販售頁；自行命名的減少類型不會產生營收。
+        先建立商品與庫位，再登記數量。盤差可手動調整並註記原因；攤位販售頁成交時會同步扣庫；可建立盤點單保存實點及待查差異；入庫批次採FIFO追蹤，成本表不自動連動；特殊單件與預留庫存尚未開放。要記錄營收請到攤位販售頁；自行命名的減少類型不會產生營收。
       </p>
     </div>
   </section>
@@ -228,6 +235,7 @@ const when = (time: string) =>
           }}
         </p>
       </section>
+      <InventoryBatchesPanel />
       <MovementTypesPanel />
       <section class="inventory-panel section-block">
         <h2>登記庫存異動</h2>
@@ -330,8 +338,17 @@ const when = (time: string) =>
                 max="9007199254740991"
               />
             </div>
+            <div class="field" v-if="incoming">
+              <label for="movement-batch">入庫批次名稱（選填）</label
+              ><input
+                id="movement-batch"
+                v-model="form.batchName"
+                maxlength="120"
+                placeholder="例如：2026年11月第一批到貨"
+              /><small>每筆入庫是獨立批次；留白則使用系統入庫編號。</small>
+            </div>
             <div class="field">
-              <label for="movement-reason">異動原因／批次註記</label
+              <label for="movement-reason">異動原因</label
               ><input
                 id="movement-reason"
                 v-model="form.reason"
@@ -398,6 +415,15 @@ const when = (time: string) =>
               {{ when(m.createdAt) }}（台灣時間）
             </p>
             <p>{{ m.reason }}</p>
+            <p>
+              批次分配：<span
+                v-for="(allocation, index) in m.batchAllocations"
+                :key="allocation.batchId"
+                >{{ index ? "、" : ""
+                }}{{ batchState?.lots.get(allocation.batchId)?.name }} ×
+                {{ allocation.quantity }}</span
+              >
+            </p>
             <p v-if="m.reversesId">
               沖銷來源：{{
                 catalog.snapshot.movements.find((r) => r.id === m.reversesId)

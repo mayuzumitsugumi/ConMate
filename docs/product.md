@@ -2,7 +2,9 @@
 
 狀態：T01 規格基線，2026-11-02（Asia/Taipei）。後來確認的決策優先於早期提案。此文件不是完成整個 MVP 的宣告。
 
-最新修訂以[網站優先決策](decisions/website-first.md)與[個人雲端備份規劃](decisions/personal-cloud-backup.md)為準：網站先建檔，單檔匯出；使用者自己的私有GitHub repository備份已列選配擴充，尚未實作。下方T01任務狀態保留原基線，實際已交付功能見各版本說明。
+最新修訂以[網站優先決策](decisions/website-first.md)與[個人雲端備份規劃](decisions/personal-cloud-backup.md)為準：網站先建檔，單檔匯出；使用者自己的私有GitHub repository備份已提供個人權杖手動連接、備份與還原；尚非 OAuth 登入。下方T01任務狀態保留原基線，實際已交付功能見各版本說明。
+
+目前缺口與實作順序見[現況與路線圖](implementation-roadmap.md)。
 
 ## 不變決策
 
@@ -10,7 +12,7 @@
 | --- | --- |
 | R01 | Vue 3、TypeScript strict、Vite、Hash 路由、Pinia；核心領域不依賴框架。 |
 | R02 | Dexie／IndexedDB、離線優先 PWA；基本功能無後端、ConMate帳號、權限、雲端資料庫及分析上傳。選配個人雲端備份需使用者另行授權，不能變成基本功能登入門檻。 |
-| R03 | GitHub Pages `/ConMate/`，Actions 檢查與建置；尚未執行部署。 |
+| R03 | GitHub Pages `/ConMate/`，Actions 檢查與建置；已透過 Actions 部署。 |
 | R04 | 工作區是完整資料、修訂及備份邊界；包含多企劃、多場次、跨企劃交易。 |
 | R05 | Excel 純值、可編輯、先檢查後提交；公式一律拒絕，不依賴試算表計算。 |
 | R06 | UUID 為關聯鍵，流水號僅顯示；新資料可用暫時代號，不依賴列位置。 |

@@ -217,7 +217,11 @@ it("schema7 restoration/migration preserves prior records and adds no plans", as
   const s = fixture();
   const old: any = { ...s, schemaVersion: 7 };
   delete old.salePlans;
-  expect(validateRestoreSnapshot(old)).toEqual(s);
+  expect(validateRestoreSnapshot(old)).toMatchObject({
+    ...s,
+    batchTrackingStart: s.movements.length,
+    movements: s.movements.map(({ batchAllocations, ...m }) => m),
+  });
   const name = "plans-migrate-" + crypto.randomUUID(),
     db = new Dexie(name);
   db.version(7).stores({
@@ -229,7 +233,11 @@ it("schema7 restoration/migration preserves prior records and adds no plans", as
   db.close();
   const upgraded = new ConMateDatabase(name);
   try {
-    expect(await upgraded.catalogs.get(s.workspaceId)).toEqual(s);
+    expect(await upgraded.catalogs.get(s.workspaceId)).toMatchObject({
+      ...s,
+      batchTrackingStart: s.movements.length,
+      movements: s.movements.map(({ batchAllocations, ...m }) => m),
+    });
   } finally {
     await upgraded.delete();
   }

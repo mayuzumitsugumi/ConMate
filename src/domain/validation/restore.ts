@@ -1,3 +1,4 @@
+import { upgradeBatches, validateBatchLedger } from "../inventory/batches";
 import { validateSettlements } from "./settlements";
 import { previewArtworkAllocation } from "../finance/artwork";
 import type { ArtworkExpenseRecord } from "../models/catalog";
@@ -116,11 +117,12 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
           expensePayments: [],
         }
       : returned;
-  const s =
+  let s =
     financial.schemaVersion === 11
       ? { ...financial, schemaVersion: 12, settlements: [] }
       : financial;
-  if (s.schemaVersion !== 12) fail("目前僅支援網站資料版本 3 至 12。");
+  if (s.schemaVersion === 12) s = upgradeBatches({ ...s });
+  if (s.schemaVersion !== 13) fail("目前僅支援網站資料版本 3 至 13。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -968,5 +970,6 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   }
 
   validateSettlements(s as unknown as CatalogSnapshot, nestedId);
+  validateBatchLedger(s as unknown as CatalogSnapshot);
   return s as unknown as CatalogSnapshot;
 }

@@ -1,9 +1,10 @@
+import { batchBalances } from "../../domain/inventory/batches";
 import { costSummary, advanceRepaid } from "../../domain/finance/operations";
 import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.10.0";
+export const PROJECT_VERSION = "2.11.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -90,7 +91,7 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
     ],
     [
       "資料範圍",
-      "本檔包含此工作區目前可建立的商品、創作者、企劃、場次、參場關聯、標記、自訂欄位及庫存異動；也包含攤位交易、批次成本與代墊還款；尚未開放的抽選池與分潤規則不包含在內。",
+      "本檔包含此工作區目前可建立的商品、創作者、企劃、場次、參場關聯、標記、自訂欄位及庫存異動；也包含攤位交易、販售方案與混合池、盤點、入庫批次分配、批次成本與代墊還款、柄圖分攤及分潤工作單。未開放的功能不會產生資料。",
     ],
     [
       "格式",
@@ -871,6 +872,32 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
       [cash, [5]],
     ] as const)
       for (const c of cols) ws.getColumn(c).numFmt = "0";
+  }
+  if (snapshot.movements.length) {
+    const batches = sheet("30_入庫批次", [
+      "商品",
+      "入庫批次",
+      "庫位",
+      "數量",
+      "批次來源識別",
+    ]);
+    const state = batchBalances(snapshot);
+    for (const lot of state.lots.values())
+      for (const loc of snapshot.locations) {
+        const quantity = state.quantity(lot.id, loc.id);
+        if (quantity)
+          batches.addRow([
+            snapshot.products.find((p) => p.id === lot.productId)?.name || "",
+            lot.name,
+            loc.name,
+            quantity,
+            lot.id,
+          ]);
+      }
+    const allocations = sheet("31_批次異動", ["異動編號", "批次識別", "數量"]);
+    for (const m of snapshot.movements)
+      for (const a of m.batchAllocations)
+        allocations.addRow([m.code, a.batchId, a.quantity]);
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);
   raw.state = "hidden";

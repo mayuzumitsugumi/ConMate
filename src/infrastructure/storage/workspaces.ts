@@ -1,3 +1,4 @@
+import { upgradeBatches } from "../../domain/inventory/batches";
 import Dexie, { type EntityTable } from "dexie";
 import type { CatalogSnapshot } from "../../domain/models/catalog";
 import type { BackupStatus, RecoverySnapshot } from "./local-backups";
@@ -172,6 +173,22 @@ export class ConMateDatabase extends Dexie {
               throw new Error("不支援的資料版本，原始資料未刪除。");
             data.settlements = [];
             data.schemaVersion = 12;
+          });
+      });
+    this.version(14)
+      .stores({
+        workspaces: "id, createdAt",
+        catalogs: "workspaceId",
+        recoverySnapshots: "id, workspaceId, createdAt",
+        backupStatus: "workspaceId",
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table("catalogs")
+          .toCollection()
+          .modify((data) => {
+            if (data.schemaVersion !== 12) throw new Error("不支援資料版本。");
+            upgradeBatches(data);
           });
       });
   }
