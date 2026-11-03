@@ -1,3 +1,4 @@
+import { validateActivityParentState } from "../activity/operations";
 import { validateInternalPricing } from "../finance/internal-pricing";
 import { validateBatchCosts } from "../finance/batch-costs";
 import { upgradeMasterData } from "../catalog/masterdata";
@@ -138,7 +139,9 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
       internalAgreements: [],
       internalReceipts: [],
     };
-  if (s.schemaVersion !== 16) fail("目前僅支援網站資料版本 3 至 16。");
+  if (s.schemaVersion === 16)
+    s = { ...s, schemaVersion: 17, activityHandoffs: [], activityMerges: [] };
+  if (s.schemaVersion !== 17) fail("目前僅支援網站資料版本 3 至 17。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -1029,5 +1032,6 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   }
   validateBatchCosts(s as unknown as CatalogSnapshot);
   validateInternalPricing(s as unknown as CatalogSnapshot);
+  validateActivityParentState(s as unknown as CatalogSnapshot);
   return s as unknown as CatalogSnapshot;
 }

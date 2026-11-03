@@ -1,3 +1,4 @@
+import type { HandoffRecord, ActivityMergeRecord } from "../activity/types";
 import type { Workspace } from "./workspace";
 export type CustomValue = string | number | boolean | string[] | null;
 export type FieldType =
@@ -84,7 +85,9 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 16;
+  schemaVersion: 17;
+  activityHandoffs: HandoffRecord[];
+  activityMerges: ActivityMergeRecord[];
   internalAgreements: InternalAgreement[];
   internalReceipts: InternalReceipt[];
   batchCostVersions: BatchCostVersion[];

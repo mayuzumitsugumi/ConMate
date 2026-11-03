@@ -41,6 +41,8 @@ export interface RestoreDifference {
   removed: number;
 }
 const groups = {
+  activityHandoffs: "活動交接",
+  activityMerges: "活動合回",
   batchCostVersions: "批次成本版本",
   internalAgreements: "內部計價約定",
   internalReceipts: "內部回收實收",

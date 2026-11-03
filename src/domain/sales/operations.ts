@@ -147,6 +147,16 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
   return sale;
 }
 export function cancelSale(s: CatalogSnapshot, id: string, reason: string) {
+  if (
+    s.activityMerges.some((m) =>
+      s.sales
+        .find((r) => r.id === id)
+        ?.lines.some((l) => m.createdMovementIds.includes(l.movementId)),
+    )
+  )
+    throw new Error(
+      "活動結案交易保留原紀錄，請以新增退款／退貨紀錄更正，不可改寫原成交。",
+    );
   const sale = s.sales.find((r) => r.id === id);
   if (!sale || sale.cancelledAt) throw new Error("交易不存在，或已經取消。");
   if (s.refunds.some((r) => r.saleId === sale.id))

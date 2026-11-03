@@ -189,7 +189,7 @@ export function validateBatchLedger(s: CatalogSnapshot) {
         JSON.stringify(seen.get(m.reversesId)?.batchAllocations)
     )
       throw new Error("沖銷批次與原異動不符。");
-    if (index >= s.batchTrackingStart && m.fromLocationId && !m.reversesId) {
+    if (index >= s.batchTrackingStart && m.fromLocationId && !m.reversesId && !s.activityMerges.some(r=>r.createdMovementIds.includes(m.id))) {
       let remaining = m.quantity;
       const expected: BatchAllocation[] = [];
       for (const [id, productId] of lotProducts)

@@ -1,3 +1,4 @@
+import type { ActivityPacket } from "../../domain/activity/types";
 import { upgradeMasterData } from "../../domain/catalog/masterdata";
 import { upgradeBatches } from "../../domain/inventory/batches";
 import Dexie, { type EntityTable } from "dexie";
@@ -6,6 +7,7 @@ import type { BackupStatus, RecoverySnapshot } from "./local-backups";
 import type { Workspace } from "../../domain/models/workspace";
 
 export class ConMateDatabase extends Dexie {
+  activityPackets!: EntityTable<ActivityPacket, "handoffId">;
   workspaces!: EntityTable<Workspace, "id">;
   catalogs!: EntityTable<CatalogSnapshot, "workspaceId">;
   recoverySnapshots!: EntityTable<RecoverySnapshot, "id">;
@@ -241,6 +243,25 @@ export class ConMateDatabase extends Dexie {
             data.internalAgreements = [];
             data.internalReceipts = [];
             data.schemaVersion = 16;
+          });
+      });
+    this.version(18)
+      .stores({
+        workspaces: "id, createdAt",
+        catalogs: "workspaceId",
+        recoverySnapshots: "id, workspaceId, createdAt",
+        backupStatus: "workspaceId",
+        activityPackets: "handoffId, sourceWorkspaceId, eventId",
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table("catalogs")
+          .toCollection()
+          .modify((data) => {
+            if (data.schemaVersion !== 16) throw new Error("不支援資料版本。");
+            data.activityHandoffs = [];
+            data.activityMerges = [];
+            data.schemaVersion = 17;
           });
       });
   }

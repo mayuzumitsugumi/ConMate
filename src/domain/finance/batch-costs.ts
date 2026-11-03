@@ -103,10 +103,20 @@ export function saveBatchCost(
   s.batchCostVersions.push(v);
   return v;
 }
-function at(s: CatalogSnapshot, batchId: string, index: number) {
+function at(
+  s: CatalogSnapshot,
+  batchId: string,
+  index: number,
+  allowed?: Set<string>,
+) {
   let found: BatchCostVersion | undefined;
   for (const v of s.batchCostVersions)
-    if (v.batchId === batchId && v.effectiveMovementCount <= index) found = v;
+    if (
+      v.batchId === batchId &&
+      v.effectiveMovementCount <= index &&
+      (!allowed || allowed.has(v.id))
+    )
+      found = v;
   return found;
 }
 function portion(
@@ -120,12 +130,19 @@ function portion(
     unknown = 0,
     remaining = quantity,
     skip = start;
+  const merged = s.activityMerges.find((r) =>
+    r.createdMovementIds.includes(m.id),
+  );
+  const handoff = merged
+    ? s.activityHandoffs.find((h) => h.id === merged.handoffId)
+    : undefined;
+  const allowed = handoff ? new Set(handoff.costVersionIds || []) : undefined;
   for (const a of m.batchAllocations) {
     const ignored = Math.min(skip, a.quantity);
     skip -= ignored;
     const q = Math.min(remaining, a.quantity - ignored);
     if (q) {
-      const v = at(s, a.batchId, index);
+      const v = at(s, a.batchId, index, allowed);
       if (v?.exactTotal) {
         const total = decode(v.exactTotal);
         known = add(

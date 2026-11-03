@@ -6,7 +6,7 @@ import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.14.0";
+export const PROJECT_VERSION = "2.15.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
