@@ -1,10 +1,11 @@
+import { batchCostReport } from "../../domain/finance/batch-costs";
 import { batchBalances } from "../../domain/inventory/batches";
 import { costSummary, advanceRepaid } from "../../domain/finance/operations";
 import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.12.0";
+export const PROJECT_VERSION = "2.13.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -931,6 +932,49 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
           .join("、"),
         a.notes,
         a.archived ? "已封存" : "使用中",
+      ]);
+  }
+  if (snapshot.batchCostVersions.length) {
+    const v = sheet("34_批次成本版本", [
+      "版本編號",
+      "入庫來源",
+      "成本來源",
+      "生效前異動數",
+      "整批精確成本",
+      "製作量",
+      "原因",
+    ]);
+    for (const b of snapshot.batchCostVersions)
+      v.addRow([
+        b.code,
+        b.batchId,
+        b.costName,
+        b.effectiveMovementCount,
+        b.exactTotal
+          ? `${b.exactTotal.numerator}/${b.exactTotal.denominator}`
+          : "未知",
+        b.quantity,
+        b.notes,
+      ]);
+  }
+  if (snapshot.sales.length) {
+    const r = batchCostReport(snapshot),
+      w = sheet("35_已售成本核對", [
+        "交易",
+        "商品",
+        "原出貨已知成本",
+        "退款後已知成本",
+        "成本未知件數",
+        "營收減未回庫成本差額",
+      ]);
+    for (const l of r.sales)
+      w.addRow([
+        l.saleCode,
+        l.productName,
+        l.knownCost,
+        l.netKnownCost,
+        l.unknownQuantity,
+        l.margin ?? "未知",
       ]);
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);

@@ -1,3 +1,4 @@
+import { saveBatchCost as putBatchCost } from "../domain/finance/batch-costs";
 import {
   putParty,
   putArtwork,
@@ -344,7 +345,12 @@ export const useCatalogStore = defineStore("catalog", () => {
     });
   const archiveArtwork = (id: string) =>
     mutate((s) => toggleArtworkArchive(s, id));
+  const saveBatchCost = (batchId: string, costId: string, notes: string) =>
+    mutate((s) => {
+      putBatchCost(s, batchId, costId, notes);
+    });
   return {
+    saveBatchCost,
     saveParty,
     archiveParty,
     saveArtwork,

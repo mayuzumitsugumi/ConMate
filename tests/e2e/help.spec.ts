@@ -10,8 +10,9 @@ test("help works without workspace, finds instructions and follows page context"
   ).toBeVisible();
   await expect(page.getByText("帳面應剩 9 個", { exact: false })).toBeVisible();
   await page.getByLabel("搜尋說明", { exact: true }).fill("損壞");
-  await expect(page.locator("details")).toHaveCount(1);
-  await expect(page.locator("details summary")).toContainText("退款");
+  await expect(page.locator("details")).toHaveCount(2);
+  await expect(page.locator("#help-refunds summary")).toContainText("退款");
+  await expect(page.locator("#help-finance")).toContainText("損壞退貨成本另列");
   await expect(
     page.getByText("瑕疵退回（例如損壞）另外記錄", { exact: false }),
   ).toBeVisible();

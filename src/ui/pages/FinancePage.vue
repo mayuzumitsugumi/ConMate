@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BatchCostPanel from "../components/BatchCostPanel.vue";
 import SettlementPanel from "../components/SettlementPanel.vue";
 import ArtworkFinancePanel from "../components/ArtworkFinancePanel.vue";
 import { computed, reactive, ref, watch } from "vue";
@@ -273,6 +274,7 @@ const pending = computed(() =>
     <template v-if="catalog.snapshot">
       <SettlementPanel />
       <ArtworkFinancePanel />
+      <BatchCostPanel />
       <section class="section-block">
         <h2>工作區概況</h2>
         <dl class="report-grid">

@@ -1,3 +1,4 @@
+import { validateBatchCosts } from "../finance/batch-costs";
 import { upgradeMasterData } from "../catalog/masterdata";
 import { upgradeBatches, validateBatchLedger } from "../inventory/batches";
 import { validateSettlements } from "./settlements";
@@ -77,6 +78,7 @@ const keys = [
   "artworkExpenses",
   "expensePayments",
   "settlements",
+  "batchCostVersions",
 ] as const;
 export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   // Older backups gain empty inventory; never invent physical stock.
@@ -124,7 +126,9 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
       : financial;
   if (s.schemaVersion === 12) s = upgradeBatches({ ...s });
   if (s.schemaVersion === 13) s = upgradeMasterData({ ...s });
-  if (s.schemaVersion !== 14) fail("目前僅支援網站資料版本 3 至 14。");
+  if (s.schemaVersion === 14)
+    s = { ...s, schemaVersion: 15, batchCostVersions: [] };
+  if (s.schemaVersion !== 15) fail("目前僅支援網站資料版本 3 至 15。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -1007,5 +1011,12 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
 
   validateSettlements(s as unknown as CatalogSnapshot, nestedId);
   validateBatchLedger(s as unknown as CatalogSnapshot);
+  for (const v of s.batchCostVersions) {
+    str(v.costId, "批次成本來源ID", 100);
+    str(v.costName, "批次成本名稱", 80);
+    str(v.notes, "批次成本原因", 2000, true);
+    time(v.createdAt);
+  }
+  validateBatchCosts(s as unknown as CatalogSnapshot);
   return s as unknown as CatalogSnapshot;
 }

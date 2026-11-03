@@ -84,7 +84,8 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 14;
+  schemaVersion: 15;
+  batchCostVersions: BatchCostVersion[];
   batchTrackingStart: number;
   workspaceId: string;
   workspace: Workspace;
@@ -539,4 +540,22 @@ export interface SettlementGroup extends NamedRecord {
   trials: SettlementTrial[];
   decisions: SettlementDecision[];
   payments: SettlementPayment[];
+}
+
+export interface BatchCostVersion extends NamedRecord {
+  batchId: string;
+  costId: string;
+  productId: string;
+  quantity: number;
+  costName: string;
+  exactTotal: ExactFraction | null;
+  source: {
+    actualPrint: number | null;
+    artworkAllocated: number | null;
+    otherCost: number | null;
+    artworkExact: ExactFraction | null;
+  } | null;
+  effectiveMovementCount: number;
+  createdAt: string;
+  notes: string;
 }

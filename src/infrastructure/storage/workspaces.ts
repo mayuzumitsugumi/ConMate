@@ -208,6 +208,23 @@ export class ConMateDatabase extends Dexie {
             upgradeMasterData(data);
           });
       });
+    this.version(16)
+      .stores({
+        workspaces: "id, createdAt",
+        catalogs: "workspaceId",
+        recoverySnapshots: "id, workspaceId, createdAt",
+        backupStatus: "workspaceId",
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table("catalogs")
+          .toCollection()
+          .modify((data) => {
+            if (data.schemaVersion !== 14) throw new Error("不支援資料版本。");
+            data.batchCostVersions = [];
+            data.schemaVersion = 15;
+          });
+      });
   }
 }
 export const database = new ConMateDatabase();

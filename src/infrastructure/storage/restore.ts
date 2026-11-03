@@ -41,6 +41,7 @@ export interface RestoreDifference {
   removed: number;
 }
 const groups = {
+  batchCostVersions: "批次成本版本",
   products: "商品",
   parties: "創作者",
   projects: "企劃",
