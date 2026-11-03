@@ -138,6 +138,18 @@ onMounted(() => {
 </template>
 
 <style scoped>
+@media (min-width: 801px) {
+  .sidebar {
+    overflow-y: auto;
+  }
+  .sidebar > * {
+    flex-shrink: 0;
+  }
+  .sidebar-label {
+    margin-top: 20px;
+  }
+}
+
 .entrance-switch {
   display: grid;
   grid-template-columns: 1fr 1fr;

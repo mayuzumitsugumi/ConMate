@@ -353,6 +353,18 @@ async function inspectStorage(requestPersist = false) {
       </button>
     </template>
   </section>
+  <aside class="info-banner section-block">
+    <div>
+      <strong>完整備份與活動檔分開處理</strong>
+      <p>
+        本頁匯出及還原完整工作區。只交付本次販售資料，請到
+        <RouterLink to="/activities">活動配置與交接</RouterLink
+        >；接手活動進行檔或結案檔，請到
+        <RouterLink to="/activity">活動工作台</RouterLink
+        >匯入，不會取代整個工作區。
+      </p>
+    </div>
+  </aside>
   <CloudBackupPanel @preview="previewCloud" @backed-up="refreshLocal" />
   <section class="catalog-panel section-block" aria-labelledby="restore-title">
     <h2 id="restore-title">檢查與還原專案檔</h2>
@@ -509,7 +521,7 @@ async function inspectStorage(requestPersist = false) {
       </button>
     </div>
     <p>
-      目前支援網站專案格式 2.1.0 至 2.14.0。還原保留原
+      目前支援網站專案格式 2.1.0 至 2.15.0。還原保留原
       ID與封存內容；新增還原保留原修訂，明確取代時提高修訂以避免其他分頁覆寫。
     </p>
   </section>
