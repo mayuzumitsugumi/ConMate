@@ -158,6 +158,20 @@ const ownPackets = computed(() =>
     (p) => p.sourceWorkspaceId === workspaces.activeWorkspaceId,
   ),
 );
+const eventProgress = computed(() => {
+  const ids = [...new Set(ownPackets.value.map((p) => p.eventId))];
+  return ids.map((id) => {
+    const rows = ownPackets.value.filter((p) => p.eventId === id);
+    const merged = rows.filter((p) => mergedRecord(p.handoffId)).length;
+    return {
+      id,
+      name: catalog.snapshot?.events.find((e) => e.id === id)?.name || "活動",
+      total: rows.length,
+      merged,
+      pending: rows.length - merged,
+    };
+  });
+});
 const returning = ref(""),
   returnLocationId = ref(""),
   returnReason = ref("");
@@ -369,9 +383,9 @@ async function returnStock() {
             >
           </fieldset>
           <details>
-            <summary>選配：帶入相關財務參考快照</summary>
+            <summary>選配：帶入相關財務參考摘要</summary>
             <p>
-              預設不帶財務。勾選的資料可能含私人金額及合作資訊，請確認接手者確實需要。來源快照在活動端唯讀，不會自動計入活動費用。
+              預設不帶財務。勾選的資料可能含私人金額及合作資訊，請確認接手者確實需要。參考摘要在活動端唯讀，不會自動計入活動費用。
             </p>
             <label v-for="f in financials" :key="f.key" class="check"
               ><input
@@ -402,6 +416,10 @@ async function returnStock() {
       <h2>本工作區的交接份（{{ ownPackets.length }}）</h2>
       <p>
         匯出後可交給另一台裝置操作。已開始銷售但未結案的檔案不能合回；結案回傳請到活動工作台匯入。
+      </p>
+      <p v-for="event in eventProgress" :key="event.id" class="info-banner">
+        {{ event.name }}：共 {{ event.total }} 份，已合回
+        {{ event.merged }} 份，尚待回傳合回 {{ event.pending }} 份。
       </p>
       <p v-if="!ownPackets.length">尚未建立交接份。</p>
       <article
