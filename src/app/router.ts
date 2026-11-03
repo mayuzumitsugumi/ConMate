@@ -1,3 +1,4 @@
+import HelpPage from "../ui/pages/HelpPage.vue";
 import SalesPage from "../ui/pages/SalesPage.vue";
 import FinancePage from "../ui/pages/FinancePage.vue";
 import InventoryPage from "../ui/pages/InventoryPage.vue";
@@ -18,7 +19,7 @@ export const sections = [
     icon: "calendar",
     ready: true,
     description:
-      "在同一個工作區管理企劃、創作者與多個場次。下一步先支援這次企劃的基本建檔。",
+      "在同一個工作區管理企劃、創作者與多個場次。可新增、編輯、封存與恢復資料。",
   },
   {
     path: "/products",
@@ -48,11 +49,11 @@ export const sections = [
     label: "成本與財務",
     icon: "chart",
     ready: true,
-    description:
-      "記錄商品批次成本、代墊本金與還款；分潤與進階規則逐步開發，分款與結案由你決定。",
+    description: "記錄成本分攤、代墊、分潤試算與實際付款；分款與結案由你決定。",
   },
   { path: "/customize", label: "自訂商品資料", icon: "layers", ready: true },
   { path: "/templates", label: "專案檔與備份", icon: "file", ready: true },
+  { path: "/help", label: "使用說明", icon: "info", ready: true },
 ] as const;
 
 export const router = createRouter({
@@ -63,21 +64,23 @@ export const router = createRouter({
       component:
         section.path === "/"
           ? OverviewPage
-          : section.path === "/templates"
-            ? DataPage
-            : section.path === "/sales"
-              ? SalesPage
-              : section.path === "/finance"
-                ? FinancePage
-                : section.path === "/inventory"
-                  ? InventoryPage
-                  : section.path === "/projects"
-                    ? ProjectsPage
-                    : section.path === "/products"
-                      ? ProductsPage
-                      : section.path === "/customize"
-                        ? CustomizationPage
-                        : UpcomingPage,
+          : section.path === "/help"
+            ? HelpPage
+            : section.path === "/templates"
+              ? DataPage
+              : section.path === "/sales"
+                ? SalesPage
+                : section.path === "/finance"
+                  ? FinancePage
+                  : section.path === "/inventory"
+                    ? InventoryPage
+                    : section.path === "/projects"
+                      ? ProjectsPage
+                      : section.path === "/products"
+                        ? ProductsPage
+                        : section.path === "/customize"
+                          ? CustomizationPage
+                          : UpcomingPage,
       meta: { title: section.label },
     })),
     {

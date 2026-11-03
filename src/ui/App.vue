@@ -58,6 +58,22 @@ onMounted(() => {
         <span class="breadcrumb"
           >ConMate <span>/</span> {{ $route.meta.title }}</span
         >
+        <RouterLink
+          v-if="$route.path !== '/help'"
+          class="header-help"
+          :to="{
+            path: '/help',
+            query: {
+              topic:
+                $route.path === '/'
+                  ? 'start'
+                  : $route.path === '/customize'
+                    ? 'products'
+                    : $route.path.split('/')[1],
+            },
+          }"
+          >這頁怎麼用？</RouterLink
+        >
         <div class="connection">
           <span class="status-dot" :class="{ muted: !isOnline }"></span
           >{{ isOnline ? "目前連線中" : "目前離線"
@@ -92,3 +108,31 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.header-help {
+  margin-left: auto;
+  margin-right: 16px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  color: #275c50;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.header-help:focus-visible {
+  outline: 3px solid #a6bd72;
+  outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .header-help {
+    margin-right: 8px;
+    font-size: 13px;
+  }
+  .breadcrumb {
+    min-width: 0;
+  }
+}
+</style>

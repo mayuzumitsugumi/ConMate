@@ -198,8 +198,8 @@ function showGuide() {
         <AppIcon name="chart" />
         <h3>填數值，不填公式</h3>
         <p>
-          金額不加「元」，比例 20 代表 20%。計算交給
-          ConMate；目前尚未開放計算功能。
+          金額不加「元」，比例 20 代表 20%。計算交給 ConMate
+          網站執行。此舊模板不支援匯入；請到網站建立成本與分潤資料。
         </p>
       </article>
     </div>

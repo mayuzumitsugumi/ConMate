@@ -2,7 +2,7 @@
 
 提供台灣創作者與攤主使用的離線優先周邊管理、販售記錄及財務計算工具。
 
-目前狀態：**v0.14.0 分潤試算與人工決定版**。以明確選取的銷售明細及成本建立試算，分開保存人工累計分配、實際往來與持款核對，不替使用者決定分款或結案。詳見[決策更新](docs/decisions/website-first.md)與[版本說明](docs/releases/v0.14.0.md)。
+目前狀態：**v0.15.0 使用說明版**。新增可搜尋的使用說明、虛構練習流程，以及各分頁的說明入口。建檔、販售、盤點、財務與備份都有對應操作指南。詳見[決策更新](docs/decisions/website-first.md)與[版本說明](docs/releases/v0.15.0.md)。
 
 [開啟ConMate](https://mayuzumitsugumi.github.io/ConMate/)
 
@@ -34,6 +34,8 @@ npm run test:e2e
 已有系統 Chromium 時，可用 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e`。
 
 ## 這一版可以做什麼
+
+- [使用說明](https://mayuzumitsugumi.github.io/ConMate/#/help)：不需工作區即可閱讀，支援搜尋、主題導覽與從當前頁面開啟對應說明。
 
 - [企劃與場次分頁](https://mayuzumitsugumi.github.io/ConMate/#/projects)：新增、編輯、封存／恢復，支援同企劃跨多場、同場多企劃。
 - 網站新增、編輯與封存／恢復商品；只填名稱也能先存，周邊種類自由輸入。
