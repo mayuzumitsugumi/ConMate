@@ -500,3 +500,39 @@ it("allows a documented missing-unit close while blocking physical return until 
   expect(f.s.activityMerges[0]!.returnedAt).toBe("");
   validateRestoreSnapshot(f.s);
 });
+it("rejects malformed selection payloads and foreign activity draft identities", () => {
+  const { s, p, home, units } = fixture();
+  const malformed = structuredClone(s) as any;
+  malformed.movements[0].unitIds = {};
+  expect(() => validateRestoreSnapshot(malformed)).toThrow("單件");
+  const event = putEvent(s, {
+    name: "短期活動",
+    startDate: "2027-01-01",
+    endDate: "",
+    venue: "",
+    notes: "",
+    projectIds: [],
+  });
+  const { packet } = prepareHandoff(s, {
+    name: "單件交接",
+    eventId: event.id,
+    sourceLocationId: home.id,
+    lines: [{ productId: p.id, quantity: 1, unitIds: [units[0]!.id] }],
+    planIds: [],
+    collectorIds: [],
+  });
+  expect(() =>
+    applyActivityCommand(packet, {
+      type: "draft",
+      lines: [
+        {
+          productId: p.id,
+          quantity: 1,
+          unitPrice: 100,
+          mode: "direct",
+          unitIds: [units[1]!.id],
+        },
+      ],
+    }),
+  ).toThrow("草稿單件");
+});

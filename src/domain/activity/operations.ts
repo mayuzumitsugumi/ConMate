@@ -899,6 +899,19 @@ export function validateActivityPacket(input: unknown): ActivityPacket {
   }
   for (const l of p.draft) {
     if (!s.products.some((r) => r.id === l.productId)) fail("草稿商品不存在。");
+    if (
+      l.unitIds !== undefined &&
+      (!Array.isArray(l.unitIds) ||
+        l.unitIds.length !== l.quantity ||
+        new Set(l.unitIds).size !== l.unitIds.length ||
+        l.unitIds.some(
+          (id) =>
+            !s.physicalUnits.some(
+              (u) => u.id === id && u.productId === l.productId,
+            ),
+        ))
+    )
+      fail("草稿單件識別與商品或數量不符。");
     whole(l.quantity, true);
     whole(l.unitPrice);
   }

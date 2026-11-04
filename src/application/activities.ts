@@ -101,11 +101,7 @@ export async function previewActivityImport(input: ActivityPacket) {
       "baseline",
       "financialReferences",
     ] as const;
-    if (
-      immutable.some(
-        (k) => !sameData(normalized[k], packet[k]),
-      )
-    )
+    if (immutable.some((k) => !sameData(normalized[k], packet[k])))
       return {
         existing,
         canImport: false,

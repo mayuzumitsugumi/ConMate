@@ -64,7 +64,12 @@ export function registerPhysicalUnits(
     fail("實物標記不可重複，請使用可辨識的不同標記。");
   const lot = s.movements.find((m) => m.id === input.batchId);
   if (
-    !(lot?.productId === input.productId && !lot.fromLocationId && lot.kind !== "refund-return" && lot.kind !== "reversal") ||
+    !(
+      lot?.productId === input.productId &&
+      !lot.fromLocationId &&
+      lot.kind !== "refund-return" &&
+      lot.kind !== "reversal"
+    ) ||
     input.batchId.startsWith("legacy:")
   )
     fail("請選擇有明確入庫來源的批次；未知舊來源不能推定實物身份。");
@@ -168,6 +173,20 @@ export function assertUnitSelection(s: CatalogSnapshot, m: InventoryMovement) {
 }
 export function validatePhysicalUnits(s: CatalogSnapshot) {
   if (!Array.isArray(s.physicalUnits)) fail("缺少單件實物資料。");
+  const selections = [
+    ...s.movements.map((m) => m.unitIds),
+    ...s.sales.flatMap((a) => a.lines.map((l) => l.unitIds)),
+    ...s.refunds.flatMap((a) =>
+      a.lines.flatMap((l) => [l.restockUnitIds, l.damagedUnitIds]),
+    ),
+  ];
+  for (const ids of selections)
+    if (
+      ids !== undefined &&
+      (!Array.isArray(ids) || ids.some((id) => typeof id !== "string"))
+    )
+      fail("單件選取必須是實物識別清單。");
+
   if (!s.physicalUnits.length) {
     if (
       s.movements.some((m) => m.unitIds?.length) ||
@@ -394,6 +413,12 @@ export function unitTrackingTimeline(s: CatalogSnapshot) {
     }
     if (index === s.movements.length) break;
     const m = s.movements[index]!;
+    if (
+      m.unitIds !== undefined &&
+      (!Array.isArray(m.unitIds) ||
+        m.unitIds.some((id) => typeof id !== "string"))
+    )
+      fail("單件選取必須是實物識別清單。");
     for (const id of m.unitIds || []) {
       const u = positions.get(id);
       if (!u) fail("異動引用未登記單件。");

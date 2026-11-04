@@ -1,8 +1,28 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import ExcelJS from "exceljs";
+async function activityDownload(page: Page, button: string) {
+  const wait = page.waitForEvent("download");
+  await page.getByRole("button", { name: button, exact: true }).click();
+  const file = await wait;
+  return {
+    name: file.suggestedFilename(),
+    mimeType:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    buffer: readFileSync((await file.path())!),
+  };
+}
+async function notice(page: Page, text: string) {
+  await expect(
+    page.locator(".success-notice").filter({ hasText: text }),
+  ).toBeVisible();
+}
 
 test("physical unit labels follow selected transfer, sale and exact return without adding stock", async ({
   page,
+  browser,
 }) => {
+  test.setTimeout(180000);
   await page.goto("");
   await page.getByRole("button", { name: "建立工作區", exact: true }).click();
   await page.getByLabel("工作區名稱").fill("特殊單件測試");
@@ -65,11 +85,9 @@ test("physical unit labels follow selected transfer, sale and exact return witho
   ).toContainText("保管箱");
   await page.goto("#/sales");
   await page.getByLabel("出貨庫位（必填）").selectOption({ label: "攤位" });
-  const card = page
-    .locator(".product-grid article")
-    .filter({
-      has: page.getByRole("heading", { name: "親簽立牌", exact: true }),
-    });
+  const card = page.locator(".product-grid article").filter({
+    has: page.getByRole("heading", { name: "親簽立牌", exact: true }),
+  });
   await card.getByRole("button", { name: "指定購買", exact: true }).click();
   await page
     .getByRole("group", { name: "選擇實際交付單件", exact: true })
@@ -114,6 +132,136 @@ test("physical unit labels follow selected transfer, sale and exact return witho
   await expect(
     units.locator(".unit-list article").filter({ hasText: "簽名 A02" }),
   ).toContainText("可用 · 攤位");
+
+  await page.goto("#/projects");
+  await page.getByLabel("場次名稱（必填）").fill("親簽短期活動");
+  await page.getByLabel("開始日期（必填）").fill("2027-01-10");
+  await page.getByRole("button", { name: "建立場次", exact: true }).click();
+  await notice(page, "場次已建立");
+  await page.goto("#/activities");
+  await page.getByLabel("交接名稱（必填）").fill("A01單件交接");
+  await page
+    .getByLabel("活動（必填）", { exact: true })
+    .selectOption({ label: "親簽短期活動" });
+  await page
+    .getByLabel("交付來源庫位（必填）")
+    .selectOption({ label: "保管箱" });
+  await page.getByLabel("親簽立牌", { exact: true }).check();
+  await page
+    .getByRole("group", { name: "本份交付的特殊單件", exact: true })
+    .getByLabel("簽名 A01", { exact: true })
+    .check();
+  await page
+    .getByRole("button", { name: "確認交付並建立活動檔", exact: true })
+    .click();
+  await notice(page, "交接份已建立");
+  const outgoing = await activityDownload(page, "匯出 A01單件交接");
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(outgoing.buffer as never);
+  const parts: string[] = [];
+  workbook.getWorksheet("_ConMate活動資料")!.eachRow((row) => {
+    if (String(row.getCell(1).value).startsWith("payload-"))
+      parts.push(String(row.getCell(2).value));
+  });
+  const serialized = Buffer.concat(
+    parts.map((chunk) => Buffer.from(chunk, "base64")),
+  ).toString("utf8");
+  expect(serialized).toContain("簽名 A01");
+  expect(serialized).not.toContain("簽名 A02");
+  const context = await browser.newContext({
+    viewport: page.viewportSize() || { width: 1280, height: 800 },
+  });
+  try {
+    const fresh = await context.newPage();
+    await fresh.goto(page.url().split("#")[0] + "#/activity");
+    await expect(
+      fresh.getByText("· 已可離線開啟", { exact: true }),
+    ).toBeAttached({ timeout: 30000 });
+    await fresh.reload();
+    await expect
+      .poll(() => fresh.evaluate(() => !!navigator.serviceWorker.controller))
+      .toBe(true);
+    await context.setOffline(true);
+    await fresh.reload();
+    await fresh
+      .getByLabel("匯入活動進行檔／結案檔（XLSX）")
+      .setInputFiles(outgoing);
+    await fresh.getByLabel("我已核對交接份與版本，確認匯入續作或檢視").check();
+    await fresh
+      .getByRole("button", { name: "確認匯入活動檔", exact: true })
+      .click();
+    await notice(fresh, "活動檔已匯入");
+    await fresh.getByLabel("實際交付商品").selectOption({ index: 1 });
+    await expect(
+      fresh.getByRole("group", { name: "選擇實際交付單件", exact: true }),
+    ).toContainText("簽名 A01");
+    await expect(
+      fresh.getByRole("group", { name: "選擇實際交付單件", exact: true }),
+    ).not.toContainText("簽名 A02");
+    await fresh
+      .getByRole("button", { name: "盤點與結案", exact: true })
+      .click();
+    await fresh.getByLabel("親簽立牌 實點數量", { exact: true }).fill("1");
+    await fresh
+      .getByRole("group", { name: "親簽立牌 實際點到的特殊單件", exact: true })
+      .getByLabel("簽名 A01", { exact: true })
+      .check();
+    await fresh
+      .getByLabel("我已完成全品項實點並確認結案；本活動檔結案後永久唯讀")
+      .check();
+    await fresh
+      .getByRole("button", { name: "確認盤點完成並永久結案", exact: true })
+      .click();
+    await notice(fresh, "活動已確認結案");
+    const closed = await activityDownload(fresh, "匯出活動結案檔");
+    await page.goto("#/activity");
+    await page
+      .getByLabel("匯入活動進行檔／結案檔（XLSX）")
+      .setInputFiles(closed);
+    await page.getByLabel("我已核對交接份與版本，確認匯入續作或檢視").check();
+    await page
+      .getByRole("button", { name: "確認匯入活動檔", exact: true })
+      .click();
+    await notice(page, "活動檔已匯入");
+    await page
+      .getByRole("button", { name: "合回創作管理", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "檢查結案合回差異", exact: true })
+      .click();
+    await page
+      .getByLabel("我已核對新增紀錄、商品對應及衝突，確認合回這份活動結案")
+      .check();
+    await page
+      .getByRole("button", { name: "確認合回活動結案", exact: true })
+      .click();
+    await notice(page, "活動結案紀錄已合回");
+    await page.goto("#/activities");
+    await page
+      .locator("article.packet-card")
+      .filter({
+        has: page.getByRole("heading", { name: "A01單件交接", exact: true }),
+      })
+      .getByRole("button", { name: "確認實物退回", exact: true })
+      .click();
+    await page
+      .getByLabel("退回庫位", { exact: true })
+      .selectOption({ label: "保管箱" });
+    await page.getByLabel("實物退回原因與核對").fill("逐件確認 A01 已收回");
+    await page
+      .getByRole("button", { name: "確認已收回實物並退回庫存", exact: true })
+      .click();
+    await notice(page, "已記錄實物退回");
+    await page.goto("#/inventory");
+    await expect(
+      units.locator(".unit-list article").filter({ hasText: "簽名 A01" }),
+    ).toContainText("可用 · 保管箱");
+    await expect(
+      units.locator(".unit-list article").filter({ hasText: "簽名 A02" }),
+    ).toContainText("可用 · 攤位");
+  } finally {
+    await context.close();
+  }
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth > innerWidth,
