@@ -191,7 +191,7 @@ test("split activity handoff is private, resumes offline, closes immutably and m
       .selectOption({ label: "活動指定價" });
     await fresh
       .getByLabel("預留商品", { exact: true })
-      .selectOption({ label: "活動限定徽章" });
+      .selectOption({ index: 1 });
     await fresh
       .getByLabel("預留庫位", { exact: true })
       .selectOption({ index: 1 });

@@ -454,3 +454,52 @@ it("merges an activity that only reserved and released without operating stock, 
   });
   expect(validateRestoreSnapshot(f.s)).toEqual(f.s);
 });
+it("keeps two dedicated plans exclusive and rejects aggregate overbooking", () => {
+  const f = fixture();
+  f.reserve(6);
+  const other = putSalePlan(f.s, {
+    name: "另一專用方案",
+    mode: "direct",
+    unitPrice: 100,
+    productIds: [f.p.id],
+    eventIds: [],
+  });
+  expect(() =>
+    reserveStock(f.s, {
+      planId: other.id,
+      productId: f.p.id,
+      locationId: f.l.id,
+      quantity: 5,
+      reason: "超額",
+    }),
+  ).toThrow("不足");
+  const r = reserveStock(f.s, {
+    planId: other.id,
+    productId: f.p.id,
+    locationId: f.l.id,
+    quantity: 4,
+    reason: "第二方案專用",
+  });
+  completeSale(f.s, {
+    operationId: crypto.randomUUID(),
+    locationId: f.l.id,
+    eventId: "",
+    collectorId: "",
+    cashReceived: 200,
+    notes: "",
+    lines: [
+      {
+        productId: f.p.id,
+        mode: "direct",
+        quantity: 2,
+        unitPrice: 100,
+        planId: other.id,
+        planVersion: other.version,
+      },
+    ],
+  });
+  expect(reservationRemaining(f.s, r)).toBe(2);
+  expect(availableQuantity(f.s, f.p.id, f.l.id)).toBe(0);
+  expect(() => f.sale(1, false)).toThrow("預留");
+  expect(validateRestoreSnapshot(f.s)).toEqual(f.s);
+});
