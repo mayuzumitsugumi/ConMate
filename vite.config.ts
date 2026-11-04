@@ -10,10 +10,10 @@ export default defineConfig({
       registerType: "prompt",
       includeAssets: ["icon.svg", "icons/*.png", "templates/*.xlsx"],
       manifest: {
-        name: "ConMate 場次小秘書",
+        name: "ConMate 創販小幫手",
         short_name: "ConMate",
         lang: "zh-Hant-TW",
-        description: "創作者的周邊與場次管理小幫手",
+        description: "創作商品、庫存、販售活動與合作帳務管理工具",
         start_url: "/ConMate/",
         scope: "/ConMate/",
         display: "standalone",

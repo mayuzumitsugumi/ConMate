@@ -114,5 +114,5 @@ export const router = createRouter({
   scrollBehavior: () => ({ top: 0 }),
 });
 router.afterEach((to) => {
-  document.title = `${String(to.meta.title)}｜ConMate 場次小秘書`;
+  document.title = `${String(to.meta.title)}｜ConMate 創販小幫手`;
 });

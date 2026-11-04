@@ -38,7 +38,7 @@ onMounted(() => {
     <aside class="sidebar">
       <RouterLink class="brand" to="/" aria-label="ConMate 首頁"
         ><img :src="`${base}icon.svg`" alt="" /><span
-          >ConMate<small>場次小秘書</small></span
+          >ConMate<small>創販小幫手</small></span
         ></RouterLink
       >
       <div class="entrance-switch" aria-label="操作入口">
@@ -125,7 +125,7 @@ onMounted(() => {
       <BackupReminder v-if="!activityMode" />
       <main id="main-content" tabindex="-1"><RouterView /></main>
       <footer class="site-footer">
-        <span>ConMate 場次小秘書</span><span>陪每一份創作，走到攤位前。</span
+        <span>ConMate 創販小幫手</span><span>陪每一份創作，走進販售日常。</span
         ><a
           href="https://github.com/mayuzumitsugumi/ConMate"
           target="_blank"
