@@ -36,12 +36,17 @@ export function lineReturnSummary(s: CatalogSnapshot, saleLineId: string) {
     damagedQuantity: safeAmount(damagedQuantity),
   };
 }
-export function refundSale(s: CatalogSnapshot, input: RefundInput) {
+export function refundSale(
+  s: CatalogSnapshot,
+  input: RefundInput,
+  exchangeId?: string,
+) {
   const operationId = text(input.operationId, "退款操作識別", 100),
     reason = text(input.reason, "退款／退貨原因", 2000);
   const existing = s.refunds.find((r) => r.operationId === operationId);
   if (existing) {
     const same =
+      existing.exchangeId === exchangeId &&
       existing.saleId === input.saleId &&
       existing.reason === reason &&
       existing.lines.length === input.lines.length &&
@@ -137,6 +142,7 @@ export function refundSale(s: CatalogSnapshot, input: RefundInput) {
   }
   const refund: RefundRecord = {
     ...record(s, "REF", "退款／退貨"),
+    ...(exchangeId ? { exchangeId } : {}),
     operationId,
     saleId: sale.id,
     reason,

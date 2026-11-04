@@ -1,3 +1,4 @@
+import { validateExchanges } from "../sales/exchanges";
 import { validatePhysicalUnits } from "../inventory/units";
 import { validateReservations } from "../inventory/reservations";
 import { validateActivityParentState } from "../activity/operations";
@@ -58,6 +59,7 @@ function time(v: unknown) {
     fail("時間格式不正確。");
 }
 const keys = [
+  "exchanges",
   "physicalUnits",
   "parties",
   "projects",
@@ -149,7 +151,8 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     s = { ...s, schemaVersion: 18, inventoryReservations: [] };
   if (s.schemaVersion === 18)
     s = { ...s, schemaVersion: 19, physicalUnits: [] };
-  if (s.schemaVersion !== 19) fail("目前僅支援網站資料版本 3 至 19。");
+  if (s.schemaVersion === 19) s = { ...s, schemaVersion: 20, exchanges: [] };
+  if (s.schemaVersion !== 20) fail("目前僅支援網站資料版本 3 至 20。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -586,7 +589,16 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     integer(sale.total);
     integer(sale.cashReceived);
     integer(sale.change);
-    if (
+    if (sale.exchangeId !== undefined) {
+      str(sale.exchangeId, "換購來源ID", 100, true);
+      integer(sale.exchangeCredit);
+      if (
+        BigInt(sale.cashReceived) + BigInt(sale.exchangeCredit) !==
+        BigInt(sale.total) + BigInt(sale.change)
+      )
+        fail("換購收退差額與折抵不一致。");
+    } else if (
+      sale.exchangeCredit !== undefined ||
       sale.cashReceived < sale.total ||
       sale.change !== sale.cashReceived - sale.total
     )
@@ -1043,5 +1055,6 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   validateActivityParentState(s as unknown as CatalogSnapshot);
   validateReservations(s as unknown as CatalogSnapshot);
   validatePhysicalUnits(s as unknown as CatalogSnapshot);
+  validateExchanges(s as unknown as CatalogSnapshot);
   return s as unknown as CatalogSnapshot;
 }

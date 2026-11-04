@@ -4,8 +4,9 @@ import type { SalesDraft } from "../../application/sales-drafts";
 import { onBeforeRouteLeave } from "vue-router";
 import PhysicalUnitPicker from "../components/PhysicalUnitPicker.vue";
 import SaleRefundPanel from "../components/SaleRefundPanel.vue";
+import ExchangePanel from "../components/ExchangePanel.vue";
 import { saleNetRevenue } from "../../domain/sales/refunds";
-import type { RefundRecord } from "../../domain/models/catalog";
+import type { ExchangeInput, RefundRecord } from "../../domain/models/catalog";
 import ReservationPanel from "../components/ReservationPanel.vue";
 import { availableQuantity } from "../../domain/inventory/reservations";
 import { balance } from "../../domain/inventory/operations";
@@ -22,6 +23,10 @@ const notice = ref(""),
   search = ref(""),
   confirming = ref(false);
 const replacesRefundId = ref("");
+async function submitExchange(input: ExchangeInput) {
+  if (cart.value.length) throw new Error("請先完成或清空購物車，再記錄換購。");
+  await catalog.exchangeSale(input);
+}
 function startReplacement(refund: RefundRecord) {
   if (cart.value.length) {
     error.value = "請先完成或清空購物車，再建立換貨交易。";
@@ -328,7 +333,7 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
     <div>
       <strong>先開放指定購買與已知款式的抽選記錄。</strong>
       <p>
-        抽選按實際交付商品逐筆登記，不替你抽獎。可先建立指定價或混合抽選池，也能手動填寫價格；同商品共用實物庫存。可分開記錄實退金額、可售回庫及瑕疵退回。換貨以退款加上另一筆實際交付交易記錄，不會自動抵扣價差。整筆取消僅適用「已全額退款且商品全數回到原庫位」。
+        抽選按實際交付商品逐筆登記，不替你抽獎。可先建立指定價或混合抽選池，也能手動填寫價格；同商品共用實物庫存。可分開記錄實退金額、可售回庫及瑕疵退回。需要一次處理退貨及新交付時，可從原交易使用「換購／補退差額」，明確核對本次實際收退；已另外完成的退款仍可連結獨立新交易，請勿重複折抵。整筆取消僅適用「已全額退款且商品全數回到原庫位」。
       </p>
     </div>
   </aside>
@@ -670,7 +675,12 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
             {{ when(sale.createdAt) }} · {{ named("events", sale.eventId) }} ·
             {{ named("locations", sale.locationId) }}
           </p>
-          <p>
+          <p v-if="sale.exchangeId">
+            換購差額收付人：{{ named("parties", sale.collectorId) }}；原商品折抵
+            {{ sale.exchangeCredit }} 元，實際補收
+            {{ sale.cashReceived }} 元，實際退還 {{ sale.change }} 元。
+          </p>
+          <p v-else>
             收款者：{{ named("parties", sale.collectorId) }}；收到
             {{ sale.cashReceived }} 元，找零 {{ sale.change }} 元。
           </p>
@@ -701,6 +711,14 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
               )?.code
             }}
           </p>
+          <ExchangePanel
+            v-if="!sale.cancelledAt"
+            :snapshot="catalog.snapshot"
+            :sale="sale"
+            :busy="catalog.busy"
+            :disabled="!!cart.length"
+            :submit="submitExchange"
+          />
           <SaleRefundPanel :sale="sale" @replacement="startReplacement" />
           <p v-if="sale.notes">{{ sale.notes }}</p>
           <p v-if="sale.cancelledAt">
@@ -708,6 +726,7 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
           </p>
           <button
             v-else-if="
+              !sale.exchangeId &&
               !catalog.snapshot.refunds.some((r) => r.saleId === sale.id)
             "
             class="button secondary"

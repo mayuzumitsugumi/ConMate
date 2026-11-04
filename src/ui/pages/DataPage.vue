@@ -521,7 +521,7 @@ async function inspectStorage(requestPersist = false) {
       </button>
     </div>
     <p>
-      目前支援網站專案格式 2.1.0 至 2.17.0。還原保留原
+      目前支援網站專案格式 2.1.0 至 2.18.0。還原保留原
       ID與封存內容；新增還原保留原修訂，明確取代時提高修訂以避免其他分頁覆寫。
     </p>
   </section>

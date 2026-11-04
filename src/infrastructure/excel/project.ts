@@ -6,7 +6,7 @@ import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.17.0";
+export const PROJECT_VERSION = "2.18.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -314,12 +314,14 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
       "出貨庫位",
       "收款者",
       "應收總額",
-      "收到金額",
-      "找零",
+      "實際收款（換購為補收）",
+      "找零／換購實退",
       "狀態",
       "取消時間",
       "取消原因",
       "備註",
+      "換購折抵額",
+      "換購編號",
     ]);
     const lines = sheet("10_銷售明細", [
       "交易編號",
@@ -351,6 +353,8 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
         sale.cancelledAt,
         sale.cancelReason,
         sale.notes,
+        sale.exchangeCredit ?? "",
+        snapshot.exchanges.find((e) => e.id === sale.exchangeId)?.code || "",
       ]);
       for (const l of sale.lines)
         lines.addRow([
@@ -566,12 +570,14 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
       "時間",
       "實際退款金額",
       "原因",
+      "換購折抵額",
+      "換購編號",
     ]);
     const detail = sheet("18_退款退貨明細", [
       "退款編號",
       "原明細ID",
       "成交商品",
-      "實際退款",
+      "退款／換購折抵額",
       "可售回庫數量",
       "損壞退回數量",
       "回庫庫位",
@@ -579,7 +585,15 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
     ]);
     for (const r of snapshot.refunds) {
       const sale = snapshot.sales.find((s) => s.id === r.saleId)!;
-      ws.addRow([r.code, sale.code, r.createdAt, r.total, r.reason]);
+      ws.addRow([
+        r.code,
+        sale.code,
+        r.createdAt,
+        r.exchangeId ? 0 : r.total,
+        r.reason,
+        r.exchangeId ? r.total : "",
+        snapshot.exchanges.find((e) => e.id === r.exchangeId)?.code || "",
+      ]);
       for (const l of r.lines)
         detail.addRow([
           r.code,
@@ -1094,6 +1108,37 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
           "",
         u.registeredMovementCount,
         u.createdAt,
+      ]);
+  }
+  if (snapshot.exchanges.length) {
+    const ws = sheet("40_換購差額", [
+      "換購編號",
+      "原交易",
+      "退款記錄",
+      "新交易",
+      "原品項折抵額",
+      "新交易金額",
+      "應補收／退回差額",
+      "已確認實收／實退差額",
+      "款項經手人",
+      "時間",
+      "原因",
+    ]);
+    for (const e of snapshot.exchanges)
+      ws.addRow([
+        e.code,
+        snapshot.sales.find((s) => s.id === e.originalSaleId)?.code ||
+          e.originalSaleId,
+        snapshot.refunds.find((r) => r.id === e.refundId)?.code || e.refundId,
+        snapshot.sales.find((s) => s.id === e.replacementSaleId)?.code ||
+          e.replacementSaleId,
+        e.refundTotal,
+        e.replacementTotal,
+        e.difference,
+        e.actualDifference,
+        snapshot.parties.find((p) => p.id === e.collectorId)?.name || "未指定",
+        e.createdAt,
+        e.reason,
       ]);
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);

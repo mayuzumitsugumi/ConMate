@@ -80,7 +80,8 @@ it("upgrades v16 catalogs without rewriting IDs, revision, money or recovery ori
     const got = await upgraded.catalogs.get(workspace.id);
     expect(got).toEqual({
       ...old,
-      schemaVersion: 19,
+      schemaVersion: 20,
+      exchanges: [],
       inventoryReservations: [],
       physicalUnits: [],
       activityHandoffs: [],
@@ -90,7 +91,7 @@ it("upgrades v16 catalogs without rewriting IDs, revision, money or recovery ori
     const kept = await upgraded.recoverySnapshots.get(recovery.id);
     expect(kept).toEqual(recovery);
     const restored = validateRestoreSnapshot(structuredClone(kept!.snapshot));
-    expect(restored.schemaVersion).toBe(19);
+    expect(restored.schemaVersion).toBe(20);
     expect(restored.parties).toEqual(current.parties);
     expect(restored.revision).toBe(42);
     expect(restored.costs).toEqual(old.costs);

@@ -1,3 +1,5 @@
+import { completeExchange } from "../sales/exchanges";
+import type { ExchangeRecord } from "../models/catalog";
 import { sameData } from "../../shared/data-equality";
 import { unitStates } from "../inventory/units";
 import { reserveStock, releaseReservation } from "../inventory/reservations";
@@ -62,6 +64,7 @@ const arrayKeys = [
   "activityMerges",
   "inventoryReservations",
   "physicalUnits",
+  "exchanges",
 ] as const;
 function blank(parent: CatalogSnapshot, id: string, name: string) {
   const s = {
@@ -437,6 +440,18 @@ export function applyActivityCommand(
       completeSale(s, command.input);
       p.draft = [];
       break;
+    case "exchange":
+      if (p.draft.length) fail("請先處理未成交草稿，再進行換購。");
+      if (
+        command.input.replacement.locationId !== p.locationId ||
+        command.input.replacement.eventId !== p.eventId ||
+        command.input.refundLines.some(
+          (l) => l.returnLocationId && l.returnLocationId !== p.locationId,
+        )
+      )
+        fail("活動換購只能使用本活動與交接庫位。");
+      completeExchange(s, command.input);
+      break;
     case "refund":
       if (
         command.input.lines.some(
@@ -749,7 +764,12 @@ function validateShape(p: ActivityPacket) {
     )
       fail("活動檔包含未交付的庫位或活動。");
   }
-  if (p.baseline.sales.length || p.baseline.refunds.length)
+  if (
+    p.baseline.sales.length ||
+    p.baseline.refunds.length ||
+    p.baseline.exchanges?.length ||
+    0
+  )
     fail("交接快照不得含其他歷史交易。");
 }
 export function validateActivityPacket(input: unknown): ActivityPacket {
@@ -1070,7 +1090,7 @@ function mergeContext(s: CatalogSnapshot, input: ActivityPacket) {
   if (merged) {
     if (
       merged.closureId !== p.closure.id ||
-      merged.packetContent !== JSON.stringify(p)
+      !equal(validateActivityPacket(JSON.parse(merged.packetContent)), p)
     )
       fail("同一交接份已有不同結案內容，不能覆蓋已合回紀錄。");
     return { p, h, merged };
@@ -1257,6 +1277,20 @@ export function mergeActivityPacket(
       refreshCode(next, { ...clone(row), workspaceId: next.workspaceId }),
     );
   }
+  for (const row of p.snapshot.exchanges) {
+    if (
+      existing.has(row.id) ||
+      next.exchanges.some((e) => e.operationId === row.operationId)
+    )
+      fail("換購識別或操作已存在，不能重複合回。");
+    existing.add(row.id);
+    next.exchanges.push(
+      refreshCode(
+        next,
+        mappedExchange(row, map, Object.fromEntries(planMap), next.workspaceId),
+      ),
+    );
+  }
   const rec: ActivityMergeRecord = {
     id: crypto.randomUUID(),
     handoffId: p.handoffId,
@@ -1277,6 +1311,28 @@ export function mergeActivityPacket(
   validateRestoreSnapshot(next);
   Object.assign(s, next);
   return rec;
+}
+function mappedExchange(
+  row: ExchangeRecord,
+  products: Record<string, string>,
+  plans: Record<string, string>,
+  workspaceId: string,
+): ExchangeRecord {
+  return {
+    ...clone(row),
+    workspaceId,
+    request: {
+      ...clone(row.request),
+      replacement: {
+        ...clone(row.request.replacement),
+        lines: row.request.replacement.lines.map((l) => ({
+          ...clone(l),
+          productId: products[l.productId] || l.productId,
+          ...(l.planId ? { planId: plans[l.planId]! } : {}),
+        })),
+      },
+    },
+  };
 }
 function validateMergedRecords(
   s: CatalogSnapshot,
@@ -1388,6 +1444,17 @@ function validateMergedRecords(
       )
     )
       fail("合回退款與活動來源不符。");
+  }
+  for (const exchange of p.snapshot.exchanges) {
+    const actual = s.exchanges.find((r) => r.id === exchange.id);
+    const expected = mappedExchange(
+      exchange,
+      m.productMappings,
+      m.planMappings,
+      s.workspaceId,
+    );
+    if (!actual || !equal(noCode(actual), noCode(expected)))
+      fail("合回換購與原活動來源不符。");
   }
 }
 export function returnActivityStock(

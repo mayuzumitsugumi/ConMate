@@ -14,7 +14,11 @@ export function saleTotal(lines: SaleInput["lines"]): number {
     ),
   );
 }
-export function completeSale(s: CatalogSnapshot, input: SaleInput) {
+export function completeSale(
+  s: CatalogSnapshot,
+  input: SaleInput,
+  exchange?: { id: string; credit: number },
+) {
   const operationId = text(input.operationId, "操作識別", 100);
   // Retrying the same command must not create a second sale or deduct stock twice.
   const prior = s.sales.find((sale) => sale.operationId === operationId);
@@ -22,6 +26,8 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
     if (prior.cancelledAt)
       throw new Error("此操作的原交易已取消，請清空購物車後建立新交易。");
     const same =
+      prior.exchangeId === exchange?.id &&
+      prior.exchangeCredit === exchange?.credit &&
       prior.replacesRefundId === input.replacesRefundId &&
       prior.locationId === input.locationId &&
       prior.eventId === input.eventId &&
@@ -65,11 +71,19 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
   }
   const total = saleTotal(input.lines);
   const cashReceived = whole(input.cashReceived, "收到金額");
-  if (cashReceived < total) throw new Error("收到金額不足，尚未成交。");
+  if (!exchange && cashReceived < total)
+    throw new Error("收到金額不足，尚未成交。");
+  const credit = exchange ? whole(exchange.credit, "換購折抵額") : 0;
+  if (BigInt(cashReceived) + BigInt(credit) < BigInt(total))
+    throw new Error("收到金額與換購折抵不足，尚未成交。");
+  const change = safeAmount(
+    BigInt(cashReceived) + BigInt(credit) - BigInt(total),
+  );
   const notes = input.notes.trim();
   if (notes.length > 2000) throw new Error("備註最多2000字。");
   const sale: SaleRecord = {
     ...record(s, "SAL", "攤位交易"),
+    ...(exchange ? { exchangeId: exchange.id, exchangeCredit: credit } : {}),
     operationId,
     ...(input.replacesRefundId
       ? { replacesRefundId: input.replacesRefundId }
@@ -80,7 +94,7 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
     notes,
     total,
     cashReceived,
-    change: cashReceived - total,
+    change,
     createdAt: new Date().toISOString(),
     cancelledAt: "",
     cancelReason: "",
@@ -166,6 +180,10 @@ export function cancelSale(s: CatalogSnapshot, id: string, reason: string) {
     );
   const sale = s.sales.find((r) => r.id === id);
   if (!sale || sale.cancelledAt) throw new Error("交易不存在，或已經取消。");
+  if (sale.exchangeId)
+    throw new Error(
+      "換購交易請以追加退款／退貨更正，不能刪除或直接取消換購歷史。",
+    );
   if (s.refunds.some((r) => r.saleId === sale.id))
     throw new Error(
       "此交易已有部分退款或退貨，請以退款／退貨功能處理剩餘部分。",

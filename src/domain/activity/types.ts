@@ -2,6 +2,7 @@ import type {
   CatalogSnapshot,
   CatalogItem,
   SaleInput,
+  ExchangeInput,
   RefundInput,
   SalePlanInput,
 } from "../models/catalog";
@@ -141,6 +142,7 @@ export type ActivityCommand =
   | { type: "release-reservation"; id: string; reason: string }
   | { type: "draft"; lines: SaleInput["lines"] }
   | { type: "sale"; input: SaleInput }
+  | { type: "exchange"; input: ExchangeInput }
   | { type: "refund"; input: RefundInput }
   | { type: "cancel-sale"; id: string; reason: string }
   | { type: "rename-product"; id: string; name: string; reason: string }

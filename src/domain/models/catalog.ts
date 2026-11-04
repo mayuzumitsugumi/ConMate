@@ -85,7 +85,8 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 19;
+  schemaVersion: 20;
+  exchanges: ExchangeRecord[];
   physicalUnits: PhysicalUnit[];
   inventoryReservations: InventoryReservation[];
   activityHandoffs: HandoffRecord[];
@@ -276,6 +277,8 @@ export interface SaleLine extends SaleLineInput {
   movementId: string;
 }
 export interface SaleRecord extends NamedRecord {
+  exchangeId?: string;
+  exchangeCredit?: number;
   replacesRefundId?: string;
   operationId: string;
   locationId: string;
@@ -378,6 +381,7 @@ export interface RefundLine extends RefundLineInput {
   movementId: string;
 }
 export interface RefundRecord extends NamedRecord {
+  exchangeId?: string;
   operationId: string;
   saleId: string;
   reason: string;
@@ -623,4 +627,34 @@ export interface InternalReceiptInput {
 export interface InternalReceipt extends NamedRecord, InternalReceiptInput {
   createdAt: string;
   reversesId: string;
+}
+
+export interface ExchangeInput {
+  operationId: string;
+  saleId: string;
+  reason: string;
+  refundLines: RefundLineInput[];
+  replacement: {
+    locationId: string;
+    eventId: string;
+    collectorId: string;
+    notes: string;
+    lines: SaleLineInput[];
+  };
+  actualDifference: number;
+  confirmed: true;
+}
+export interface ExchangeRecord extends NamedRecord {
+  request: ExchangeInput;
+  operationId: string;
+  originalSaleId: string;
+  refundId: string;
+  replacementSaleId: string;
+  refundTotal: number;
+  replacementTotal: number;
+  difference: number;
+  actualDifference: number;
+  collectorId: string;
+  createdAt: string;
+  reason: string;
 }

@@ -149,7 +149,7 @@ it("upgrades schema13 backup without inventing owner/authors and leaves source u
   delete old.artworks[0].notes;
   delete old.artworks[0].archived;
   const got = validateRestoreSnapshot(old);
-  expect(got.schemaVersion).toBe(19);
+  expect(got.schemaVersion).toBe(20);
   expect(got.products[0].ownerId).toBe("");
   expect(got.artworks[0].authorIds).toEqual([]);
   expect(got.products[0].creatorId).toBe(s.products[0].creatorId);

@@ -123,7 +123,7 @@ const when = (v: string) =>
     <form v-if="opened" class="confirmation" @submit.prevent="save">
       <h4>記錄已實際完成的退款與退貨</h4>
       <p>
-        退款金額與退回數量分開填寫。不退貨可只退款；瑕疵退回只留紀錄，不增加可售庫存。補寄／換貨請另建一筆實際交付交易。
+        退款金額與退回數量分開填寫。不退貨可只退款；瑕疵退回只留紀錄，不增加可售庫存。同時退貨並交付新商品，可返回使用「換購／補退差額」一次核對；若已完成退款，再另建實際交付交易，勿重複折抵。
       </p>
       <fieldset :disabled="catalog.busy">
         <article v-for="l in sale.lines" :key="l.id" class="refund-line">
@@ -238,16 +238,24 @@ const when = (v: string) =>
       </div>
     </form>
     <article v-for="r in refunds" :key="r.id" class="refund-history">
-      <h4>{{ r.code }} · 實退 {{ r.total }} 元</h4>
+      <h4>
+        {{ r.code }} · {{ r.exchangeId ? "換購折抵" : "實退" }} {{ r.total }} 元
+      </h4>
+      <p v-if="r.exchangeId">
+        此金額是換購原額折抵，不代表另行支付同額現金退款；實際補收／退還請查看關聯換購差額。
+      </p>
       <p>{{ when(r.createdAt) }} · {{ r.reason }}</p>
       <ul>
         <li v-for="l in r.lines" :key="l.id">
-          {{ sale.lines.find((s) => s.id === l.saleLineId)?.productName }}：實退
+          {{ sale.lines.find((s) => s.id === l.saleLineId)?.productName }}：{{
+            r.exchangeId ? "換購折抵" : "實退"
+          }}
           {{ l.amount }} 元，可售回庫 {{ l.restockQuantity }} 件，瑕疵退回
           {{ l.damagedQuantity }} 件
         </li>
       </ul>
       <button
+        v-if="!r.exchangeId"
         class="button secondary"
         :disabled="catalog.busy"
         @click="emit('replacement', r)"

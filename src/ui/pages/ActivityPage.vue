@@ -7,12 +7,13 @@ import { unitStates } from "../../domain/inventory/units";
 import { balance } from "../../domain/inventory/operations";
 import { availableQuantity } from "../../domain/inventory/reservations";
 import PhysicalUnitPicker from "../components/PhysicalUnitPicker.vue";
+import ExchangePanel from "../components/ExchangePanel.vue";
 import PhysicalUnitReturnPicker from "../components/PhysicalUnitReturnPicker.vue";
 import ReservationPanel from "../components/ReservationPanel.vue";
 import { activityCashSummary } from "../../domain/activity/operations";
 import { saleTotal } from "../../domain/sales/operations";
 import { saleNetRevenue, lineReturnSummary } from "../../domain/sales/refunds";
-import type { SaleLineInput } from "../../domain/models/catalog";
+import type { ExchangeInput, SaleLineInput } from "../../domain/models/catalog";
 import type {
   ActivityPacket,
   ActivityCommand,
@@ -222,6 +223,22 @@ async function command(cmd: ActivityCommand, message: string) {
     await refresh();
     notice.value = message;
   });
+}
+async function submitActivityExchange(input: ExchangeInput) {
+  if (!packet.value || busy.value || packet.value.closure)
+    throw new Error("請先載入尚未結案的活動，並等目前操作完成。");
+  if (cart.value.length) throw new Error("請先完成或清空購物車，再記錄換購。");
+  busy.value = true;
+  try {
+    packet.value = await changeActivity(
+      packet.value.handoffId,
+      packet.value.revision,
+      { type: "exchange", input },
+    );
+    await refresh();
+  } finally {
+    busy.value = false;
+  }
 }
 async function reserveActivity(input: {
   planId: string;
@@ -752,7 +769,7 @@ function time(value: string) {
       <div class="metrics" v-if="summary">
         <span>交易 {{ summary.count }} 筆</span
         ><span>退款後營收 {{ summary.net }} 元</span
-        ><span>已退金額 {{ summary.refunds }} 元</span
+        ><span>退款／換購折抵 {{ summary.refunds }} 元</span
         ><span>活動支出 {{ summary.expensesTotal }} 元</span
         ><span>實際交款 {{ summary.handoverTotal }} 元</span>
       </div>
@@ -1067,7 +1084,13 @@ function time(value: string) {
           class="record"
         >
           <h3>{{ s.code }} · {{ s.total }}元</h3>
-          <p>
+          <p v-if="s.exchangeId">
+            {{ time(s.createdAt) }} · 差額收付人{{ party(s.collectorId) }} ·
+            原商品折抵{{ s.exchangeCredit }}元，實際補收{{
+              s.cashReceived
+            }}元／實際退還{{ s.change }}元
+          </p>
+          <p v-else>
             {{ time(s.createdAt) }} · 收款者{{ party(s.collectorId) }} · 收到{{
               s.cashReceived
             }}元／找零{{ s.change }}元
@@ -1076,11 +1099,21 @@ function time(value: string) {
             {{ l.productName }} × {{ l.quantity }} · 單價{{
               l.unitPrice
             }}元<span v-if="lineReturnSummary(packet.snapshot, l.id).amount">
-              · 已退{{
+              · 已退／換購折抵{{
                 lineReturnSummary(packet.snapshot, l.id).amount
               }}元</span
             >
           </p>
+          <ExchangePanel
+            v-if="!s.cancelledAt && !packet.closure"
+            :snapshot="packet.snapshot"
+            :sale="s"
+            :busy="busy"
+            :disabled="!!cart.length"
+            :location-id="packet.locationId"
+            :event-id="packet.eventId"
+            :submit="submitActivityExchange"
+          />
           <p v-if="s.notes">{{ s.notes }}</p>
         </article>
       </section>

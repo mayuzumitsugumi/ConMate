@@ -1,3 +1,5 @@
+import { completeExchange } from "../domain/sales/exchanges";
+import type { ExchangeInput } from "../domain/models/catalog";
 import { registerPhysicalUnits } from "../domain/inventory/units";
 import {
   reserveStock,
@@ -244,6 +246,10 @@ export const useCatalogStore = defineStore("catalog", () => {
     });
   const archiveMovementType = (id: string) =>
     mutate((s) => toggleMovementType(s, id));
+  const exchangeSale = (input: ExchangeInput) =>
+    mutate((s) => {
+      completeExchange(s, input);
+    });
   const finishSale = (input: SaleInput) =>
     mutate((s) => {
       completeSale(s, input);
@@ -445,6 +451,7 @@ export const useCatalogStore = defineStore("catalog", () => {
     saveSalePlan,
     archiveSalePlan,
     finishSale,
+    exchangeSale,
     refundSale,
     saveCost,
     archiveCost,
