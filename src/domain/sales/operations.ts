@@ -38,7 +38,8 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
           l.quantity === next.quantity &&
           l.unitPrice === next.unitPrice &&
           l.planId === next.planId &&
-          l.planVersion === next.planVersion
+          l.planVersion === next.planVersion &&
+          JSON.stringify(l.unitIds || []) === JSON.stringify(next.unitIds || [])
         );
       });
     if (!same)
@@ -111,6 +112,7 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
         productId: p.id,
         kind: "adjust-out",
         quantity: line.quantity,
+        ...(line.unitIds?.length ? { unitIds: [...line.unitIds] } : {}),
         fromLocationId: location.id,
         toLocationId: "",
         reason: `${sale.code} ${line.mode === "draw" ? "抽選實際交付" : "指定購買"}`,
@@ -124,6 +126,7 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
       id: crypto.randomUUID(),
       productId: p.id,
       productName: p.name,
+      ...(line.unitIds?.length ? { unitIds: [...line.unitIds] } : {}),
       attribution: {
         creatorId: p.creatorId,
         ownerId: p.ownerId,

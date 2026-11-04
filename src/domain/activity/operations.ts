@@ -1,3 +1,5 @@
+import { sameData } from "../../shared/data-equality";
+import { unitStates } from "../inventory/units";
 import { reserveStock, releaseReservation } from "../inventory/reservations";
 import type { CatalogSnapshot, NamedRecord } from "../models/catalog";
 import type {
@@ -15,8 +17,7 @@ import { refundSale } from "../sales/refunds";
 import { putSalePlan } from "../sales/plans";
 import { validateRestoreSnapshot } from "../validation/restore";
 const clone = <T>(v: T): T => structuredClone(v);
-const equal = (a: unknown, b: unknown) =>
-  JSON.stringify(a) === JSON.stringify(b);
+const equal = sameData;
 function fail(message: string): never {
   throw new Error(message);
 }
@@ -60,6 +61,7 @@ const arrayKeys = [
   "activityHandoffs",
   "activityMerges",
   "inventoryReservations",
+  "physicalUnits",
 ] as const;
 function blank(parent: CatalogSnapshot, id: string, name: string) {
   const s = {
@@ -304,6 +306,7 @@ function prepareUnsafe(
       productId: l.productId,
       kind: "transfer",
       quantity: l.quantity,
+      ...(l.unitIds?.length ? { unitIds: [...l.unitIds] } : {}),
       fromLocationId: input.sourceLocationId,
       toLocationId: location.id,
       reason: `活動交接：${name}`,
@@ -327,6 +330,23 @@ function prepareUnsafe(
       });
     }
   }
+  for (const line of input.lines)
+    for (const unitId of line.unitIds || []) {
+      const unit = s.physicalUnits.find((u) => u.id === unitId)!;
+      const source = sources.find(
+        (r) =>
+          r.parentBatchId === unit.batchId && r.productId === unit.productId,
+      );
+      if (!source) fail("交付單件缺少來源批次。");
+      p.physicalUnits.push({
+        ...clone(unit),
+        workspaceId: p.workspaceId,
+        batchId: source.packetReceiptId,
+        registeredLocationId: p.locations[0]!.id,
+        registeredMovementCount: p.movements.length,
+      });
+    }
+  counters(p);
   const financialReferences = (input.financialReferences || []).map((r) =>
     financialReference(
       s,
@@ -448,6 +468,7 @@ export function applyActivityCommand(
     case "decrease":
       addMovement(s, {
         productId: command.productId,
+        ...(command.unitIds?.length ? { unitIds: [...command.unitIds] } : {}),
         kind: command.kind,
         quantity: command.quantity,
         fromLocationId: p.locationId,
@@ -594,6 +615,24 @@ function closureFor(
     const c = counts.find((r) => r.productId === product.id);
     if (!c) fail("商品尚未實點。");
     whole(c.actual);
+    const units = unitStates(p.snapshot).filter(
+      (u) =>
+        u.productId === product.id &&
+        u.locationId === p.locationId &&
+        u.state === "available",
+    );
+    if (p.snapshot.physicalUnits.some((u) => u.productId === product.id)) {
+      if (
+        !Array.isArray(c.unitIds) ||
+        new Set(c.unitIds).size !== c.unitIds.length ||
+        c.unitIds.some((id) => !units.some((u) => u.id === id))
+      )
+        fail("請逐件核對單件實物，不能以總數代替實物辨識。");
+      if (c.actual < c.unitIds.length)
+        fail("實點總數不能少於已確認的單件實物。");
+      if (c.unitIds.length !== units.length && !c.reason.trim())
+        fail("單件實物有差異，請註明原因或待查。");
+    } else if (c.unitIds?.length) fail("此商品沒有已標記實物。");
     if (c.expected !== balance(p.snapshot, product.id, p.locationId))
       fail("盤點帳面數量已變更，請重新核對。");
     if (typeof c.reason !== "string" || c.reason.length > 2000)
@@ -616,7 +655,12 @@ function closureFor(
 }
 export function closeActivityPacket(
   input: ActivityPacket,
-  counts: { productId: string; actual: number; reason: string }[],
+  counts: {
+    productId: string;
+    actual: number;
+    reason: string;
+    unitIds?: string[];
+  }[],
   notes: string,
 ) {
   const p = validateActivityPacket(input);
@@ -728,6 +772,7 @@ export function validateActivityPacket(input: unknown): ActivityPacket {
     "fields",
     "locations",
     "movementTypes",
+    "physicalUnits",
   ] as const)
     if (!equal(base[k], s[k])) fail("活動來源主資料不得直接改寫。");
   for (const r of p.productRevisions) {
@@ -963,6 +1008,18 @@ export function validateActivityParentState(s: CatalogSnapshot) {
       p.revision
     )
       fail("活動交接基準不正確。");
+    for (const u of p.baseline.physicalUnits) {
+      const original = s.physicalUnits.find((a) => a.id === u.id),
+        source = p.sources.find((a) => a.packetReceiptId === u.batchId);
+      if (
+        !original ||
+        !source ||
+        original.productId !== u.productId ||
+        original.batchId !== source.parentBatchId ||
+        original.label !== u.label
+      )
+        fail("交付單件實物與原創作資料不一致。");
+    }
     if (h.localPacket)
       assertSameHandoff(p, validateActivityPacket(h.localPacket));
   }
@@ -1354,16 +1411,45 @@ export function returnActivityStock(
         archived = product.archived;
       product.archived = false;
       try {
-        created.push(
-          addMovement(next, {
-            productId: id,
-            kind: "transfer",
-            quantity: q,
-            fromLocationId: h.locationId,
-            toLocationId,
-            reason,
-          }).id,
+        const units = unitStates(next).filter(
+          (u) =>
+            u.productId === id &&
+            u.locationId === h.locationId &&
+            u.state === "available",
         );
+        const confirmed = p
+          .closure!.counts.filter(
+            (c) => (m.productMappings[c.productId] || c.productId) === id,
+          )
+          .flatMap((c) => c.unitIds || []);
+        if (
+          units.length !== confirmed.length ||
+          units.some((u) => !confirmed.includes(u.id))
+        )
+          fail("單件實物與結案實點不同，請先在創作管理明確處理差異。");
+        if (units.length)
+          created.push(
+            addMovement(next, {
+              productId: id,
+              kind: "transfer",
+              quantity: units.length,
+              unitIds: units.map((u) => u.id),
+              fromLocationId: h.locationId,
+              toLocationId,
+              reason,
+            }).id,
+          );
+        if (q > units.length)
+          created.push(
+            addMovement(next, {
+              productId: id,
+              kind: "transfer",
+              quantity: q - units.length,
+              fromLocationId: h.locationId,
+              toLocationId,
+              reason,
+            }).id,
+          );
       } finally {
         product.archived = archived;
       }

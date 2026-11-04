@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from "vue";
+import PhysicalUnitsPanel from "../components/PhysicalUnitsPanel.vue";
+import PhysicalUnitPicker from "../components/PhysicalUnitPicker.vue";
 import InventoryBatchesPanel from "../components/InventoryBatchesPanel.vue";
 import StocktakePanel from "../components/StocktakePanel.vue";
 import MovementTypesPanel from "../components/MovementTypesPanel.vue";
@@ -24,6 +26,7 @@ const form = reactive<MovementInput>({
   fromLocationId: "",
   toLocationId: "",
   reason: "",
+  unitIds: [],
 });
 const selectedType = ref("receipt");
 watch(selectedType, (value) => {
@@ -100,6 +103,7 @@ watch(
       toLocationId: "",
       reason: "",
       batchName: "",
+      unitIds: [],
     });
     locationName.value = "";
     selectedType.value = "receipt";
@@ -128,10 +132,20 @@ async function location() {
   form.movementTypeId = undefined;
 }
 async function save() {
-  if (await run(() => catalog.saveMovement({ ...form }), "庫存異動已儲存。")) {
+  if (
+    await run(
+      () =>
+        catalog.saveMovement({
+          ...form,
+          unitIds: form.unitIds?.length ? [...form.unitIds] : undefined,
+        }),
+      "庫存異動已儲存。",
+    )
+  ) {
     form.quantity = 1;
     form.reason = "";
     form.batchName = "";
+    form.unitIds = [];
   }
 }
 async function reverse() {
@@ -168,7 +182,7 @@ const when = (time: string) =>
     <div>
       <strong>目前提供基本庫存異動。</strong>
       <p>
-        先建立商品與庫位，再登記數量。盤差可手動調整並註記原因；攤位販售頁成交時會同步扣庫；可建立盤點單保存實點及待查差異；入庫批次採FIFO追蹤，可到成本與財務明確連結成本版本；可在攤位販售設定專用庫存預留；異動不能挪用已預留數量。特殊單件尚未開放。要記錄營收請到攤位販售頁；自行命名的減少類型不會產生營收。
+        先建立商品與庫位，再登記數量。盤差可手動調整並註記原因；攤位販售頁成交時會同步扣庫；可建立盤點單保存實點及待查差異；入庫批次採FIFO追蹤，可到成本與財務明確連結成本版本；可在攤位販售設定專用庫存預留；異動不能挪用已預留數量。特殊單件可先登記實物標記，再於異動與販售選擇。要記錄營收請到攤位販售頁；自行命名的減少類型不會產生營收。
       </p>
     </div>
   </section>
@@ -236,6 +250,7 @@ const when = (time: string) =>
         </p>
       </section>
       <InventoryBatchesPanel />
+      <PhysicalUnitsPanel />
       <MovementTypesPanel />
       <section class="inventory-panel section-block">
         <h2>登記庫存異動</h2>
@@ -338,6 +353,19 @@ const when = (time: string) =>
                 max="9007199254740991"
               />
             </div>
+            <PhysicalUnitPicker
+              v-if="!incoming"
+              :snapshot="catalog.snapshot"
+              :product-id="form.productId"
+              :location-id="form.fromLocationId"
+              :model-value="form.unitIds || []"
+              @update:model-value="
+                form.unitIds = $event;
+                if ($event.length) form.quantity = $event.length;
+              "
+              :disabled="catalog.busy"
+              label="本次異動的特殊單件"
+            />
             <div class="field" v-if="incoming">
               <label for="movement-batch">入庫批次名稱（選填）</label
               ><input

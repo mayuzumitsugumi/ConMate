@@ -160,11 +160,12 @@ export async function inspectProject(bytes: ArrayBuffer) {
       "2.14.0",
       "2.15.0",
       "2.16.0",
+      "2.17.0",
     ].includes(meta.get("version") || "") ||
     meta.get("payloadEncoding") !== "utf8-base64"
   )
     reject(
-      "目前僅支援 ConMate 網站專案 2.1.0、2.2.0、2.3.0、2.4.0 、2.5.0 、2.6.0 、2.7.0 、2.8.0 、2.9.0 、2.10.0 、2.11.0 、2.12.0 、2.13.0 、2.14.0 、2.15.0 或 2.16.0。",
+      "目前僅支援 ConMate 網站專案 2.1.0、2.2.0、2.3.0、2.4.0 、2.5.0 、2.6.0 、2.7.0 、2.8.0 、2.9.0 、2.10.0 、2.11.0 、2.12.0 、2.13.0 、2.14.0 、2.15.0 、2.16.0 或 2.17.0。",
     );
   const chunks = [...meta.keys()]
     .filter((k) => k.startsWith("payload-"))
@@ -219,6 +220,7 @@ export async function inspectProject(bytes: ArrayBuffer) {
     "2.14.0": 16,
     "2.15.0": 17,
     "2.16.0": 18,
+    "2.17.0": 19,
   }[meta.get("version") as "2.1.0"];
   if (input?.schemaVersion !== expectedSchema)
     reject("專案格式版本與資料版本不一致。");

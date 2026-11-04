@@ -2,6 +2,7 @@
 import { computed, reactive, ref, watch } from "vue";
 import { useWorkspaceStore } from "../../app/workspace-store";
 import { useCatalogStore } from "../../app/catalog-store";
+import PhysicalUnitPicker from "../components/PhysicalUnitPicker.vue";
 import { balance } from "../../domain/inventory/operations";
 import type { ActivityPacket, HandoffInput } from "../../domain/activity/types";
 import {
@@ -29,6 +30,7 @@ const form = reactive({
   financialKeys: [] as string[],
 });
 const quantities = reactive<Record<string, number>>({});
+const chosenUnits = reactive<Record<string, string[]>>({});
 const selected = computed(
   () =>
     catalog.snapshot?.products.filter((p) => form.productIds.includes(p.id)) ||
@@ -104,6 +106,7 @@ watch(
     error.value = "";
     notice.value = "";
     form.productIds = [];
+    for (const id of Object.keys(chosenUnits)) delete chosenUnits[id];
     form.planIds = [];
     form.collectorIds = [];
     form.financialKeys = [];
@@ -136,6 +139,9 @@ async function prepare() {
       lines: selected.value.map((p) => ({
         productId: p.id,
         quantity: quantities[p.id] || 0,
+        ...(chosenUnits[p.id]?.length
+          ? { unitIds: [...chosenUnits[p.id]!] }
+          : {}),
       })),
       planIds: form.planIds.filter((id) =>
         plans.value.some((p) => p.id === id),
@@ -346,6 +352,18 @@ async function returnStock() {
                   min="1"
                   step="1"
                   required
+                />
+                <PhysicalUnitPicker
+                  :snapshot="catalog.snapshot"
+                  :product-id="p.id"
+                  :location-id="form.sourceLocationId"
+                  :model-value="chosenUnits[p.id] || []"
+                  @update:model-value="
+                    chosenUnits[p.id] = $event;
+                    if ($event.length) quantities[p.id] = $event.length;
+                  "
+                  :disabled="busy"
+                  label="本份交付的特殊單件"
                 />
               </div>
             </div>

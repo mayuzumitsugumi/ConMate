@@ -3,8 +3,11 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useWorkspaceStore } from "../../app/workspace-store";
 import { useCatalogStore } from "../../app/catalog-store";
+import { unitStates } from "../../domain/inventory/units";
 import { balance } from "../../domain/inventory/operations";
 import { availableQuantity } from "../../domain/inventory/reservations";
+import PhysicalUnitPicker from "../components/PhysicalUnitPicker.vue";
+import PhysicalUnitReturnPicker from "../components/PhysicalUnitReturnPicker.vue";
 import ReservationPanel from "../components/ReservationPanel.vue";
 import { activityCashSummary } from "../../domain/activity/operations";
 import { saleTotal } from "../../domain/sales/operations";
@@ -47,6 +50,7 @@ const saleForm = reactive({
   productId: "",
   mode: "direct" as "direct" | "draw",
   quantity: 1,
+  unitIds: [] as string[],
   unitPrice: 0,
   collectorId: "",
   cashReceived: null as number | null,
@@ -138,6 +142,7 @@ function resetForms() {
     productId: "",
     mode: "direct",
     quantity: 1,
+    unitIds: [],
     unitPrice: 0,
     collectorId: "",
     cashReceived: null,
@@ -146,6 +151,9 @@ function resetForms() {
   operationId.value = crypto.randomUUID();
   mergePreview.value = null;
   counts.value = {};
+  for (const id of Object.keys(countedUnits)) delete countedUnits[id];
+  for (const p of packet.value?.snapshot.products || [])
+    countedUnits[p.id] = [];
   closureConfirmed.value = false;
 }
 onMounted(async () => {
@@ -267,12 +275,14 @@ function addCart() {
       productId: saleForm.productId,
       mode: chosenPlan.value?.mode || saleForm.mode,
       quantity: saleForm.quantity,
+      ...(saleForm.unitIds.length ? { unitIds: [...saleForm.unitIds] } : {}),
       unitPrice: chosenPlan.value?.unitPrice ?? saleForm.unitPrice,
       ...(chosenPlan.value
         ? { planId: chosenPlan.value.id, planVersion: chosenPlan.value.version }
         : {}),
     });
     saleForm.quantity = 1;
+    saleForm.unitIds = [];
     confirmingSale.value = false;
   } catch (e) {
     error.value = (e as Error).message;
@@ -357,14 +367,22 @@ const decrease = reactive({
   productId: "",
   quantity: 1,
   kind: "free" as "free" | "damage" | "adjust-out",
+  unitIds: [] as string[],
   reason: "",
 });
 async function decreaseStock() {
   await command(
-    { type: "decrease", ...decrease },
+    {
+      type: "decrease",
+      ...decrease,
+      unitIds: decrease.unitIds.length ? [...decrease.unitIds] : undefined,
+    },
     "庫存減少已保存，不會產生營收。",
   );
-  if (!error.value) decrease.reason = "";
+  if (!error.value) {
+    decrease.reason = "";
+    decrease.unitIds = [];
+  }
 }
 const price = reactive({
   id: "",
@@ -427,6 +445,8 @@ const refund = reactive({
   amount: 0,
   restockQuantity: 0,
   damagedQuantity: 0,
+  restockUnitIds: [] as string[],
+  damagedUnitIds: [] as string[],
   reason: "",
 });
 const refundSale = computed(() =>
@@ -436,6 +456,15 @@ watch(
   () => refund.saleId,
   () => {
     refund.saleLineId = "";
+  },
+);
+watch(
+  () => refund.saleLineId,
+  () => {
+    refund.restockUnitIds = [];
+    refund.damagedUnitIds = [];
+    refund.restockQuantity = 0;
+    refund.damagedQuantity = 0;
   },
 );
 async function recordRefund() {
@@ -453,6 +482,12 @@ async function recordRefund() {
             amount: refund.amount,
             restockQuantity: refund.restockQuantity,
             damagedQuantity: refund.damagedQuantity,
+            ...(refund.restockUnitIds.length
+              ? { restockUnitIds: [...refund.restockUnitIds] }
+              : {}),
+            ...(refund.damagedUnitIds.length
+              ? { damagedUnitIds: [...refund.damagedUnitIds] }
+              : {}),
             returnLocationId: refund.restockQuantity
               ? packet.value.locationId
               : "",
@@ -467,8 +502,25 @@ async function recordRefund() {
     refund.restockQuantity = 0;
     refund.damagedQuantity = 0;
     refund.reason = "";
+    refund.restockUnitIds = [];
+    refund.damagedUnitIds = [];
   }
 }
+const countedUnits = reactive<Record<string, string[]>>({});
+const availableUnits = (productId: string) =>
+  packet.value
+    ? unitStates(packet.value.snapshot).filter(
+        (u) =>
+          u.productId === productId &&
+          u.locationId === packet.value!.locationId &&
+          u.state === "available",
+      )
+    : [];
+const productHasUnits = (productId: string) =>
+  packet.value?.snapshot.physicalUnits.some((u) => u.productId === productId) ||
+  false;
+const unitLabel = (id: string) =>
+  packet.value?.snapshot.physicalUnits.find((u) => u.id === id)?.label || id;
 const counts = ref<Record<string, number | null>>({}),
   countReasons = reactive<Record<string, string>>({}),
   closureNotes = ref(""),
@@ -493,6 +545,9 @@ async function close() {
         productId: p.id,
         actual: counts.value[p.id]!,
         reason: countReasons[p.id] || "",
+        ...(productHasUnits(p.id)
+          ? { unitIds: [...(countedUnits[p.id] || [])] }
+          : {}),
       })),
       closureNotes.value,
     );
@@ -811,6 +866,18 @@ function time(value: string) {
             />
           </div>
         </div>
+        <PhysicalUnitPicker
+          :snapshot="packet.snapshot"
+          :product-id="saleForm.productId"
+          :location-id="packet.locationId"
+          :model-value="saleForm.unitIds"
+          :excluded-ids="cart.flatMap((l) => l.unitIds || [])"
+          @update:model-value="
+            saleForm.unitIds = $event;
+            if ($event.length) saleForm.quantity = $event.length;
+          "
+          :disabled="busy"
+        />
         <button type="button" class="button secondary" @click="addCart">
           加入購物車
         </button>
@@ -957,6 +1024,21 @@ function time(value: string) {
               />
             </div>
           </div>
+          <PhysicalUnitReturnPicker
+            :snapshot="packet.snapshot"
+            :sale-line-id="refund.saleLineId"
+            :restock-unit-ids="refund.restockUnitIds"
+            :damaged-unit-ids="refund.damagedUnitIds"
+            @update:restock-unit-ids="
+              refund.restockUnitIds = $event;
+              refund.restockQuantity = $event.length;
+            "
+            @update:damaged-unit-ids="
+              refund.damagedUnitIds = $event;
+              refund.damagedQuantity = $event.length;
+            "
+            :disabled="busy"
+          />
           <div class="field">
             <label for="activity-refund-reason">退款／退貨原因</label
             ><input
@@ -1163,6 +1245,18 @@ function time(value: string) {
                 />
               </div>
             </div>
+            <PhysicalUnitPicker
+              :snapshot="packet.snapshot"
+              :product-id="decrease.productId"
+              :location-id="packet.locationId"
+              :model-value="decrease.unitIds"
+              @update:model-value="
+                decrease.unitIds = $event;
+                if ($event.length) decrease.quantity = $event.length;
+              "
+              :disabled="busy"
+              label="本次減少的特殊單件"
+            />
             <div class="field">
               <label for="activity-decrease-reason">減少原因說明</label
               ><input
@@ -1392,6 +1486,9 @@ function time(value: string) {
               c.actual - c.expected
             }}
           </p>
+          <p v-if="c.unitIds">
+            已實點單件：{{ c.unitIds.map(unitLabel).join("、") || "無" }}
+          </p>
           <p>{{ c.reason || "無差異說明" }}</p>
         </div>
         <p>{{ packet.closure.notes }}</p></template
@@ -1412,6 +1509,26 @@ function time(value: string) {
             <p>
               帳面現存 {{ balance(packet.snapshot, p.id, packet.locationId) }}個
             </p>
+            <fieldset v-if="productHasUnits(p.id)" class="inset">
+              <legend>{{ p.name }} 實際點到的特殊單件</legend>
+              <p>
+                逐件確認實物標記；遺失或待查的品項不要勾選，並填寫差異原因。總實點數量仍須另外填寫。
+              </p>
+              <label
+                v-for="u in availableUnits(p.id)"
+                :key="u.unitId"
+                class="check"
+              >
+                <input
+                  v-model="countedUnits[p.id]"
+                  type="checkbox"
+                  :value="u.unitId"
+                />{{ u.label }}
+              </label>
+              <p v-if="!availableUnits(p.id).length">
+                目前沒有帳面在庫的特殊單件，仍須填寫總實點數量。
+              </p>
+            </fieldset>
             <div class="grid">
               <div class="field">
                 <label :for="`activity-count-${p.id}`"

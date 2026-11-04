@@ -104,3 +104,28 @@ it("refuses corrupt drafts without deleting their stored bytes", async () => {
     await db.delete();
   }
 });
+
+it("preserves explicit physical identities through a saved draft without inferring units", async () => {
+  const db = new SalesDraftDatabase("unit-draft-" + crypto.randomUUID());
+  const repo = createSalesDraftRepository(db);
+  try {
+    const d = draft();
+    d.cart[0].unitIds = ["actual-unit-a"];
+    await repo.save(d);
+    d.cart[0].unitIds = ["mutated-after-save"];
+    const restored = await repo.read(emptyCatalog(workspace));
+    expect(restored!.cart[0].unitIds).toEqual(["actual-unit-a"]);
+    expect(() =>
+      validateSalesDraft({
+        ...d,
+        cart: [{ ...d.cart[0], unitIds: ["same", "same"] }],
+      }),
+    ).toThrow("重複");
+    expect(() =>
+      validateSalesDraft({ ...d, cart: [{ ...d.cart[0], unitIds: [""] }] }),
+    ).toThrow("留白");
+    expect(validateSalesDraft(draft()).cart[0].unitIds).toBeUndefined();
+  } finally {
+    await db.delete();
+  }
+});

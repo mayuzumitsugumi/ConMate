@@ -9,7 +9,7 @@ export interface HandoffInput {
   name: string;
   eventId: string;
   sourceLocationId: string;
-  lines: { productId: string; quantity: number }[];
+  lines: { productId: string; quantity: number; unitIds?: string[] }[];
   planIds: string[];
   collectorIds: string[];
   financialReferences?: {
@@ -69,6 +69,7 @@ export interface ActivityClosure {
     productId: string;
     expected: number;
     actual: number;
+    unitIds?: string[];
     reason: string;
   }[];
   salesTotal: number;
@@ -145,6 +146,7 @@ export type ActivityCommand =
   | { type: "rename-product"; id: string; name: string; reason: string }
   | {
       type: "decrease";
+      unitIds?: string[];
       productId: string;
       quantity: number;
       kind: "free" | "damage" | "adjust-out";

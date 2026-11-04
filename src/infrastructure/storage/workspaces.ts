@@ -282,6 +282,24 @@ export class ConMateDatabase extends Dexie {
             data.schemaVersion = 18;
           });
       });
+    this.version(20)
+      .stores({
+        workspaces: "id, createdAt",
+        catalogs: "workspaceId",
+        recoverySnapshots: "id, workspaceId, createdAt",
+        backupStatus: "workspaceId",
+        activityPackets: "handoffId, sourceWorkspaceId, eventId",
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table("catalogs")
+          .toCollection()
+          .modify((data) => {
+            if (data.schemaVersion !== 18) throw new Error("不支援資料版本。");
+            data.physicalUnits = [];
+            data.schemaVersion = 19;
+          });
+      });
   }
 }
 export const database = new ConMateDatabase();

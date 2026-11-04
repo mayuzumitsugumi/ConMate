@@ -53,7 +53,11 @@ export function refundSale(s: CatalogSnapshot, input: RefundInput) {
           l.amount === n.amount &&
           l.restockQuantity === n.restockQuantity &&
           l.damagedQuantity === n.damagedQuantity &&
-          l.returnLocationId === n.returnLocationId
+          l.returnLocationId === n.returnLocationId &&
+          JSON.stringify(l.restockUnitIds || []) ===
+            JSON.stringify(n.restockUnitIds || []) &&
+          JSON.stringify(l.damagedUnitIds || []) ===
+            JSON.stringify(n.damagedUnitIds || [])
         );
       });
     if (!same) throw new Error("相同操作識別已用於不同退款，請重新讀取。");
@@ -78,6 +82,30 @@ export function refundSale(s: CatalogSnapshot, input: RefundInput) {
     whole(line.damagedQuantity, "損壞退回數量");
     if (!line.amount && !line.restockQuantity && !line.damagedQuantity)
       throw new Error("明細至少需有退款或退回商品。");
+    const back = line.restockUnitIds || [],
+      damaged = line.damagedUnitIds || [];
+    if (
+      original.unitIds?.length
+        ? back.length !== line.restockQuantity ||
+          damaged.length !== line.damagedQuantity
+        : back.length || damaged.length
+    )
+      throw new Error("退貨需明確選擇原成交實物，數量必須一致。");
+    const priorUnitIds = s.refunds.flatMap((r) =>
+      r.lines
+        .filter((l) => l.saleLineId === original.id)
+        .flatMap((l) => [
+          ...(l.restockUnitIds || []),
+          ...(l.damagedUnitIds || []),
+        ]),
+    );
+    if (
+      new Set([...back, ...damaged]).size !== back.length + damaged.length ||
+      [...back, ...damaged].some(
+        (id) => !original.unitIds?.includes(id) || priorUnitIds.includes(id),
+      )
+    )
+      throw new Error("退貨實物不屬於原成交或已退回。");
     const prior = lineReturnSummary(s, line.saleLineId);
     if (
       BigInt(prior.amount) + BigInt(line.amount) >
@@ -128,6 +156,9 @@ export function refundSale(s: CatalogSnapshot, input: RefundInput) {
         saleId: sale.id,
         refundId: refund.id,
         quantity: inputLine.restockQuantity,
+        ...(inputLine.restockUnitIds?.length
+          ? { unitIds: [...inputLine.restockUnitIds] }
+          : {}),
         fromLocationId: "",
         toLocationId: inputLine.returnLocationId,
         reason: `${refund.code} ${reason}`,

@@ -157,6 +157,49 @@ function portion(
   if (remaining) throw new Error("銷售成本來源數量不足。");
   return { known, unknown };
 }
+/** A numbered item returns its own source, rather than the next FIFO slice. */
+function unitPortion(
+  s: CatalogSnapshot,
+  movement: InventoryMovement,
+  index: number,
+  ids: string[] | undefined,
+  quantity: number,
+) {
+  const selected = ids || [];
+  if (
+    selected.length !== quantity ||
+    new Set(selected).size !== selected.length
+  )
+    throw new Error("單件退貨成本與實物數量不一致。");
+  const allocations = new Map<string, number>();
+  for (const id of selected) {
+    if (!movement.unitIds?.includes(id))
+      throw new Error("退貨單件不屬於原銷售出庫。");
+    const unit = s.physicalUnits.find((u) => u.id === id);
+    if (!unit || unit.productId !== movement.productId)
+      throw new Error("退貨單件缺少原批次來源。");
+    allocations.set(unit.batchId, (allocations.get(unit.batchId) || 0) + 1);
+  }
+  for (const [batchId, count] of allocations)
+    if (
+      count >
+      (movement.batchAllocations.find((a) => a.batchId === batchId)?.quantity ||
+        0)
+    )
+      throw new Error("單件退貨超過原批次出庫數量。");
+  return portion(
+    s,
+    {
+      ...movement,
+      quantity,
+      batchAllocations: [...allocations].map(([batchId, count]) => ({
+        batchId,
+        quantity: count,
+      })),
+    },
+    index,
+  );
+}
 export function batchCostReport(s: CatalogSnapshot) {
   const idx = new Map(s.movements.map((m, i) => [m.id, i]));
   const returns = new Map<string, (typeof s.refunds)[number]["lines"]>();
@@ -189,14 +232,18 @@ export function batchCostReport(s: CatalogSnapshot) {
         returnedQuantity = line.quantity;
       } else
         for (const r of returns.get(line.id) || []) {
-          const back = portion(s, m, index, consumed, r.restockQuantity),
-            damaged = portion(
-              s,
-              m,
-              index,
-              consumed + r.restockQuantity,
-              r.damagedQuantity,
-            );
+          const back = m.unitIds?.length
+              ? unitPortion(s, m, index, r.restockUnitIds, r.restockQuantity)
+              : portion(s, m, index, consumed, r.restockQuantity),
+            damaged = m.unitIds?.length
+              ? unitPortion(s, m, index, r.damagedUnitIds, r.damagedQuantity)
+              : portion(
+                  s,
+                  m,
+                  index,
+                  consumed + r.restockQuantity,
+                  r.damagedQuantity,
+                );
           net = minus(net, back.known);
           unknown -= back.unknown;
           returnedQuantity += r.restockQuantity;

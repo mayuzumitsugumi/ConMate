@@ -6,7 +6,7 @@ import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.16.0";
+export const PROJECT_VERSION = "2.17.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -1072,6 +1072,28 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
         r.releasedAt,
         r.reason,
         r.releaseReason,
+      ]);
+  }
+  if (snapshot.physicalUnits.length) {
+    const ws = sheet("39_特殊單件", [
+      "單件編號",
+      "實物標記",
+      "商品",
+      "原始批次",
+      "登記庫位",
+      "登記異動起點",
+      "登記時間",
+    ]);
+    for (const u of snapshot.physicalUnits)
+      ws.addRow([
+        u.code,
+        u.label,
+        snapshot.products.find((p) => p.id === u.productId)?.name || "",
+        u.batchId,
+        snapshot.locations.find((l) => l.id === u.registeredLocationId)?.name ||
+          "",
+        u.registeredMovementCount,
+        u.createdAt,
       ]);
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);

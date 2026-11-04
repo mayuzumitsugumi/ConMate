@@ -1,3 +1,4 @@
+import { validatePhysicalUnits } from "../inventory/units";
 import { validateReservations } from "../inventory/reservations";
 import { validateActivityParentState } from "../activity/operations";
 import { validateInternalPricing } from "../finance/internal-pricing";
@@ -57,6 +58,7 @@ function time(v: unknown) {
     fail("時間格式不正確。");
 }
 const keys = [
+  "physicalUnits",
   "parties",
   "projects",
   "events",
@@ -145,7 +147,9 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     s = { ...s, schemaVersion: 17, activityHandoffs: [], activityMerges: [] };
   if (s.schemaVersion === 17)
     s = { ...s, schemaVersion: 18, inventoryReservations: [] };
-  if (s.schemaVersion !== 18) fail("目前僅支援網站資料版本 3 至 18。");
+  if (s.schemaVersion === 18)
+    s = { ...s, schemaVersion: 19, physicalUnits: [] };
+  if (s.schemaVersion !== 19) fail("目前僅支援網站資料版本 3 至 19。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -1038,5 +1042,6 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   validateInternalPricing(s as unknown as CatalogSnapshot);
   validateActivityParentState(s as unknown as CatalogSnapshot);
   validateReservations(s as unknown as CatalogSnapshot);
+  validatePhysicalUnits(s as unknown as CatalogSnapshot);
   return s as unknown as CatalogSnapshot;
 }

@@ -56,6 +56,18 @@ export function validateSalesDraft(value: unknown): SalesDraft {
       l.planVersion === undefined ? undefined : num(l.planVersion)!;
     if ((planId === undefined) !== (planVersion === undefined))
       throw new Error("草稿方案版本不完整。");
+    let unitIds: string[] | undefined;
+    if (l.unitIds !== undefined) {
+      if (!Array.isArray(l.unitIds) || l.unitIds.length > 1000)
+        throw new Error("草稿單件清單格式不正確，原草稿仍保留。");
+      unitIds = l.unitIds.map((value) => {
+        const id = str(value);
+        if (!id.trim()) throw new Error("草稿單件識別不可留白。");
+        return id;
+      });
+      if (new Set(unitIds).size !== unitIds.length)
+        throw new Error("草稿單件識別重複，請重新核對。");
+    }
     return {
       key: str(l.key),
       productId: str(l.productId),
@@ -64,6 +76,7 @@ export function validateSalesDraft(value: unknown): SalesDraft {
       quantity: num(l.quantity)!,
       unitPrice: num(l.unitPrice, true),
       ...(planId ? { planId, planVersion } : {}),
+      ...(unitIds ? { unitIds } : {}),
     };
   });
   if (new Set(cart.map((l) => l.key)).size !== cart.length)

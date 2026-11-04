@@ -2,6 +2,7 @@
 import { salesDraftRepository } from "../../application/sales-drafts";
 import type { SalesDraft } from "../../application/sales-drafts";
 import { onBeforeRouteLeave } from "vue-router";
+import PhysicalUnitPicker from "../components/PhysicalUnitPicker.vue";
 import SaleRefundPanel from "../components/SaleRefundPanel.vue";
 import { saleNetRevenue } from "../../domain/sales/refunds";
 import type { RefundRecord } from "../../domain/models/catalog";
@@ -202,7 +203,8 @@ function add(productId: string, mode: "direct" | "draw") {
       l.productId === productId &&
       l.mode === mode &&
       l.planId === plan?.id &&
-      l.planVersion === plan?.version,
+      l.planVersion === plan?.version &&
+      !l.unitIds?.length,
   );
   if (line) line.quantity++;
   else
@@ -212,9 +214,19 @@ function add(productId: string, mode: "direct" | "draw") {
       productName: p.name,
       mode,
       quantity: 1,
+      unitIds: [],
       unitPrice: plan?.unitPrice ?? null,
       ...(plan ? { planId: plan.id, planVersion: plan.version } : {}),
     });
+  confirming.value = false;
+}
+function duplicateCartLine(line: (typeof cart.value)[number]) {
+  cart.value.push({
+    ...line,
+    key: crypto.randomUUID(),
+    quantity: 1,
+    unitIds: [],
+  });
   confirming.value = false;
 }
 function physicalStock(id: string) {
@@ -245,9 +257,18 @@ async function submit() {
         ? { replacesRefundId: replacesRefundId.value }
         : {}),
       lines: cart.value.map(
-        ({ productId, mode, quantity, unitPrice, planId, planVersion }) => ({
+        ({
+          productId,
+          mode,
+          quantity,
+          unitPrice,
+          planId,
+          planVersion,
+          unitIds,
+        }) => ({
           ...(planId ? { planId, planVersion } : {}),
           productId,
+          ...(unitIds?.length ? { unitIds: [...unitIds] } : {}),
           mode,
           quantity,
           unitPrice: unitPrice!,
@@ -496,6 +517,30 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
                 方案版本
                 {{ line.planVersion }}（價格固定；需改價請移除此項再選方案）
               </p>
+              <button
+                type="button"
+                class="text-button"
+                @click="duplicateCartLine(line)"
+              >
+                另列一項相同商品（一般／特殊單件分開）
+              </button>
+              <PhysicalUnitPicker
+                :snapshot="catalog.snapshot"
+                :product-id="line.productId"
+                :location-id="context.locationId"
+                :model-value="line.unitIds || []"
+                :excluded-ids="
+                  cart
+                    .filter((l) => l.key !== line.key)
+                    .flatMap((l) => l.unitIds || [])
+                "
+                @update:model-value="
+                  line.unitIds = $event;
+                  if ($event.length) line.quantity = $event.length;
+                  confirming = false;
+                "
+                :disabled="catalog.busy"
+              />
               <div class="form-grid">
                 <div class="field">
                   <label :for="'qty-' + line.key">數量</label

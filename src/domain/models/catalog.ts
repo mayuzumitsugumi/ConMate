@@ -85,7 +85,8 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 18;
+  schemaVersion: 19;
+  physicalUnits: PhysicalUnit[];
   inventoryReservations: InventoryReservation[];
   activityHandoffs: HandoffRecord[];
   activityMerges: ActivityMergeRecord[];
@@ -153,6 +154,14 @@ export type MovementKind =
   | "reversal"
   | "sale"
   | "refund-return";
+export interface PhysicalUnit extends NamedRecord {
+  label: string;
+  productId: string;
+  batchId: string;
+  registeredLocationId: string;
+  registeredMovementCount: number;
+  createdAt: string;
+}
 export interface InventoryReservation extends NamedRecord {
   createdMovementCount: number;
   releasedMovementCount: number | null;
@@ -166,6 +175,7 @@ export interface InventoryReservation extends NamedRecord {
   releaseReason: string;
 }
 export interface InventoryMovement extends NamedRecord {
+  unitIds?: string[];
   reservationId?: string;
   batchAllocations: { batchId: string; quantity: number }[];
   batchName?: string;
@@ -182,6 +192,7 @@ export interface InventoryMovement extends NamedRecord {
   reversesId: string;
 }
 export interface MovementInput {
+  unitIds?: string[];
   batchName?: string;
   productId: string;
   kind: Exclude<MovementKind, "reversal" | "sale" | "refund-return">;
@@ -230,6 +241,7 @@ export interface SalePlan extends NamedRecord, SalePlanInput {
   updatedAt: string;
 }
 export interface SaleLineInput {
+  unitIds?: string[];
   planId?: string;
   planVersion?: number;
   productId: string;
@@ -347,6 +359,8 @@ export interface StocktakeCountInput {
 }
 
 export interface RefundLineInput {
+  restockUnitIds?: string[];
+  damagedUnitIds?: string[];
   saleLineId: string;
   amount: number;
   restockQuantity: number;

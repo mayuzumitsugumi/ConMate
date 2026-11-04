@@ -1,3 +1,4 @@
+import { registerPhysicalUnits } from "../domain/inventory/units";
 import {
   reserveStock,
   releaseReservation,
@@ -403,7 +404,12 @@ export const useCatalogStore = defineStore("catalog", () => {
     mutate((s) => {
       cancelInternalAgreement(s, id, reason);
     });
+  const registerUnits = (input: Parameters<typeof registerPhysicalUnits>[1]) =>
+    mutate((s) => {
+      registerPhysicalUnits(s, input);
+    });
   return {
+    registerUnits,
     reserveInventory,
     releaseInventoryReservation,
     createInternalAgreement,

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PhysicalUnitReturnPicker from "./PhysicalUnitReturnPicker.vue";
 import { computed, reactive, ref } from "vue";
 import { useCatalogStore } from "../../app/catalog-store";
 import { lineReturnSummary } from "../../domain/sales/refunds";
@@ -23,6 +24,8 @@ const form = reactive<
       restockQuantity: number;
       damagedQuantity: number;
       returnLocationId: string;
+      restockUnitIds: string[];
+      damagedUnitIds: string[];
     }
   >
 >({});
@@ -62,6 +65,8 @@ function open() {
       restockQuantity: 0,
       damagedQuantity: 0,
       returnLocationId: props.sale.locationId,
+      restockUnitIds: [],
+      damagedUnitIds: [],
     };
   opened.value = true;
 }
@@ -78,6 +83,12 @@ async function save() {
         .map((l) => ({
           saleLineId: l.id,
           ...form[l.id],
+          restockUnitIds: form[l.id]!.restockUnitIds.length
+            ? [...form[l.id]!.restockUnitIds]
+            : undefined,
+          damagedUnitIds: form[l.id]!.damagedUnitIds.length
+            ? [...form[l.id]!.damagedUnitIds]
+            : undefined,
           returnLocationId:
             form[l.id]!.restockQuantity > 0 ? form[l.id]!.returnLocationId : "",
         }))
@@ -121,6 +132,22 @@ const when = (v: string) =>
             尚可退款 {{ remaining(l.id).amount }} 元；尚可退貨
             {{ remaining(l.id).quantity }} 件。
           </p>
+          <PhysicalUnitReturnPicker
+            v-if="catalog.snapshot"
+            :snapshot="catalog.snapshot"
+            :sale-line-id="l.id"
+            :restock-unit-ids="form[l.id]!.restockUnitIds"
+            :damaged-unit-ids="form[l.id]!.damagedUnitIds"
+            @update:restock-unit-ids="
+              form[l.id]!.restockUnitIds = $event;
+              form[l.id]!.restockQuantity = $event.length;
+            "
+            @update:damaged-unit-ids="
+              form[l.id]!.damagedUnitIds = $event;
+              form[l.id]!.damagedQuantity = $event.length;
+            "
+            :disabled="catalog.busy"
+          />
           <div class="form-grid">
             <div class="field">
               <label :for="'refund-money-' + l.id">本次實退金額（元）</label

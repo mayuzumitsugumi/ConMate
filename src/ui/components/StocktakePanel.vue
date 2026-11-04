@@ -109,6 +109,9 @@ const when = (s: string) =>
     <p>
       盤點會保存開始時的帳面數量。實點差額可留待查，或明確登記為庫存調整；不會當成銷售，也不會自動產生營收。
     </p>
+    <p>
+      特殊單件的數量差異不能推定是哪件實物。可先保留待查；確認遺失或損耗後，請在庫存異動選擇該件標記登記，再建立新的盤點單核對，不以一般數量調整略過單件身分。
+    </p>
     <p v-if="notice" role="status" class="success-notice">{{ notice }}</p>
     <p v-if="error" role="alert" class="error-notice">{{ error }}</p>
     <details>

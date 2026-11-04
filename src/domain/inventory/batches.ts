@@ -1,3 +1,8 @@
+import {
+  assertUnitSelection,
+  unitAllocations,
+  unitTrackingTimeline,
+} from "./units";
 import type { CatalogSnapshot, InventoryMovement } from "../models/catalog";
 export interface BatchAllocation {
   batchId: string;
@@ -64,8 +69,12 @@ export function batchBalances(s: Pick<CatalogSnapshot, "movements">) {
 }
 export function allocateMovement(s: CatalogSnapshot, m: InventoryMovement) {
   const state = batchBalances(s);
+  const tracked = unitTrackingTimeline(s);
   let allocations: BatchAllocation[];
-  if (m.reversesId) {
+  assertUnitSelection(s, m);
+  if (m.unitIds?.length && !m.reversesId) {
+    allocations = unitAllocations(s, m.unitIds);
+  } else if (m.reversesId) {
     const old = s.movements.find((r) => r.id === m.reversesId);
     if (!old?.batchAllocations) throw new Error("沖銷來源缺少批次紀錄。");
     allocations = old.batchAllocations.map((a) => ({ ...a }));
@@ -76,7 +85,8 @@ export function allocateMovement(s: CatalogSnapshot, m: InventoryMovement) {
       if (lot.productId === m.productId) {
         const amount = Math.min(
           remaining,
-          state.quantity(lot.id, m.fromLocationId),
+          state.quantity(lot.id, m.fromLocationId) -
+            tracked(lot.id, m.fromLocationId),
         );
         if (amount) allocations.push({ batchId: lot.id, quantity: amount });
         remaining -= amount;
@@ -98,6 +108,10 @@ export function allocateReturn(
   sourceId: string,
   skip: number,
 ) {
+  if (m.unitIds?.length) {
+    m.batchAllocations = unitAllocations(s, m.unitIds);
+    return;
+  }
   const original = s.movements.find((r) => r.id === sourceId);
   if (!original?.batchAllocations) throw new Error("原銷售缺少批次來源。");
   let remaining = m.quantity;
@@ -119,6 +133,7 @@ export function validateBatchLedger(s: CatalogSnapshot) {
     s.batchTrackingStart > s.movements.length
   )
     throw new Error("批次追蹤起點不正確。");
+  const tracked = unitTrackingTimeline(s);
   const seen = new Map<string, InventoryMovement>();
   const amounts = new Map<string, number>();
   const lotProducts = new Map<string, string>();
@@ -189,14 +204,21 @@ export function validateBatchLedger(s: CatalogSnapshot) {
         JSON.stringify(seen.get(m.reversesId)?.batchAllocations)
     )
       throw new Error("沖銷批次與原異動不符。");
-    if (index >= s.batchTrackingStart && m.fromLocationId && !m.reversesId && !s.activityMerges.some(r=>r.createdMovementIds.includes(m.id))) {
+    if (
+      index >= s.batchTrackingStart &&
+      m.fromLocationId &&
+      !m.reversesId &&
+      !m.unitIds?.length &&
+      !s.activityMerges.some((r) => r.createdMovementIds.includes(m.id))
+    ) {
       let remaining = m.quantity;
       const expected: BatchAllocation[] = [];
       for (const [id, productId] of lotProducts)
         if (productId === m.productId) {
           const q = Math.min(
             remaining,
-            amounts.get(k(id, m.fromLocationId)) || 0,
+            (amounts.get(k(id, m.fromLocationId)) || 0) -
+              tracked(id, m.fromLocationId, index),
           );
           if (q) expected.push({ batchId: id, quantity: q });
           remaining -= q;

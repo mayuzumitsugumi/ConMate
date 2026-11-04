@@ -1,3 +1,4 @@
+import { sameData } from "../shared/data-equality";
 import { database } from "../infrastructure/storage/workspaces";
 import { catalogRepository } from "../infrastructure/storage/catalog";
 import { validateRestoreSnapshot } from "../domain/validation/restore";
@@ -102,7 +103,7 @@ export async function previewActivityImport(input: ActivityPacket) {
     ] as const;
     if (
       immutable.some(
-        (k) => JSON.stringify(normalized[k]) !== JSON.stringify(packet[k]),
+        (k) => !sameData(normalized[k], packet[k]),
       )
     )
       return {
@@ -177,7 +178,12 @@ export async function changeActivity(
 export async function closeActivity(
   id: string,
   expectedRevision: number,
-  counts: { productId: string; actual: number; reason: string }[],
+  counts: {
+    productId: string;
+    actual: number;
+    reason: string;
+    unitIds?: string[];
+  }[],
   notes: string,
 ) {
   const before = await readActivity(id),
