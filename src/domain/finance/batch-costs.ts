@@ -273,8 +273,20 @@ export function batchCostReport(s: CatalogSnapshot) {
         damagedUnknownQuantity,
         soldQuantity: line.quantity,
         knownCost: fmt(original.known),
+        knownCostExact: {
+          numerator: original.known.n.toString(),
+          denominator: original.known.d.toString(),
+        },
         unknownQuantity: unknown,
         netKnownCost: fmt(net),
+        netKnownCostExact: {
+          numerator: net.n.toString(),
+          denominator: net.d.toString(),
+        },
+        damagedKnownCostExact: {
+          numerator: damagedKnown.n.toString(),
+          denominator: damagedKnown.d.toString(),
+        },
         margin: unknown ? null : fmt(minus(f(BigInt(gross - refunded)), net)),
       };
     }),
