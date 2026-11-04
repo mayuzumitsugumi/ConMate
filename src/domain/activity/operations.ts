@@ -1,3 +1,4 @@
+import { reserveStock, releaseReservation } from "../inventory/reservations";
 import type { CatalogSnapshot, NamedRecord } from "../models/catalog";
 import type {
   ActivityPacket,
@@ -58,6 +59,7 @@ const arrayKeys = [
   "internalReceipts",
   "activityHandoffs",
   "activityMerges",
+  "inventoryReservations",
 ] as const;
 function blank(parent: CatalogSnapshot, id: string, name: string) {
   const s = {
@@ -390,6 +392,14 @@ export function applyActivityCommand(
   requireOpen(p);
   const s = p.snapshot;
   switch (command.type) {
+    case "reserve":
+      if (command.input.locationId !== p.locationId)
+        fail("只能預留本交接庫位。");
+      reserveStock(s, command.input);
+      break;
+    case "release-reservation":
+      releaseReservation(s, command.id, command.reason);
+      break;
     case "draft":
       if (
         command.lines.length > 100 ||
@@ -613,6 +623,13 @@ export function closeActivityPacket(
   requireOpen(p);
   if (p.draft.length) fail("請先成交或捨棄交易草稿，再確認結案。");
   if (!Number.isSafeInteger(p.revision + 1)) fail("活動修訂已達安全上限。");
+  for (const reservation of p.snapshot.inventoryReservations)
+    if (!reservation.releasedAt)
+      releaseReservation(
+        p.snapshot,
+        reservation.id,
+        "活動結案，釋放剩餘專用預留",
+      );
   p.closure = closureFor(
     p,
     counts.map((c) => ({
@@ -879,6 +896,9 @@ export function validateActivityPacket(input: unknown): ActivityPacket {
       typeof r.data !== "object"
     )
       fail("財務參考格式不正確。");
+  if (base.inventoryReservations.length) fail("原始交接不能包含其他專用預留。");
+  if (p.closure && s.inventoryReservations.some((r) => !r.releasedAt))
+    fail("結案前須釋放專用預留。");
   if (p.closure) {
     if (p.draft.length) fail("結案檔不能包含未成交草稿。");
     const c = closureFor(p, p.closure.counts, p.closure.notes);
@@ -894,6 +914,7 @@ export function validateActivityPacket(input: unknown): ActivityPacket {
   return p;
 }
 function assertSameHandoff(original: ActivityPacket, incoming: ActivityPacket) {
+  original = validateActivityPacket(original);
   for (const k of [
     "handoffId",
     "sourceWorkspaceId",
@@ -1051,17 +1072,15 @@ function importedMovements(
   const lots = new Map(
     p.sources.map((r) => [r.packetReceiptId, r.parentBatchId]),
   );
-  return p.snapshot.movements
-    .slice(p.baseline.movements.length)
-    .map((m) => ({
-      ...clone(m),
-      workspaceId,
-      productId: mappings[m.productId] || m.productId,
-      batchAllocations: m.batchAllocations.map((a) => ({
-        batchId: lots.get(a.batchId) || a.batchId,
-        quantity: a.quantity,
-      })),
-    }));
+  return p.snapshot.movements.slice(p.baseline.movements.length).map((m) => ({
+    ...clone(m),
+    workspaceId,
+    productId: mappings[m.productId] || m.productId,
+    batchAllocations: m.batchAllocations.map((a) => ({
+      batchId: lots.get(a.batchId) || a.batchId,
+      quantity: a.quantity,
+    })),
+  }));
 }
 function refreshCode<T extends NamedRecord>(s: CatalogSnapshot, row: T): T {
   const prefix = /^([A-Z]+)-/.exec(row.code)?.[1] || "IMP";
@@ -1114,6 +1133,24 @@ export function mergeActivityPacket(
     planMap.set(row.id, plan.id);
     next.salePlans.push(plan);
   }
+  const reservationOffset = next.movements.length - p.baseline.movements.length;
+  for (const row of p.snapshot.inventoryReservations) {
+    if (existing.has(row.id)) fail("活動預留ID與既有資料衝突。");
+    existing.add(row.id);
+    next.inventoryReservations.push(
+      refreshCode(next, {
+        ...clone(row),
+        workspaceId: next.workspaceId,
+        planId: planMap.get(row.planId)!,
+        productId: map[row.productId] || row.productId,
+        createdMovementCount: row.createdMovementCount + reservationOffset,
+        releasedMovementCount:
+          row.releasedMovementCount === null
+            ? null
+            : row.releasedMovementCount + reservationOffset,
+      }),
+    );
+  }
   const movements = importedMovements(p, map, next.workspaceId);
   for (const row of movements) {
     if (existing.has(row.id)) fail("活動異動ID與既有資料衝突，不能重複記帳。");
@@ -1159,6 +1196,9 @@ export function mergeActivityPacket(
     productMappings: map,
     planMappings: Object.fromEntries(planMap),
     createdMovementIds: movements.map((m) => m.id),
+    ...(p.snapshot.inventoryReservations.length
+      ? { reservationMovementOffset: reservationOffset }
+      : {}),
     returnedAt: "",
   };
   next.activityMerges.push(rec);
@@ -1194,6 +1234,36 @@ function validateMergedRecords(
   )
     fail("合回方案對應不正確。");
   const expected = importedMovements(p, m.productMappings, s.workspaceId);
+  const reservationOffset = m.reservationMovementOffset;
+  if (
+    p.snapshot.inventoryReservations.length &&
+    (!Number.isSafeInteger(reservationOffset) || reservationOffset! < 0)
+  )
+    fail("合回預留位置不正確。");
+  if (
+    p.snapshot.inventoryReservations.length &&
+    expected.length &&
+    reservationOffset !==
+      s.movements.findIndex((r) => r.id === expected[0]!.id) -
+        p.baseline.movements.length
+  )
+    fail("合回預留位置與異動不符。");
+  for (const source of p.snapshot.inventoryReservations) {
+    const actual = s.inventoryReservations.find((r) => r.id === source.id);
+    const row = {
+      ...clone(source),
+      workspaceId: s.workspaceId,
+      planId: m.planMappings[source.planId]!,
+      productId: m.productMappings[source.productId] || source.productId,
+      createdMovementCount: source.createdMovementCount + reservationOffset!,
+      releasedMovementCount:
+        source.releasedMovementCount === null
+          ? null
+          : source.releasedMovementCount + reservationOffset!,
+    };
+    if (!actual || !equal({ ...actual, code: "" }, { ...row, code: "" }))
+      fail("合回預留紀錄與活動來源不符。");
+  }
   if (
     !equal(
       m.createdMovementIds,

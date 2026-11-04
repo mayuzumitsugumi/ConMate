@@ -182,6 +182,28 @@ test("split activity handoff is private, resumes offline, closes immutably and m
       .click();
     await waitNotice(fresh, "活動新品項及一次帶入量已記錄");
     await fresh.getByRole("button", { name: "快速販售", exact: true }).click();
+    const reserved = fresh.locator(
+      'section[aria-labelledby="reservation-title"]',
+    );
+    await reserved.locator("summary").click();
+    await fresh
+      .getByLabel("預留方案", { exact: true })
+      .selectOption({ label: "活動指定價" });
+    await fresh
+      .getByLabel("預留商品", { exact: true })
+      .selectOption({ label: "活動限定徽章" });
+    await fresh
+      .getByLabel("預留庫位", { exact: true })
+      .selectOption({ index: 1 });
+    await fresh.getByLabel("預留數量", { exact: true }).fill("2");
+    await fresh
+      .getByLabel("預留原因", { exact: true })
+      .fill("活動份內專用數量");
+    await fresh
+      .getByRole("button", { name: "確認預留庫存", exact: true })
+      .click();
+    await expect(reserved.getByRole("status")).toContainText("專用庫存已預留");
+
     await fresh
       .getByLabel("販售方案", { exact: true })
       .selectOption({ index: 1 });
@@ -192,7 +214,7 @@ test("split activity handoff is private, resumes offline, closes immutably and m
     await fresh.getByLabel("販售方案", { exact: true }).selectOption("");
     await fresh
       .getByLabel("實際交付商品")
-      .selectOption({ label: "臨時追加徽章 · 現存2" });
+      .selectOption({ label: "臨時追加徽章 · 現存2 · 可售2" });
     await fresh.getByLabel("單價（新台幣整元）", { exact: true }).fill("15");
     await fresh
       .getByRole("button", { name: "加入購物車", exact: true })

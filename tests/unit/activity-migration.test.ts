@@ -54,6 +54,7 @@ it("upgrades v16 catalogs without rewriting IDs, revision, money or recovery ori
   const old = { ...current, schemaVersion: 16 } as Record<string, any>;
   delete old.activityHandoffs;
   delete old.activityMerges;
+  delete old.inventoryReservations;
   const recovery = {
     id: "recovery-original",
     workspaceId: workspace.id,
@@ -64,14 +65,12 @@ it("upgrades v16 catalogs without rewriting IDs, revision, money or recovery ori
     snapshot: structuredClone(old),
   };
   const previous = new Dexie(name);
-  previous
-    .version(17)
-    .stores({
-      workspaces: "id, createdAt",
-      catalogs: "workspaceId",
-      recoverySnapshots: "id, workspaceId, createdAt",
-      backupStatus: "workspaceId",
-    });
+  previous.version(17).stores({
+    workspaces: "id, createdAt",
+    catalogs: "workspaceId",
+    recoverySnapshots: "id, workspaceId, createdAt",
+    backupStatus: "workspaceId",
+  });
   await previous.table("workspaces").add(workspace);
   await previous.table("catalogs").add(old);
   await previous.table("recoverySnapshots").add(recovery);
@@ -81,7 +80,8 @@ it("upgrades v16 catalogs without rewriting IDs, revision, money or recovery ori
     const got = await upgraded.catalogs.get(workspace.id);
     expect(got).toEqual({
       ...old,
-      schemaVersion: 17,
+      schemaVersion: 18,
+      inventoryReservations: [],
       activityHandoffs: [],
       activityMerges: [],
     });
@@ -89,7 +89,7 @@ it("upgrades v16 catalogs without rewriting IDs, revision, money or recovery ori
     const kept = await upgraded.recoverySnapshots.get(recovery.id);
     expect(kept).toEqual(recovery);
     const restored = validateRestoreSnapshot(structuredClone(kept!.snapshot));
-    expect(restored.schemaVersion).toBe(17);
+    expect(restored.schemaVersion).toBe(18);
     expect(restored.parties).toEqual(current.parties);
     expect(restored.revision).toBe(42);
     expect(restored.costs).toEqual(old.costs);

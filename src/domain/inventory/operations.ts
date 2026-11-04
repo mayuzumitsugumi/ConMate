@@ -1,3 +1,8 @@
+import {
+  assertUnreservedOutflow,
+  reservationForSale,
+  activeReturnReservation,
+} from "./reservations";
 import { allocateMovement } from "./batches";
 import type {
   CatalogSnapshot,
@@ -63,7 +68,11 @@ function validateMovement(s: CatalogSnapshot, m: InventoryMovement) {
   )
     throw new Error("庫存數量超過安全範圍。");
 }
-export function addMovement(s: CatalogSnapshot, input: MovementInput) {
+export function addMovement(
+  s: CatalogSnapshot,
+  input: MovementInput,
+  salePlanId?: string,
+) {
   const type = input.movementTypeId
     ? s.movementTypes.find((t) => t.id === input.movementTypeId)
     : undefined;
@@ -109,6 +118,20 @@ export function addMovement(s: CatalogSnapshot, input: MovementInput) {
     reversesId: "",
   };
   if (!incoming) delete m.batchName;
+  delete m.reservationId;
+  validateMovement(s, m);
+  if (m.fromLocationId) {
+    if (salePlanId)
+      m.reservationId = reservationForSale(
+        s,
+        m.productId,
+        m.fromLocationId,
+        m.quantity,
+        salePlanId,
+      );
+    else assertUnreservedOutflow(s, m.productId, m.fromLocationId, m.quantity);
+    if (!m.reservationId) delete m.reservationId;
+  }
   validateMovement(s, m);
   allocateMovement(s, m);
   s.movements.push(m);
@@ -142,6 +165,14 @@ export function reverseMovement(
     reversesId: old.id,
   };
   delete m.batchName;
+  delete m.reservationId;
+  validateMovement(s, m);
+  if (m.fromLocationId)
+    assertUnreservedOutflow(s, m.productId, m.fromLocationId, m.quantity);
+  else {
+    const reservationId = activeReturnReservation(s, old, m.toLocationId);
+    if (reservationId) m.reservationId = reservationId;
+  }
   validateMovement(s, m);
   allocateMovement(s, m);
   s.movements.push(m);

@@ -4,6 +4,8 @@ import { useRoute, useRouter } from "vue-router";
 import { useWorkspaceStore } from "../../app/workspace-store";
 import { useCatalogStore } from "../../app/catalog-store";
 import { balance } from "../../domain/inventory/operations";
+import { availableQuantity } from "../../domain/inventory/reservations";
+import ReservationPanel from "../components/ReservationPanel.vue";
 import { activityCashSummary } from "../../domain/activity/operations";
 import { saleTotal } from "../../domain/sales/operations";
 import { saleNetRevenue, lineReturnSummary } from "../../domain/sales/refunds";
@@ -212,6 +214,42 @@ async function command(cmd: ActivityCommand, message: string) {
     await refresh();
     notice.value = message;
   });
+}
+async function reserveActivity(input: {
+  planId: string;
+  productId: string;
+  locationId: string;
+  quantity: number;
+  reason: string;
+}) {
+  if (!packet.value || busy.value)
+    throw new Error("請先載入活動，並等目前操作完成。");
+  busy.value = true;
+  try {
+    packet.value = await changeActivity(
+      packet.value.handoffId,
+      packet.value.revision,
+      { type: "reserve", input },
+    );
+    await refresh();
+  } finally {
+    busy.value = false;
+  }
+}
+async function releaseActivityReservation(id: string, reason: string) {
+  if (!packet.value || busy.value)
+    throw new Error("請先載入活動，並等目前操作完成。");
+  busy.value = true;
+  try {
+    packet.value = await changeActivity(
+      packet.value.handoffId,
+      packet.value.revision,
+      { type: "release-reservation", id, reason },
+    );
+    await refresh();
+  } finally {
+    busy.value = false;
+  }
 }
 function addCart() {
   error.value = "";
@@ -649,9 +687,7 @@ function time(value: string) {
     <section class="panel section-block">
       <h2>{{ packet.name }}</h2>
       <p>
-        {{
-          packet.snapshot.events.find((e) => e.id === packet!.eventId)?.name
-        }}
+        {{ packet.snapshot.events.find((e) => e.id === packet!.eventId)?.name }}
         · 修訂{{ packet.revision }} ·
         {{ packet.closure ? "已確認結案 · 永久唯讀" : "進行中" }}
       </p>
@@ -708,6 +744,13 @@ function time(value: string) {
           捨棄已保存草稿
         </button>
       </p>
+      <ReservationPanel
+        :snapshot="packet.snapshot"
+        :busy="busy"
+        :readonly="!!packet.closure"
+        :on-reserve="reserveActivity"
+        :on-release="releaseActivityReservation"
+      />
       <fieldset :disabled="busy || !!packet.closure">
         <legend>新增交易</legend>
         <div class="grid">
@@ -727,6 +770,14 @@ function time(value: string) {
               <option v-for="p in products" :key="p.id" :value="p.id">
                 {{ p.name }} · 現存{{
                   balance(packet.snapshot, p.id, packet.locationId)
+                }}
+                · 可售{{
+                  availableQuantity(
+                    packet.snapshot,
+                    p.id,
+                    packet.locationId,
+                    saleForm.planId || undefined,
+                  )
                 }}
               </option>
             </select>
@@ -1346,7 +1397,7 @@ function time(value: string) {
         <p>{{ packet.closure.notes }}</p></template
       ><template v-else
         ><p>
-          所有交付及新增品項都必須填實點數量。盤差可以註記待查，未清款不阻止結案；實點不會自動調整庫存或變成銷售。
+          所有交付及新增品項都必須填實點數量。確認結案會留下原因並釋放尚未售出的專用預留，不改變實物數量。盤差可以註記待查，未清款不阻止結案；實點不會自動調整庫存或變成銷售。
         </p>
         <p v-if="cart.length || packet.draft.length" class="error-notice">
           尚有未成交購物車，請先成交或清空。

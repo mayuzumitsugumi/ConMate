@@ -6,7 +6,7 @@ import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.15.0";
+export const PROJECT_VERSION = "2.16.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -1045,6 +1045,33 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
         r.createdAt,
         r.reversesId,
         r.notes,
+      ]);
+  }
+  if (snapshot.inventoryReservations.length) {
+    const ws = sheet("38_專用庫存預留", [
+      "預留編號",
+      "方案",
+      "商品",
+      "庫位",
+      "原預留數量",
+      "建立時間",
+      "釋放時間",
+      "預留原因",
+      "釋放原因",
+    ]);
+    for (const r of snapshot.inventoryReservations)
+      ws.addRow([
+        r.code,
+        snapshot.salePlans.find((p) => p.id === r.planId)?.name || r.planId,
+        snapshot.products.find((p) => p.id === r.productId)?.name ||
+          r.productId,
+        snapshot.locations.find((l) => l.id === r.locationId)?.name ||
+          r.locationId,
+        r.quantity,
+        r.createdAt,
+        r.releasedAt,
+        r.reason,
+        r.releaseReason,
       ]);
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);

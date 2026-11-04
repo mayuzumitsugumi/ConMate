@@ -38,6 +38,16 @@ export function putSalePlan(
     )
   )
     throw new Error("方案場次不存在或已封存。");
+  if (
+    old &&
+    s.inventoryReservations.some(
+      (r) =>
+        !r.releasedAt &&
+        r.planId === old.id &&
+        !productIds.includes(r.productId),
+    )
+  )
+    throw new Error("移除商品前請先明確釋放其專用預留。");
   const now = new Date().toISOString();
   const plan: SalePlan = old || {
     ...record(s, "PLN", name),
@@ -67,6 +77,11 @@ export function putSalePlan(
 export function toggleSalePlanArchive(s: CatalogSnapshot, id: string) {
   const p = s.salePlans.find((p) => p.id === id);
   if (!p) throw new Error("找不到販售方案。");
+  if (
+    !p.archived &&
+    s.inventoryReservations.some((r) => !r.releasedAt && r.planId === p.id)
+  )
+    throw new Error("封存方案前請先明確釋放全部專用預留。");
   p.archived = !p.archived;
   p.updatedAt = new Date().toISOString();
 }

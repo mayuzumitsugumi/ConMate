@@ -88,6 +88,7 @@ export async function previewActivityImport(input: ActivityPacket) {
   let canImport = true,
     reason = "可匯入此活動交接檔。";
   if (existing) {
+    const normalized = validateActivityPacket(existing);
     const immutable = [
       "sourceWorkspaceId",
       "sourceRevision",
@@ -101,7 +102,7 @@ export async function previewActivityImport(input: ActivityPacket) {
     ] as const;
     if (
       immutable.some(
-        (k) => JSON.stringify(existing[k]) !== JSON.stringify(packet[k]),
+        (k) => JSON.stringify(normalized[k]) !== JSON.stringify(packet[k]),
       )
     )
       return {
@@ -109,14 +110,15 @@ export async function previewActivityImport(input: ActivityPacket) {
         canImport: false,
         reason: "交接來源或原始快照已變更，不能取代原活動。",
       };
-    if (JSON.stringify(existing) === JSON.stringify(packet))
+    if (JSON.stringify(normalized) === JSON.stringify(packet))
       reason = "內容與本機相同，不會重複新增。";
     else if (existing.closure) {
       canImport = false;
       reason = "本機活動已結案，不能取代；請由創作管理更正。";
     } else if (
       packet.revision <= existing.revision ||
-      !packet.lineage.includes(await packetFingerprint(existing))
+      (!packet.lineage.includes(await packetFingerprint(existing)) &&
+        !packet.lineage.includes(await packetFingerprint(normalized)))
     ) {
       canImport = false;
       reason = "本機與檔案已分歧，不能依較大修訂覆蓋。請確認最後接手的檔案。";
@@ -143,8 +145,11 @@ export async function saveImportedActivity(
       null;
     if ((current ? JSON.stringify(current) : null) !== expected)
       throw new Error("預覽後活動已有變更，原資料未覆蓋。");
-    if (current && JSON.stringify(current) === JSON.stringify(packet))
-      return current;
+    if (
+      current &&
+      JSON.stringify(validateActivityPacket(current)) === JSON.stringify(packet)
+    )
+      return validateActivityPacket(current);
     await persistPacket(packet);
     return packet;
   });

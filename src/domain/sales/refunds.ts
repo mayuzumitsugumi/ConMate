@@ -1,3 +1,4 @@
+import { activeReturnReservation } from "../inventory/reservations";
 import { allocateReturn } from "../inventory/batches";
 import { record, text } from "../catalog/operations";
 import { whole, safeAmount } from "../money";
@@ -133,6 +134,15 @@ export function refundSale(s: CatalogSnapshot, input: RefundInput) {
         createdAt: refund.createdAt,
         reversesId: "",
       };
+      const sourceMovement = s.movements.find(
+        (m) => m.id === original.movementId,
+      )!;
+      const reservationId = activeReturnReservation(
+        s,
+        sourceMovement,
+        inputLine.returnLocationId,
+      );
+      if (reservationId) Object.assign(movement, { reservationId });
       const prior = lineReturnSummary(s, original.id);
       allocateReturn(
         s,

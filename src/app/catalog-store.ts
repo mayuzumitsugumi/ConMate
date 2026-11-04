@@ -1,4 +1,8 @@
 import {
+  reserveStock,
+  releaseReservation,
+} from "../domain/inventory/reservations";
+import {
   createInternalAgreement as putInternalAgreement,
   recordInternalReceipt as putInternalReceipt,
   reverseInternalReceipt as undoInternalReceipt,
@@ -149,6 +153,20 @@ export const useCatalogStore = defineStore("catalog", () => {
       busy.value = false;
     }
   }
+  const reserveInventory = (input: {
+    planId: string;
+    productId: string;
+    locationId: string;
+    quantity: number;
+    reason: string;
+  }) =>
+    mutate((s) => {
+      reserveStock(s, input);
+    });
+  const releaseInventoryReservation = (id: string, reason: string) =>
+    mutate((s) => {
+      releaseReservation(s, id, reason);
+    });
   const saveProduct = (input: ProductInput, id?: string) =>
     mutate((s) => {
       putProduct(s, input, id);
@@ -157,6 +175,13 @@ export const useCatalogStore = defineStore("catalog", () => {
     mutate((s) => {
       const p = s.products.find((p) => p.id === id);
       if (!p) throw new Error("找不到商品。");
+      if (
+        !p.archived &&
+        s.inventoryReservations.some(
+          (r) => !r.releasedAt && r.productId === p.id,
+        )
+      )
+        throw new Error("封存商品前請先明確釋放專用預留。");
       p.archived = !p.archived;
       p.updatedAt = new Date().toISOString();
     });
@@ -379,6 +404,8 @@ export const useCatalogStore = defineStore("catalog", () => {
       cancelInternalAgreement(s, id, reason);
     });
   return {
+    reserveInventory,
+    releaseInventoryReservation,
     createInternalAgreement,
     recordInternalReceipt,
     reverseInternalReceipt,

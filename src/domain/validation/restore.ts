@@ -1,3 +1,4 @@
+import { validateReservations } from "../inventory/reservations";
 import { validateActivityParentState } from "../activity/operations";
 import { validateInternalPricing } from "../finance/internal-pricing";
 import { validateBatchCosts } from "../finance/batch-costs";
@@ -83,6 +84,7 @@ const keys = [
   "batchCostVersions",
   "internalAgreements",
   "internalReceipts",
+  "inventoryReservations",
 ] as const;
 export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   // Older backups gain empty inventory; never invent physical stock.
@@ -141,7 +143,9 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     };
   if (s.schemaVersion === 16)
     s = { ...s, schemaVersion: 17, activityHandoffs: [], activityMerges: [] };
-  if (s.schemaVersion !== 17) fail("目前僅支援網站資料版本 3 至 17。");
+  if (s.schemaVersion === 17)
+    s = { ...s, schemaVersion: 18, inventoryReservations: [] };
+  if (s.schemaVersion !== 18) fail("目前僅支援網站資料版本 3 至 18。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -1033,5 +1037,6 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   validateBatchCosts(s as unknown as CatalogSnapshot);
   validateInternalPricing(s as unknown as CatalogSnapshot);
   validateActivityParentState(s as unknown as CatalogSnapshot);
+  validateReservations(s as unknown as CatalogSnapshot);
   return s as unknown as CatalogSnapshot;
 }

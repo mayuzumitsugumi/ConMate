@@ -105,14 +105,18 @@ export function completeSale(s: CatalogSnapshot, input: SaleInput) {
       )
         throw new Error("商品、價格或場次與販售方案不符。");
     }
-    const movement = addMovement(s, {
-      productId: p.id,
-      kind: "adjust-out",
-      quantity: line.quantity,
-      fromLocationId: location.id,
-      toLocationId: "",
-      reason: `${sale.code} ${line.mode === "draw" ? "抽選實際交付" : "指定購買"}`,
-    });
+    const movement = addMovement(
+      s,
+      {
+        productId: p.id,
+        kind: "adjust-out",
+        quantity: line.quantity,
+        fromLocationId: location.id,
+        toLocationId: "",
+        reason: `${sale.code} ${line.mode === "draw" ? "抽選實際交付" : "指定購買"}`,
+      },
+      plan?.id,
+    );
     movement.kind = "sale";
     movement.name = "販售出庫";
     movement.saleId = sale.id;

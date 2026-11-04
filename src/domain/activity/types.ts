@@ -123,9 +123,21 @@ export interface ActivityMergeRecord {
   productMappings: Record<string, string>;
   planMappings: Record<string, string>;
   createdMovementIds: string[];
+  reservationMovementOffset?: number;
   returnedAt: string;
 }
 export type ActivityCommand =
+  | {
+      type: "reserve";
+      input: {
+        planId: string;
+        productId: string;
+        locationId: string;
+        quantity: number;
+        reason: string;
+      };
+    }
+  | { type: "release-reservation"; id: string; reason: string }
   | { type: "draft"; lines: SaleInput["lines"] }
   | { type: "sale"; input: SaleInput }
   | { type: "refund"; input: RefundInput }

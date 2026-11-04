@@ -5,11 +5,13 @@ import { onBeforeRouteLeave } from "vue-router";
 import SaleRefundPanel from "../components/SaleRefundPanel.vue";
 import { saleNetRevenue } from "../../domain/sales/refunds";
 import type { RefundRecord } from "../../domain/models/catalog";
+import ReservationPanel from "../components/ReservationPanel.vue";
+import { availableQuantity } from "../../domain/inventory/reservations";
+import { balance } from "../../domain/inventory/operations";
 import SalePlansPanel from "../components/SalePlansPanel.vue";
 import { computed, reactive, ref, watch } from "vue";
 import { useWorkspaceStore } from "../../app/workspace-store";
 import { useCatalogStore } from "../../app/catalog-store";
-import { balance } from "../../domain/inventory/operations";
 import { saleTotal } from "../../domain/sales/operations";
 import type { SaleInput, SaleLineInput } from "../../domain/models/catalog";
 const workspaces = useWorkspaceStore(),
@@ -215,9 +217,19 @@ function add(productId: string, mode: "direct" | "draw") {
     });
   confirming.value = false;
 }
-function stock(id: string) {
+function physicalStock(id: string) {
   return catalog.snapshot && context.locationId
     ? balance(catalog.snapshot, id, context.locationId)
+    : "—";
+}
+function stock(id: string) {
+  return catalog.snapshot && context.locationId
+    ? availableQuantity(
+        catalog.snapshot,
+        id,
+        context.locationId,
+        selectedPlanId.value || undefined,
+      )
     : "—";
 }
 async function submit() {
@@ -394,6 +406,7 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
         >
       </section>
       <SalePlansPanel />
+      <ReservationPanel />
       <section class="business-panel section-block">
         <div class="field">
           <label for="sales-plan">目前販售方案</label
@@ -428,7 +441,10 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
           <div class="product-grid">
             <article v-for="p in products" :key="p.id" class="business-panel">
               <h3>{{ p.name }}</h3>
-              <p>{{ p.code }} · 目前庫位現存 {{ stock(p.id) }}</p>
+              <p>{{ p.code }} · 目前庫位現存 {{ physicalStock(p.id) }}</p>
+              <p>
+                目前{{ selectedPlan ? "方案" : "共用" }}可售 {{ stock(p.id) }}
+              </p>
               <div class="actions">
                 <button
                   type="button"

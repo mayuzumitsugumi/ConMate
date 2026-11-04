@@ -370,3 +370,32 @@ it("uses dispatch cost versions and permits append-only creator refunds", async 
     await import("../../src/domain/validation/restore");
   expect(validateRestoreSnapshot(structuredClone(s)).refunds).toHaveLength(1);
 });
+it("continues original schema17 packets after upgrade without mistaking normalized snapshots for forks", async () => {
+  const { w, p, productId } = await fixture();
+  const old = structuredClone(p) as any;
+  for (const s of [old.baseline, old.snapshot]) {
+    s.schemaVersion = 17;
+    delete s.inventoryReservations;
+  }
+  await database.activityPackets.put(old);
+  const parent = await database.catalogs.get(w.id);
+  parent!.activityHandoffs[0]!.packet = old;
+  await database.catalogs.put(parent!);
+  // An older device saved a legitimate next revision before upgrading.
+  const { applyActivityCommand } =
+    await import("../../src/domain/activity/operations");
+  const incoming = applyActivityCommand(p, {
+    type: "decrease",
+    productId,
+    quantity: 1,
+    kind: "free",
+    reason: "舊裝置續作",
+  });
+  incoming.lineage = [await packetFingerprint(old)];
+  expect((await previewActivityImport(incoming)).canImport).toBe(true);
+  await saveImportedActivity(incoming, 0);
+  expect((await readActivity(p.handoffId)).revision).toBe(1);
+  expect(
+    (await readActivity(p.handoffId)).snapshot.inventoryReservations,
+  ).toEqual([]);
+});

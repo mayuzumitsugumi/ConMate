@@ -74,7 +74,7 @@ async function archive(p: SalePlan) {
   >
     <h2 id="plans-title">販售方案與抽選池</h2>
     <p>
-      先設定售價及可交付商品。抽選池可混合創作者與周邊種類，現場選擇實際抽出的款式；所有方案共用實物庫存，不會另外增加或保留數量。
+      先設定售價及可交付商品。抽選池可混合創作者與周邊種類，現場選擇實際抽出的款式；方案預設共用實物庫存；需要專用數量時，可在下方「方案專用庫存」另外預留，不會增加實物總量。
     </p>
     <p v-if="notice" class="success-notice" role="status">{{ notice }}</p>
     <p v-if="error" class="error-notice" role="alert">{{ error }}</p>

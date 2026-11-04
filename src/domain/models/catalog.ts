@@ -85,7 +85,8 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 17;
+  schemaVersion: 18;
+  inventoryReservations: InventoryReservation[];
   activityHandoffs: HandoffRecord[];
   activityMerges: ActivityMergeRecord[];
   internalAgreements: InternalAgreement[];
@@ -152,7 +153,20 @@ export type MovementKind =
   | "reversal"
   | "sale"
   | "refund-return";
+export interface InventoryReservation extends NamedRecord {
+  createdMovementCount: number;
+  releasedMovementCount: number | null;
+  planId: string;
+  productId: string;
+  locationId: string;
+  quantity: number;
+  createdAt: string;
+  releasedAt: string;
+  reason: string;
+  releaseReason: string;
+}
 export interface InventoryMovement extends NamedRecord {
+  reservationId?: string;
   batchAllocations: { batchId: string; quantity: number }[];
   batchName?: string;
   productId: string;
