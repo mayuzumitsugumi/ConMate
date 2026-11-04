@@ -152,15 +152,17 @@ onMounted(() => {
 
 .entrance-switch {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 5fr);
   gap: 5px;
-  margin: 16px 18px 12px;
+  margin: 16px 8px 12px;
   border: 1px solid #c9d8cb;
   border-radius: 9px;
   padding: 4px;
 }
 .entrance-switch a {
   display: flex;
+  min-width: 0;
+  white-space: nowrap;
   min-height: 44px;
   align-items: center;
   justify-content: center;
