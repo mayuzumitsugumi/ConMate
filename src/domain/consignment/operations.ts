@@ -479,6 +479,32 @@ export function validateConsignments(s: CatalogSnapshot) {
         (o.request as { operationId?: string })?.operationId !== o.id
       )
         fail("寄賣操作結果不符。");
+      const req = o.request as Record<string, unknown>;
+      if (o.kind === "remittance") {
+        const r = c.remittances.find((r) => r.id === o.resultId)!;
+        if (
+          req.amount !== r.amount ||
+          typeof req.receivedAt !== "string" ||
+          instant(req.receivedAt) !== r.receivedAt ||
+          typeof req.reason !== "string" ||
+          req.reason.trim() !== r.reason
+        )
+          fail("寄賣實收與操作來源不符。");
+      } else {
+        const r = s.movements.find((r) => r.id === o.resultId)!;
+        if (
+          !r ||
+          req.productId !== r.productId ||
+          req.quantity !== r.quantity ||
+          typeof req.reason !== "string" ||
+          req.reason.trim() !== r.reason ||
+          !sameData(req.unitIds || [], r.unitIds || []) ||
+          (o.kind === "delivery"
+            ? req.sourceLocationId !== r.fromLocationId
+            : req.toLocationId !== r.toLocationId)
+        )
+          fail("寄賣交付與操作來源不符。");
+      }
     }
     for (const id of [
       ...c.deliveryIds,

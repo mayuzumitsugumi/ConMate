@@ -415,3 +415,76 @@ it("tampered missing cash-only store refund or foreign movement is refused", () 
   missing.sales[0]!.consignmentId = "foreign";
   expect(() => validateRestoreSnapshot(missing)).toThrow();
 });
+it("activity snapshot and master-data template exclude consignment histories and preserve protected ledger", async () => {
+  const x = setup();
+  deliver(x, 2);
+  sell(x, 1);
+  const { putEvent } = await import("../../src/domain/catalog/projects");
+  const { prepareHandoff } =
+    await import("../../src/domain/activity/operations");
+  const { buildMasterDataImportWorkbook, parseMasterDataImport } =
+    await import("../../src/infrastructure/excel/master-data-import");
+  const { previewMasterDataImport } =
+    await import("../../src/application/master-data-import");
+  const event = putEvent(x.s, {
+    name: "虛構活動",
+    startDate: "2026-01-01",
+    endDate: "2026-01-01",
+    venue: "",
+    notes: "",
+    projectIds: [],
+  });
+  const packet = prepareHandoff(x.s, {
+    name: "活動交付",
+    eventId: event.id,
+    sourceLocationId: x.l.id,
+    lines: [{ productId: x.p.id, quantity: 1 }],
+    planIds: [],
+    collectorIds: [],
+  }).packet;
+  expect(packet.snapshot.consignments).toEqual([]);
+  expect(packet.baseline.consignments).toEqual([]);
+  expect(JSON.stringify(packet)).not.toContain("虛構店家寄賣");
+  const before = structuredClone(x.s.consignments);
+  const document = await parseMasterDataImport(
+    await buildMasterDataImportWorkbook(x.s),
+  );
+  const preview = previewMasterDataImport(x.s, document.document!);
+  expect(preview.issues.filter((i) => i.level === "error")).toEqual([]);
+  expect(x.s.consignments).toEqual(before);
+});
+it("actual installed Dexie21 upgrades to22 preserving original IDs, revision, cash and recovery snapshots", async () => {
+  const Dexie = (await import("dexie")).default;
+  const { ConMateDatabase } =
+    await import("../../src/infrastructure/storage/workspaces");
+  const x = setup();
+  const data = structuredClone(x.s) as any;
+  data.schemaVersion = 20;
+  delete data.consignments;
+  data.revision = 42;
+  const name = "consignment-migration-" + crypto.randomUUID(),
+    old = new Dexie(name);
+  old
+    .version(21)
+    .stores({
+      workspaces: "id, createdAt",
+      catalogs: "workspaceId",
+      recoverySnapshots: "id, workspaceId, createdAt",
+      backupStatus: "workspaceId",
+      activityPackets: "handoffId, sourceWorkspaceId, eventId",
+    });
+  await old.table("workspaces").put(data.workspace);
+  await old.table("catalogs").put(data);
+  await old
+    .table("recoverySnapshots")
+    .put({ id: "old", workspaceId: data.workspaceId, snapshot: data });
+  old.close();
+  const next = new ConMateDatabase(name);
+  try {
+    const got = await next.catalogs.get(data.workspaceId);
+    expect(got).toEqual({ ...data, schemaVersion: 21, consignments: [] });
+    expect((await next.recoverySnapshots.get("old"))!.snapshot).toEqual(data);
+  } finally {
+    await next.delete();
+  }
+});
