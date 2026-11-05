@@ -43,7 +43,7 @@ export interface ReportLine extends ReportMetrics {
   projectName: string;
   productId: string;
   productName: string;
-  mode: string;
+  mode: "direct" | "draw";
   planName: string;
 }
 export interface ReportStock {
@@ -324,7 +324,7 @@ export function queryOperationalReport(
         projectName,
         productId: line.productId,
         productName: line.productName,
-        mode: line.mode === "draw" ? "抽選" : "指定",
+        mode: line.mode,
         planName: line.planName || "手動售價",
       });
     }

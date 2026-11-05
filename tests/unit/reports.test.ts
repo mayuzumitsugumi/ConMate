@@ -14,6 +14,7 @@ import { putSalePlan } from "../../src/domain/sales/plans";
 import { completeSale, cancelSale } from "../../src/domain/sales/operations";
 import { refundSale } from "../../src/domain/sales/refunds";
 import { completeExchange } from "../../src/domain/sales/exchanges";
+import { buildReportWorkbook } from "../../src/infrastructure/excel/report";
 import { putCost } from "../../src/domain/finance/operations";
 import { saveBatchCost } from "../../src/domain/finance/batch-costs";
 import {
@@ -130,6 +131,42 @@ function credit(
     confirmed: true,
   });
 }
+it("exports queried draw and direct sale modes with their correct labels", async () => {
+  const x = fixture();
+  const plan = putSalePlan(x.s, {
+    name: "抽選池",
+    mode: "draw",
+    unitPrice: 100,
+    productIds: [x.p.id],
+    eventIds: [],
+  });
+  completeSale(x.s, {
+    operationId: crypto.randomUUID(),
+    locationId: x.location.id,
+    eventId: x.event.id,
+    collectorId: x.creator.id,
+    cashReceived: 100,
+    notes: "",
+    lines: [
+      {
+        productId: x.p.id,
+        quantity: 1,
+        unitPrice: 100,
+        mode: "draw",
+        planId: plan.id,
+        planVersion: plan.version,
+      },
+    ],
+  });
+  sell(x);
+  const report = queryOperationalReport(x.s, { groupBy: "product" }, at);
+  const book = await buildReportWorkbook(report, queryCashFlow(x.s, {}, at));
+  const sales = book.getWorksheet("03_銷售明細")!;
+  expect(sales.getRows(2, 2)!.map((r) => r.getCell(7).value).sort()).toEqual([
+    "抽選",
+    "指定",
+  ]);
+});
 it("groups mixed creator invoice by sale snapshots without splitting invoice cash", () => {
   const x = fixture();
   const sale = completeSale(x.s, {
