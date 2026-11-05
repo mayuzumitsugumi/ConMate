@@ -72,6 +72,8 @@ export function completeExchange(
       fail("相同操作識別已用於不同換購，請重新讀取。");
     return previous;
   }
+  if (s.sales.find((r) => r.id === input.saleId)?.consignmentId)
+    fail("寄賣換貨請分別回報退款及新銷售，不使用現場差額換購。");
   const totals = exchangeDifference(input);
   if (input.actualDifference !== totals.difference)
     fail(

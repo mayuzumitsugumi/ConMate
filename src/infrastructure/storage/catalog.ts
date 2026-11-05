@@ -1,9 +1,11 @@
+import { validateConsignments } from "../../domain/consignment/operations";
 import { database } from "./workspaces";
 import type { CatalogSnapshot } from "../../domain/models/catalog";
 import type { Workspace } from "../../domain/models/workspace";
 export function emptyCatalog(workspace: Workspace): CatalogSnapshot {
   return {
-    schemaVersion: 20,
+    schemaVersion: 21,
+    consignments: [],
     exchanges: [],
     physicalUnits: [],
     inventoryReservations: [],
@@ -48,7 +50,7 @@ export const catalogRepository = {
     const workspace = await database.workspaces.get(workspaceId);
     if (!workspace) throw new Error("請先選擇一個本機工作區。");
     const existing = await database.catalogs.get(workspaceId);
-    if (existing && existing.schemaVersion !== 20)
+    if (existing && existing.schemaVersion !== 21)
       throw new Error("資料版本較新或不支援，請更新網站；原始資料未刪除。 ");
     return existing ? { ...existing, workspace } : emptyCatalog(workspace);
   },
@@ -90,6 +92,7 @@ export const catalogRepository = {
           throw new Error(
             "此庫位已交付活動，請在活動工作台記錄；結案合回前不能從創作管理更動交付庫存。",
           );
+        validateConsignments(snapshot);
         snapshot.revision++;
         await database.catalogs.put(snapshot);
         return snapshot;

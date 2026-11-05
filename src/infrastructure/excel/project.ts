@@ -1,3 +1,4 @@
+import { consignmentSummary } from "../../domain/consignment/operations";
 import { internalSummary } from "../../domain/finance/internal-pricing";
 import { batchCostReport } from "../../domain/finance/batch-costs";
 import { batchBalances } from "../../domain/inventory/batches";
@@ -6,7 +7,7 @@ import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.18.0";
+export const PROJECT_VERSION = "2.19.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -1140,6 +1141,77 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
         e.createdAt,
         e.reason,
       ]);
+  }
+  if (snapshot.consignments.length) {
+    const summary = sheet("40_寄賣", [
+      "寄賣編號",
+      "名稱",
+      "店家",
+      "專用庫位",
+      "店家成交額",
+      "顧客退款",
+      "淨營收",
+      "費用",
+      "調整額",
+      "預計匯款",
+      "實際已收匯款",
+      "待核對差額",
+      "狀態",
+    ]);
+    const statements = sheet("41_寄賣核對版本", [
+      "寄賣編號",
+      "核對ID",
+      "費用",
+      "調整額",
+      "原因",
+      "紀錄時間",
+    ]);
+    const payments = sheet("42_寄賣實收", [
+      "寄賣編號",
+      "紀錄ID",
+      "金額",
+      "實際入帳時間",
+      "沖銷來源",
+      "說明",
+      "紀錄時間",
+    ]);
+    for (const c of snapshot.consignments) {
+      const a = consignmentSummary(snapshot, c);
+      summary.addRow([
+        c.code,
+        c.name,
+        snapshot.parties.find((p) => p.id === c.storePartyId)?.name || "",
+        snapshot.locations.find((l) => l.id === c.locationId)?.name || "",
+        a.gross,
+        a.refunds,
+        a.netSales,
+        a.fee ?? "未知",
+        a.adjustment ?? "未知",
+        a.expected ?? "未知",
+        a.received,
+        a.balance ?? "未知",
+        c.closedAt ? "已結束" : "進行中",
+      ]);
+      for (const r of c.statements)
+        statements.addRow([
+          c.code,
+          r.id,
+          r.fee ?? "未知",
+          r.adjustment ?? "未知",
+          r.reason,
+          r.createdAt,
+        ]);
+      for (const r of c.remittances)
+        payments.addRow([
+          c.code,
+          r.id,
+          r.amount,
+          r.receivedAt,
+          r.reversesId,
+          r.reason,
+          r.createdAt,
+        ]);
+    }
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);
   raw.state = "hidden";

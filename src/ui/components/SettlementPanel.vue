@@ -76,6 +76,16 @@ const sourceCosts = computed(
       (c) => !productFilter.value || c.productId === productFilter.value,
     ) || [],
 );
+const includesConsignment = computed(() =>
+  catalog.snapshot?.sales.some(
+    (sale) =>
+      sale.consignmentId &&
+      (sale.lines.some((line) => sources.saleLineIds.includes(line.id)) ||
+        group.value?.trials.some((trial) =>
+          trial.saleSources.some((source) => source.saleId === sale.id),
+        )),
+  ),
+);
 const balances = computed(() =>
   catalog.snapshot && group.value
     ? settlementBalances(catalog.snapshot, group.value.id)
@@ -367,6 +377,9 @@ const costTotal = (c: Parameters<typeof costSummary>[0]) => {
     <p>
       試算、你的分配決定、實際付款分開保存。系統不替你追收或決定結案；未設定規則或尚未清款仍可自行結案。
     </p>
+    <p v-if="includesConsignment" class="info-banner" role="note">
+      此工作表包含寄賣銷售：店家代收款不代表創作者持款。寄賣費用、店家匯回及其他工作表的分配不會自動抵扣，請明確選擇成本及持款依據，避免重複分配。
+    </p>
     <p v-if="notice" role="status" class="success-notice">{{ notice }}</p>
     <p v-if="error" role="alert" class="error-notice">{{ error }}</p>
     <details>
@@ -476,7 +489,7 @@ const costTotal = (c: Parameters<typeof costSummary>[0]) => {
               type="checkbox"
               v-model="sources.saleLineIds"
               :value="row.line.id"
-            />{{ row.sale.code }} · {{ row.line.productName }} ·
+            />{{ row.sale.code }}{{ row.sale.consignmentId ? "（寄賣／店家代收）" : "" }} · {{ row.line.productName }} ·
             {{ row.line.planName || "手動售價" }} · 淨營收
             {{ row.net }} 元</label
           >

@@ -421,7 +421,7 @@ export function queryOperationalReport(
       "留在顧客處數量＝原交付數－可售退回數－損壞退回數；金額退款不必然有實物退回。",
       "可售退貨沿用原成本反向核對；損壞退回成本另列，仍包含於未回可售庫存成本。",
       "精確分數先加總再顯示四位小數；各列顯示尾數不一定直接相加等於總計。",
-      "這是目前工作區已保存資料的唯讀查詢；尚未合回的活動檔不會重複計入。",
+      "這是目前工作區已保存資料的唯讀查詢；寄賣店確認回報列入營收，但店家收款不等於創作者已收匯款；尚未合回的活動檔不會重複計入。",
     ],
     warnings,
     choices: {
@@ -461,6 +461,7 @@ export function queryCashFlow(
       entries.push(entry);
   };
   for (const sale of s.sales) {
+    if (sale.consignmentId) continue; // Retailer collection is not creator receipt.
     const amount = BigInt(sale.cashReceived) - BigInt(sale.change);
     push({
       id: "sale:" + sale.id,
@@ -496,6 +497,7 @@ export function queryCashFlow(
     if (refund.exchangeId || !refund.total) continue;
     const sale = s.sales.find((r) => r.id === refund.saleId);
     if (!sale) reject("退款原交易不存在。");
+    if (sale.consignmentId) continue;
     push({
       id: "refund:" + refund.id,
       kind: "refund",
@@ -526,7 +528,7 @@ export function queryCashFlow(
     definitions: [
       "依每筆成交、取消及退款發生時間篩選，日期採台灣時間；不是依原成交日期計算的銷售群組。",
       "成交現金淨額＝收到金額－找零；換購只列真正補收／退還差額，不另加換購紀錄或把折抵當現金退款。",
-      "本表僅核對顧客銷售相關現金，不包含活動支出、交款、代墊或成員分款，不能當作實際持款餘額。",
+      "本表排除寄賣店回報的顧客收退；店家實際匯款另見寄賣核對。本表僅核對直接顧客銷售相關現金，不包含活動支出、交款、代墊或成員分款，不能當作實際持款餘額。",
       "創作者／企劃／商品篩選不套用本表；混合交易的現金不按商品比例分攤。",
     ],
     warnings: [

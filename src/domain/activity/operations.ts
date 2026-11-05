@@ -33,6 +33,7 @@ function sum(ns: number[]) {
   return ns.reduce((a, b) => whole(a + whole(b)), 0);
 }
 const arrayKeys = [
+  "consignments",
   "parties",
   "projects",
   "events",
@@ -744,6 +745,7 @@ function validateShape(p: ActivityPacket) {
     if (s.activityHandoffs.length || s.activityMerges.length)
       fail("活動檔不得包含其他交接歷史。");
     for (const k of [
+      "consignments",
       "costs",
       "advances",
       "settlements",

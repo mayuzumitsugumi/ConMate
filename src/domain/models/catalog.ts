@@ -1,3 +1,4 @@
+import type { Consignment } from "../consignment/types";
 import type { HandoffRecord, ActivityMergeRecord } from "../activity/types";
 import type { Workspace } from "./workspace";
 export type CustomValue = string | number | boolean | string[] | null;
@@ -85,7 +86,8 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 20;
+  schemaVersion: 21;
+  consignments: Consignment[];
   exchanges: ExchangeRecord[];
   physicalUnits: PhysicalUnit[];
   inventoryReservations: InventoryReservation[];
@@ -277,6 +279,8 @@ export interface SaleLine extends SaleLineInput {
   movementId: string;
 }
 export interface SaleRecord extends NamedRecord {
+  consignmentId?: string;
+  consignmentReportedAt?: string;
   exchangeId?: string;
   exchangeCredit?: number;
   replacesRefundId?: string;

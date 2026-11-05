@@ -1,3 +1,4 @@
+import * as consign from "../domain/consignment/operations";
 import { completeExchange } from "../domain/sales/exchanges";
 import type { ExchangeInput } from "../domain/models/catalog";
 import { registerPhysicalUnits } from "../domain/inventory/units";
@@ -304,7 +305,9 @@ export const useCatalogStore = defineStore("catalog", () => {
     });
   const recordRefund = (input: RefundInput) =>
     mutate((s) => {
-      putRefund(s, input);
+      const c = s.consignments.find((c) => c.saleIds.includes(input.saleId));
+      if (c) consign.recordConsignmentRefund(s, c.id, input);
+      else putRefund(s, input);
     });
   const bulkSaveProducts = (names: string[]) =>
     mutate((s) => {
@@ -414,7 +417,73 @@ export const useCatalogStore = defineStore("catalog", () => {
     mutate((s) => {
       registerPhysicalUnits(s, input);
     });
+  const saveConsignment = (
+    input: Parameters<typeof consign.saveConsignment>[1],
+  ) =>
+    mutate((s) => {
+      consign.saveConsignment(s, input);
+    });
+  const deliverConsignment = (
+    id: string,
+    input: Parameters<typeof consign.deliverConsignment>[2],
+  ) =>
+    mutate((s) => {
+      consign.deliverConsignment(s, id, input);
+    });
+  const reportConsignmentSale = (
+    id: string,
+    input: Parameters<typeof consign.reportConsignmentSale>[2],
+  ) =>
+    mutate((s) => {
+      consign.reportConsignmentSale(s, id, input);
+    });
+  const returnConsignmentStock = (
+    id: string,
+    input: Parameters<typeof consign.returnConsignmentStock>[2],
+  ) =>
+    mutate((s) => {
+      consign.returnConsignmentStock(s, id, input);
+    });
+  const setConsignmentStatement = (
+    id: string,
+    input: Parameters<typeof consign.setConsignmentStatement>[2],
+  ) =>
+    mutate((s) => {
+      consign.setConsignmentStatement(s, id, input);
+    });
+  const recordConsignmentRemittance = (
+    id: string,
+    input: Parameters<typeof consign.recordConsignmentRemittance>[2],
+  ) =>
+    mutate((s) => {
+      consign.recordConsignmentRemittance(s, id, input);
+    });
+  const reverseConsignmentRemittance = (
+    id: string,
+    paymentId: string,
+    reason: string,
+  ) =>
+    mutate((s) => {
+      consign.reverseConsignmentRemittance(s, id, paymentId, reason);
+    });
+  const closeConsignment = (id: string, reason: string) =>
+    mutate((s) => {
+      consign.closeConsignment(s, id, reason);
+    });
+  const reopenConsignment = (id: string, reason: string) =>
+    mutate((s) => {
+      consign.reopenConsignment(s, id, reason);
+    });
   return {
+    saveConsignment,
+    deliverConsignment,
+    reportConsignmentSale,
+    returnConsignmentStock,
+    setConsignmentStatement,
+    recordConsignmentRemittance,
+    reverseConsignmentRemittance,
+    closeConsignment,
+    reopenConsignment,
     registerUnits,
     reserveInventory,
     releaseInventoryReservation,

@@ -291,7 +291,7 @@ it("upgrade old schema14 backup and installed DB keeps all cost knowledge unknow
   const next = new ConMateDatabase(name);
   try {
     const got = await next.catalogs.get(x.s.workspaceId);
-    expect(got!.schemaVersion).toBe(20);
+    expect(got!.schemaVersion).toBe(21);
     expect(got!.batchCostVersions).toEqual([]);
     expect(got!.sales).toEqual(x.s.sales);
   } finally {

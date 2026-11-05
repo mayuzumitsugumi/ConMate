@@ -219,7 +219,7 @@ it("upgrades schema8 backup and database with empty stocktake list", async () =>
   const after = new ConMateDatabase(name);
   try {
     const upgraded = await after.catalogs.get(s.workspaceId);
-    expect(upgraded?.schemaVersion).toBe(20);
+    expect(upgraded?.schemaVersion).toBe(21);
     expect(upgraded?.products).toEqual(s.products);
     expect(upgraded?.stocktakes).toEqual([]);
   } finally {

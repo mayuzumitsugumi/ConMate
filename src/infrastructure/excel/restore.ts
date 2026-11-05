@@ -169,6 +169,7 @@ export async function inspectProject(bytes: ArrayBuffer) {
       "2.16.0",
       "2.17.0",
       "2.18.0",
+      "2.19.0",
     ].includes(meta.get("version") || "") ||
     meta.get("payloadEncoding") !== "utf8-base64"
   )
@@ -230,6 +231,7 @@ export async function inspectProject(bytes: ArrayBuffer) {
     "2.16.0": 18,
     "2.17.0": 19,
     "2.18.0": 20,
+    "2.19.0": 21,
   }[meta.get("version") as "2.1.0"];
   if (input?.schemaVersion !== expectedSchema)
     reject("專案格式版本與資料版本不一致。");

@@ -41,6 +41,7 @@ export interface RestoreDifference {
   removed: number;
 }
 const groups = {
+  consignments: "寄賣",
   exchanges: "換購與差額",
   physicalUnits: "特殊單件",
   inventoryReservations: "專用庫存預留",

@@ -180,6 +180,8 @@ export function cancelSale(s: CatalogSnapshot, id: string, reason: string) {
     );
   const sale = s.sales.find((r) => r.id === id);
   if (!sale || sale.cancelledAt) throw new Error("交易不存在，或已經取消。");
+  if (sale.consignmentId)
+    throw new Error("寄賣回報須在寄賣頁追加退款或更正，不可直接取消舊紀錄。");
   if (sale.exchangeId)
     throw new Error(
       "換購交易請以追加退款／退貨更正，不能刪除或直接取消換購歷史。",

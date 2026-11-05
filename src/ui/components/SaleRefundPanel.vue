@@ -121,8 +121,17 @@ const when = (v: string) =>
       部分退款／退貨 {{ sale.code }}
     </button>
     <form v-if="opened" class="confirmation" @submit.prevent="save">
-      <h4>記錄已實際完成的退款與退貨</h4>
-      <p>
+      <h4>
+        {{
+          sale.consignmentId
+            ? "登記店家已完成的退款與退貨"
+            : "記錄已實際完成的退款與退貨"
+        }}
+      </h4>
+      <p v-if="sale.consignmentId">
+        以下是店家已向顧客退款／收回商品的回報，不代表創作者支付現金。回庫僅能回到本寄賣庫位，損壞退貨不增加可售庫存。
+      </p>
+      <p v-else>
         退款金額與退回數量分開填寫。不退貨可只退款；瑕疵退回只留紀錄，不增加可售庫存。同時退貨並交付新商品，可返回使用「換購／補退差額」一次核對；若已完成退款，再另建實際交付交易，勿重複折抵。
       </p>
       <fieldset :disabled="catalog.busy">
@@ -215,10 +224,11 @@ const when = (v: string) =>
           />
         </div>
         <label class="check-option"
-          ><input
-            type="checkbox"
-            v-model="confirmed"
-          />我確認已完成上述退款與退貨；填寫的回庫商品可再次販售</label
+          ><input type="checkbox" v-model="confirmed" />{{
+            sale.consignmentId
+              ? "我確認店家已完成上述退款與退貨；回庫商品可再次販售"
+              : "我確認已完成上述退款與退貨；填寫的回庫商品可再次販售"
+          }}</label
         >
       </fieldset>
       <div class="actions">
@@ -255,7 +265,7 @@ const when = (v: string) =>
         </li>
       </ul>
       <button
-        v-if="!r.exchangeId"
+        v-if="!r.exchangeId && !sale.consignmentId"
         class="button secondary"
         :disabled="catalog.busy"
         @click="emit('replacement', r)"

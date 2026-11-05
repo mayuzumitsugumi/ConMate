@@ -1,3 +1,4 @@
+import ConsignmentsPage from "../ui/pages/ConsignmentsPage.vue";
 import ActivitiesPage from "../ui/pages/ActivitiesPage.vue";
 import ReportsPage from "../ui/pages/ReportsPage.vue";
 import ActivityPage from "../ui/pages/ActivityPage.vue";
@@ -64,6 +65,7 @@ export const sections = [
   },
   { path: "/creators", label: "創作者與柄圖", icon: "box", ready: true },
   { path: "/reports", label: "營運報表", icon: "chart", ready: true },
+  { path: "/consignments", label: "寄賣與對帳", icon: "bag", ready: true },
   { path: "/customize", label: "自訂商品資料", icon: "layers", ready: true },
   { path: "/templates", label: "專案檔與備份", icon: "file", ready: true },
   { path: "/help", label: "使用說明", icon: "info", ready: true },
@@ -75,33 +77,35 @@ export const router = createRouter({
     ...sections.map((section) => ({
       path: section.path,
       component:
-        section.path === "/reports"
-          ? ReportsPage
-          : section.path === "/activities"
-            ? ActivitiesPage
-            : section.path === "/activity"
-              ? ActivityPage
-              : section.path === "/creators"
-                ? MasterDataPage
-                : section.path === "/"
-                  ? OverviewPage
-                  : section.path === "/help"
-                    ? HelpPage
-                    : section.path === "/templates"
-                      ? DataPage
-                      : section.path === "/sales"
-                        ? SalesPage
-                        : section.path === "/finance"
-                          ? FinancePage
-                          : section.path === "/inventory"
-                            ? InventoryPage
-                            : section.path === "/projects"
-                              ? ProjectsPage
-                              : section.path === "/products"
-                                ? ProductsPage
-                                : section.path === "/customize"
-                                  ? CustomizationPage
-                                  : UpcomingPage,
+        section.path === "/consignments"
+          ? ConsignmentsPage
+          : section.path === "/reports"
+            ? ReportsPage
+            : section.path === "/activities"
+              ? ActivitiesPage
+              : section.path === "/activity"
+                ? ActivityPage
+                : section.path === "/creators"
+                  ? MasterDataPage
+                  : section.path === "/"
+                    ? OverviewPage
+                    : section.path === "/help"
+                      ? HelpPage
+                      : section.path === "/templates"
+                        ? DataPage
+                        : section.path === "/sales"
+                          ? SalesPage
+                          : section.path === "/finance"
+                            ? FinancePage
+                            : section.path === "/inventory"
+                              ? InventoryPage
+                              : section.path === "/projects"
+                                ? ProjectsPage
+                                : section.path === "/products"
+                                  ? ProductsPage
+                                  : section.path === "/customize"
+                                    ? CustomizationPage
+                                    : UpcomingPage,
       meta: { title: section.label },
     })),
     {

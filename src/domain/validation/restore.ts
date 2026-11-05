@@ -1,3 +1,4 @@
+import { validateConsignments } from "../consignment/operations";
 import { validateExchanges } from "../sales/exchanges";
 import { validatePhysicalUnits } from "../inventory/units";
 import { validateReservations } from "../inventory/reservations";
@@ -152,7 +153,8 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   if (s.schemaVersion === 18)
     s = { ...s, schemaVersion: 19, physicalUnits: [] };
   if (s.schemaVersion === 19) s = { ...s, schemaVersion: 20, exchanges: [] };
-  if (s.schemaVersion !== 20) fail("目前僅支援網站資料版本 3 至 20。");
+  if (s.schemaVersion === 20) s = { ...s, schemaVersion: 21, consignments: [] };
+  if (s.schemaVersion !== 21) fail("目前僅支援網站資料版本 3 至 21。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -1056,5 +1058,6 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   validateReservations(s as unknown as CatalogSnapshot);
   validatePhysicalUnits(s as unknown as CatalogSnapshot);
   validateExchanges(s as unknown as CatalogSnapshot);
+  validateConsignments(s as unknown as CatalogSnapshot);
   return s as unknown as CatalogSnapshot;
 }
