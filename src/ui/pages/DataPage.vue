@@ -22,6 +22,16 @@ import {
 } from "../../infrastructure/storage/local-backups";
 import { validateRestoreSnapshot } from "../../domain/validation/restore";
 import type { CatalogSnapshot } from "../../domain/models/catalog";
+import { catalogRepository } from "../../infrastructure/storage/catalog";
+import {
+  commitMasterDataImport,
+  masterDataImportTemplateBytes,
+  parseMasterDataImportFile,
+  previewMasterDataImport,
+  type MasterDataImportDocument,
+  type MasterDataImportIssue,
+  type MasterDataImportPreview,
+} from "../../application/master-data-import";
 import AppIcon from "../components/AppIcon.vue";
 import CloudBackupPanel from "../components/CloudBackupPanel.vue";
 const workspaces = useWorkspaceStore(),
@@ -60,7 +70,142 @@ const backupMessage = computed(() =>
 const storageInfo = ref("尚未讀取儲存空間資訊。"),
   storageBusy = ref(false),
   savingConfirmation = ref(false);
+const templateBusy = ref(false),
+  importChecking = ref(false),
+  importSaving = ref(false),
+  importError = ref(""),
+  importNotice = ref(""),
+  importFilename = ref(""),
+  importDocument = ref<MasterDataImportDocument | null>(null),
+  importPreview = ref<MasterDataImportPreview | null>(null),
+  importConfirmed = ref(false);
+const importIssues = ref<MasterDataImportIssue[]>([]);
 let loadRequest = 0;
+function downloadBytes(bytes: ArrayBuffer, filename: string) {
+  const url = URL.createObjectURL(
+    new Blob([bytes], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    }),
+  );
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+async function downloadMasterImportTemplate() {
+  const id = workspaces.activeWorkspaceId;
+  if (!id || templateBusy.value) return;
+  templateBusy.value = true;
+  importError.value = "";
+  importNotice.value = "";
+  try {
+    const snapshot = await catalogRepository.read(id);
+    const bytes = await masterDataImportTemplateBytes(snapshot);
+    const safeName = snapshot.workspace.name.replace(/[\\/:*?"<>|]/g, "_");
+    downloadBytes(bytes, `ConMate-主資料匯入-${safeName}.xlsx`);
+    importNotice.value = "已產生匯入範本，請確認檔案已下載。";
+  } catch (e) {
+    importError.value =
+      e instanceof Error ? e.message : "無法產生主資料匯入範本。";
+  } finally {
+    templateBusy.value = false;
+  }
+}
+async function checkMasterImport(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0];
+  if (importChecking.value || importSaving.value) return;
+  importIssues.value = [];
+  importPreview.value = null;
+  importDocument.value = null;
+  importConfirmed.value = false;
+  importError.value = "";
+  importNotice.value = "";
+  if (!file) return;
+  importFilename.value = file.name;
+  importChecking.value = true;
+  try {
+    const result = await parseMasterDataImportFile(file);
+    importIssues.value = result.issues;
+    importDocument.value = result.document;
+    if (result.document) {
+      const activeId = workspaces.activeWorkspaceId;
+      if (!activeId) throw new Error("請先選擇目前工作區。");
+      const current = await catalogRepository.read(activeId);
+      importPreview.value = previewMasterDataImport(current, result.document);
+      importIssues.value = importPreview.value.issues;
+    }
+  } catch (e) {
+    importError.value =
+      e instanceof Error ? e.message : "檢查主資料匯入檔失敗。";
+    importIssues.value = [
+      {
+        sheet: "檔案",
+        code: "file-error",
+        message: importError.value,
+        suggestion: "確認檔案是有效的 XLSX 主資料匯入範本後重試。",
+      },
+    ];
+  } finally {
+    importChecking.value = false;
+  }
+}
+function downloadImportIssues() {
+  if (!importIssues.value.length) return;
+  const report = {
+    format: "ConMate主資料匯入錯誤報告",
+    version: 1,
+    filename: importFilename.value,
+    createdAt: new Date().toISOString(),
+    issues: importIssues.value,
+  };
+  const url = URL.createObjectURL(
+    new Blob([JSON.stringify(report, null, 2)], {
+      type: "application/json;charset=utf-8",
+    }),
+  );
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = "ConMate-主資料匯入錯誤報告.json";
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+async function commitImport() {
+  const document = importDocument.value;
+  if (
+    !document ||
+    !importConfirmed.value ||
+    importSaving.value ||
+    importIssues.value.length ||
+    !importPreview.value?.changes.length
+  )
+    return;
+  if (workspaces.activeWorkspaceId !== document.workspaceId) {
+    importError.value =
+      "目前選取的工作區與範本不同；請切換到範本來源工作區後再匯入。";
+    return;
+  }
+  importSaving.value = true;
+  importError.value = "";
+  importNotice.value = "";
+  try {
+    await commitMasterDataImport(document);
+    await catalog.load(document.workspaceId);
+    importNotice.value = `已匯入 ${importPreview.value.changes.length} 筆主資料變更。`;
+    importDocument.value = null;
+    importPreview.value = null;
+    importConfirmed.value = false;
+  } catch (e) {
+    importError.value =
+      e instanceof Error ? e.message : "匯入失敗，原工作區未更動。";
+  } finally {
+    importSaving.value = false;
+  }
+}
 async function refreshLocal() {
   const id = workspaces.activeWorkspaceId,
     request = ++loadRequest;
@@ -366,6 +511,99 @@ async function inspectStorage(requestPersist = false) {
     </div>
   </aside>
   <CloudBackupPanel @preview="previewCloud" @backed-up="refreshLocal" />
+  <section
+    class="catalog-panel section-block"
+    aria-labelledby="master-import-title"
+  >
+    <h2 id="master-import-title">Excel 主資料匯入</h2>
+    <p>
+      下載目前工作區的專用範本，可新增或更新參與方、企劃、場次、柄圖、標記、自訂欄位與商品。匯入不會刪除資料，也不會修改交易、庫存、成本或結算。
+    </p>
+    <button
+      class="button secondary"
+      :disabled="
+        !workspaces.activeWorkspaceId ||
+        templateBusy ||
+        importChecking ||
+        importSaving
+      "
+      @click="downloadMasterImportTemplate"
+    >
+      <AppIcon name="download" />{{
+        templateBusy ? "正在產生範本…" : "下載主資料匯入範本"
+      }}
+    </button>
+    <label for="master-import-file"
+      >選擇已填寫的匯入範本（.xlsx，最多 10 MB）</label
+    >
+    <input
+      id="master-import-file"
+      type="file"
+      accept=".xlsx"
+      :disabled="
+        !workspaces.activeWorkspaceId || importChecking || importSaving
+      "
+      @change="checkMasterImport"
+    />
+    <p v-if="importChecking" role="status">正在檢查主資料，尚未寫入工作區…</p>
+    <p v-if="importNotice" class="success-notice" role="status">
+      {{ importNotice }}
+    </p>
+    <p v-if="importError" class="error-notice" role="alert">
+      {{ importError }}
+    </p>
+    <div v-if="importIssues.length" class="error-notice" role="alert">
+      <strong
+        >匯入檢查有 {{ importIssues.length }} 項問題，尚未寫入資料。</strong
+      >
+      <ul>
+        <li
+          v-for="(problem, index) in importIssues"
+          :key="`${problem.sheet}-${problem.row}-${problem.code}-${index}`"
+        >
+          {{ problem.sheet }}{{ problem.row ? ` 第 ${problem.row} 列` : ""
+          }}{{ problem.column ? `「${problem.column}」` : "" }}：{{
+            problem.message
+          }}
+          {{ problem.suggestion }}
+        </li>
+      </ul>
+      <button class="button secondary" @click="downloadImportIssues">
+        下載結構化錯誤報告（JSON）
+      </button>
+    </div>
+    <div v-if="importPreview && !importIssues.length" class="restore-preview">
+      <h3>匯入預覽：{{ importFilename }}</h3>
+      <p v-if="!importPreview.changes.length">檢查完成，沒有主資料變更。</p>
+      <ul v-else>
+        <li
+          v-for="(item, index) in importPreview.changes"
+          :key="`${item.id}-${index}`"
+        >
+          <strong>{{ item.operation }}{{ item.entity }}：</strong
+          >{{ item.name }}（{{ item.code }}）
+          <ul v-if="item.fields.length">
+            <li v-for="field in item.fields" :key="field.name">
+              {{ field.name }}：{{ field.before || "（空白）" }} →
+              {{ field.after || "（空白）" }}
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <label v-if="importPreview.changes.length" class="check-row">
+        <input v-model="importConfirmed" type="checkbox" />
+        我已檢查差異，確認一次匯入以上主資料變更
+      </label>
+      <button
+        v-if="importPreview.changes.length"
+        class="button primary"
+        :disabled="!importConfirmed || importSaving"
+        @click="commitImport"
+      >
+        {{ importSaving ? "正在匯入…" : "確認匯入主資料" }}
+      </button>
+    </div>
+  </section>
   <section class="catalog-panel section-block" aria-labelledby="restore-title">
     <h2 id="restore-title">檢查與還原專案檔</h2>
     <p>

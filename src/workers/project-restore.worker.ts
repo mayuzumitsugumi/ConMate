@@ -1,7 +1,30 @@
 import { inspectProject } from "../infrastructure/excel/restore";
-self.onmessage = async (event: MessageEvent<ArrayBuffer>) => {
+import {
+  buildMasterDataImportWorkbook,
+  parseMasterDataImport,
+} from "../infrastructure/excel/master-data-import";
+import type { MasterDataImportSource } from "../infrastructure/excel/master-data-import";
+
+type Request =
+  | { type: "restore"; bytes: ArrayBuffer }
+  | { type: "parse"; bytes: ArrayBuffer }
+  | { type: "template"; snapshot: MasterDataImportSource };
+
+self.onmessage = async (event: MessageEvent<Request>) => {
   try {
-    self.postMessage({ ok: true, snapshot: await inspectProject(event.data) });
+    const request = event.data;
+    if (request.type === "restore") {
+      self.postMessage({
+        ok: true,
+        snapshot: await inspectProject(request.bytes),
+      });
+      return;
+    }
+    const result =
+      request.type === "template"
+        ? await buildMasterDataImportWorkbook(request.snapshot)
+        : await parseMasterDataImport(request.bytes);
+    self.postMessage({ ok: true, result });
   } catch (e) {
     self.postMessage({
       ok: false,

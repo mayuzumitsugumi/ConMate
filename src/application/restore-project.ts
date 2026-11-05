@@ -23,7 +23,7 @@ export async function checkProjectFile(file: File): Promise<CatalogSnapshot> {
         reject(new Error("檔案檢查失敗；本機資料未更動。"));
       try {
         const bytes = await file.arrayBuffer();
-        worker.postMessage(bytes, [bytes]);
+        worker.postMessage({ type: "restore", bytes }, [bytes]);
       } catch {
         reject(new Error("無法讀取檔案。"));
       }

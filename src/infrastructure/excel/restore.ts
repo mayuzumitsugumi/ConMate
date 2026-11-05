@@ -61,7 +61,9 @@ function checkZip(bytes: ArrayBuffer) {
   }
   if (at !== end) reject("壓縮目錄長度不一致。");
 }
-export async function inspectProject(bytes: ArrayBuffer) {
+export async function loadSafeWorkbook(
+  bytes: ArrayBuffer,
+): Promise<ExcelJS.Workbook> {
   if (bytes.byteLength > MAX_FILE) reject("目前支援最大 10 MB 的網站專案檔。");
   checkZip(bytes);
   const zip = await JSZip.loadAsync(bytes);
@@ -130,6 +132,11 @@ export async function inspectProject(bytes: ArrayBuffer) {
   }
   const book = new ExcelJS.Workbook();
   await book.xlsx.load(bytes as any);
+  return book;
+}
+
+export async function inspectProject(bytes: ArrayBuffer) {
+  const book = await loadSafeWorkbook(bytes);
   const raw = book.getWorksheet("_ConMate資料");
   if (!raw) reject("找不到完整專案資料。舊版空白模板不能用於網站還原。");
   const meta = new Map<string, string>();
