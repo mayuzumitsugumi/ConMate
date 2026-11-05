@@ -323,6 +323,8 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
       "備註",
       "換購折抵額",
       "換購編號",
+      "收款層級",
+      "寄賣回報登記時間",
     ]);
     const lines = sheet("10_銷售明細", [
       "交易編號",
@@ -356,6 +358,10 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
         sale.notes,
         sale.exchangeCredit ?? "",
         snapshot.exchanges.find((e) => e.id === sale.exchangeId)?.code || "",
+        sale.consignmentId
+          ? "店家向顧客收款，非創作者實收匯款"
+          : "直接顧客收款",
+        sale.consignmentReportedAt || "",
       ]);
       for (const l of sale.lines)
         lines.addRow([

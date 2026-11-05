@@ -68,6 +68,13 @@ interface StockInput {
   unitIds?: string[];
   reason: string;
 }
+function activityLocked(s: CatalogSnapshot, locationId: string) {
+  return s.activityHandoffs.some(
+    (h) =>
+      h.locationId === locationId &&
+      !s.activityMerges.some((m) => m.handoffId === h.id),
+  );
+}
 function priorOperation(
   c: Consignment,
   kind: "delivery" | "return" | "remittance",
@@ -99,6 +106,8 @@ export function deliverConsignment(
 ) {
   return atomic(s, (n) => {
     const c = get(n, id);
+    if (activityLocked(n, input.sourceLocationId))
+      fail("活動交接庫存尚未合回，不可轉交寄賣。");
     const old = priorOperation(c, "delivery", input);
     if (old) return n.movements.find((r) => r.id === old.resultId)!;
     if (n.consignments.some((x) => x.locationId === input.sourceLocationId))
@@ -182,6 +191,8 @@ export function returnConsignmentStock(
 ) {
   return atomic(s, (n) => {
     const c = get(n, id);
+    if (activityLocked(n, input.toLocationId))
+      fail("實物收回不可直接加入已交付的活動庫位。");
     const old = priorOperation(c, "return", input);
     if (old) return n.movements.find((r) => r.id === old.resultId)!;
     if (n.consignments.some((x) => x.locationId === input.toLocationId))

@@ -2,6 +2,10 @@ import { test, expect } from "@playwright/test";
 test("consignment separates physical delivery, store sales and actual remittance", async ({
   page,
 }) => {
+  const pastTaipei = (hours: number) =>
+    new Date(Date.now() - hours * 3600000 + 8 * 3600000)
+      .toISOString()
+      .slice(0, 16);
   await page.goto("");
   await page.getByRole("button", { name: "建立工作區", exact: true }).click();
   await page.getByLabel("工作區名稱").fill("寄賣測試");
@@ -48,15 +52,13 @@ test("consignment separates physical delivery, store sales and actual remittance
   await page.getByLabel("回報售出商品").selectOption({ index: 1 });
   await page.getByLabel("回報售出數量").fill("2");
   await page.getByLabel("實際售出單價（元）").fill("100");
-  await page.getByLabel("實際銷售時間（台灣時間）").fill("2026-11-05T10:30");
+  await page.getByLabel("實際銷售時間（台灣時間）").fill(pastTaipei(3));
   await page.getByLabel("銷售回報來源／說明").fill("店家日報");
   await page.getByRole("button", { name: "確認銷售回報並扣庫" }).click();
   await expect(page.getByRole("status")).toContainText("寄賣銷售回報已保存");
-  const summary = page
-    .locator(".business-panel")
-    .filter({
-      has: page.getByRole("heading", { name: "書店寄賣", exact: true }),
-    });
+  const summary = page.locator(".business-panel").filter({
+    has: page.getByRole("heading", { name: "書店寄賣", exact: true }),
+  });
   await expect(summary).toContainText("尚無法試算");
   await expect(
     summary
@@ -70,7 +72,7 @@ test("consignment separates physical delivery, store sales and actual remittance
   await expect(page.getByRole("status")).toContainText("對帳金額已保存");
   await expect(summary).toContainText("180 元");
   await page.getByLabel("本次實收金額（元）").fill("180");
-  await page.getByLabel("實收時間（台灣時間）").fill("2026-11-05T12:30");
+  await page.getByLabel("實收時間（台灣時間）").fill(pastTaipei(1));
   await page.getByLabel("實收說明／憑據").fill("銀行已收到");
   await page.getByRole("button", { name: "確認已實際收款" }).click();
   await expect(page.getByRole("status")).toContainText("實際匯款已記錄");
@@ -92,10 +94,14 @@ test("consignment separates physical delivery, store sales and actual remittance
   await page.getByLabel("實際收回數量").fill("5");
   await page.getByLabel("實物收回說明").fill("店家退回5件");
   await page.getByRole("button", { name: "確認實物已收回" }).click();
-  await expect(page.getByRole("status").filter({hasText:"剩餘商品已記錄實物收回"})).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({ hasText: "剩餘商品已記錄實物收回" }),
+  ).toBeVisible();
   await page.getByLabel("結束／重新開啟原因").fill("多收100待另行核對");
   await page.getByRole("button", { name: "確認結束寄賣單" }).click();
-  await expect(page.getByRole("status").filter({hasText:"寄賣單已結束"})).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({ hasText: "寄賣單已結束" }),
+  ).toBeVisible();
   await page.reload();
   await expect(
     page.getByRole("button", { name: "重新開啟寄賣單", exact: true }),

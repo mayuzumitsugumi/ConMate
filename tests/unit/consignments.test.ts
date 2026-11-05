@@ -28,7 +28,10 @@ import {
   queryOperationalReport,
   queryCashFlow,
 } from "../../src/domain/reports/operations";
-import { exportProject } from "../../src/infrastructure/excel/project";
+import {
+  exportProject,
+  buildProjectWorkbook,
+} from "../../src/infrastructure/excel/project";
 import { inspectProject } from "../../src/infrastructure/excel/restore";
 function setup() {
   const s = emptyCatalog({
@@ -287,6 +290,11 @@ it("complete backup restores consignment and reports without duplicate finance",
     adjustment: 0,
     reason: "明確零費用",
   });
+  const book = await buildProjectWorkbook(x.s);
+  expect(book.getWorksheet("09_銷售交易")!.getRow(2).getCell(15).value).toBe(
+    "店家向顧客收款，非創作者實收匯款",
+  );
+  expect(book.getWorksheet("40_寄賣")).toBeTruthy();
   const restored = await inspectProject(await exportProject(x.s));
   expect(restored).toEqual(x.s);
 });
@@ -464,15 +472,13 @@ it("actual installed Dexie21 upgrades to22 preserving original IDs, revision, ca
   data.revision = 42;
   const name = "consignment-migration-" + crypto.randomUUID(),
     old = new Dexie(name);
-  old
-    .version(21)
-    .stores({
-      workspaces: "id, createdAt",
-      catalogs: "workspaceId",
-      recoverySnapshots: "id, workspaceId, createdAt",
-      backupStatus: "workspaceId",
-      activityPackets: "handoffId, sourceWorkspaceId, eventId",
-    });
+  old.version(21).stores({
+    workspaces: "id, createdAt",
+    catalogs: "workspaceId",
+    recoverySnapshots: "id, workspaceId, createdAt",
+    backupStatus: "workspaceId",
+    activityPackets: "handoffId, sourceWorkspaceId, eventId",
+  });
   await old.table("workspaces").put(data.workspace);
   await old.table("catalogs").put(data);
   await old
@@ -487,4 +493,47 @@ it("actual installed Dexie21 upgrades to22 preserving original IDs, revision, ca
   } finally {
     await next.delete();
   }
+});
+it("direct consignment commands cannot take or add stock from outstanding activity handoffs", async () => {
+  const x = setup();
+  deliver(x, 2);
+  const { putEvent } = await import("../../src/domain/catalog/projects");
+  const { prepareHandoff } =
+    await import("../../src/domain/activity/operations");
+  const e = putEvent(x.s, {
+    name: "活動保護",
+    startDate: "2026-01-01",
+    endDate: "2026-01-01",
+    venue: "",
+    notes: "",
+    projectIds: [],
+  });
+  const h = prepareHandoff(x.s, {
+    name: "交付",
+    eventId: e.id,
+    sourceLocationId: x.l.id,
+    lines: [{ productId: x.p.id, quantity: 1 }],
+    planIds: [],
+    collectorIds: [],
+  }).record;
+  const before = JSON.stringify(x.s);
+  expect(() =>
+    c.deliverConsignment(x.s, x.con.id, {
+      operationId: crypto.randomUUID(),
+      productId: x.p.id,
+      quantity: 1,
+      sourceLocationId: h.locationId,
+      reason: "不可拿走",
+    }),
+  ).toThrow("尚未合回");
+  expect(() =>
+    c.returnConsignmentStock(x.s, x.con.id, {
+      operationId: crypto.randomUUID(),
+      productId: x.p.id,
+      quantity: 1,
+      toLocationId: h.locationId,
+      reason: "不可補入",
+    }),
+  ).toThrow("活動庫位");
+  expect(JSON.stringify(x.s)).toBe(before);
 });
