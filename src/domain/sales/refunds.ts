@@ -40,6 +40,7 @@ export function refundSale(
   s: CatalogSnapshot,
   input: RefundInput,
   exchangeId?: string,
+  preorderId?: string,
 ) {
   const operationId = text(input.operationId, "退款操作識別", 100),
     reason = text(input.reason, "退款／退貨原因", 2000);
@@ -47,6 +48,7 @@ export function refundSale(
   if (existing) {
     const same =
       existing.exchangeId === exchangeId &&
+      existing.preorderId === preorderId &&
       existing.saleId === input.saleId &&
       existing.reason === reason &&
       existing.lines.length === input.lines.length &&
@@ -70,6 +72,8 @@ export function refundSale(
   }
   const sale = s.sales.find((r) => r.id === input.saleId);
   if (!sale || sale.cancelledAt) throw new Error("原交易不存在或已取消。");
+  if (sale.preorderId !== preorderId)
+    throw new Error("預售退貨須由原訂單處理，退款另行登記。");
   if (!input.lines.length || input.lines.length > 100)
     throw new Error("退款／退貨需有1至100項明細。");
   const seen = new Set<string>();
@@ -142,6 +146,7 @@ export function refundSale(
   }
   const refund: RefundRecord = {
     ...record(s, "REF", "退款／退貨"),
+    ...(preorderId ? { preorderId } : {}),
     ...(exchangeId ? { exchangeId } : {}),
     operationId,
     saleId: sale.id,

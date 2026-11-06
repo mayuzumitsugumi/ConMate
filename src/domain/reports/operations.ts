@@ -461,7 +461,7 @@ export function queryCashFlow(
       entries.push(entry);
   };
   for (const sale of s.sales) {
-    if (sale.consignmentId) continue; // Retailer collection is not creator receipt.
+    if (sale.consignmentId || sale.preorderId) continue; // Retailer collection is not creator receipt.
     const amount = BigInt(sale.cashReceived) - BigInt(sale.change);
     push({
       id: "sale:" + sale.id,
@@ -497,7 +497,7 @@ export function queryCashFlow(
     if (refund.exchangeId || !refund.total) continue;
     const sale = s.sales.find((r) => r.id === refund.saleId);
     if (!sale) reject("退款原交易不存在。");
-    if (sale.consignmentId) continue;
+    if (sale.consignmentId || sale.preorderId) continue;
     push({
       id: "refund:" + refund.id,
       kind: "refund",
@@ -512,6 +512,37 @@ export function queryCashFlow(
       description: "實際退款；換購折抵不列現金支出",
     });
   }
+  if (!filters.eventId)
+    for (const order of s.preorders)
+      for (const payment of order.payments) {
+        if (
+          payment.kind === "receipt-reversal" ||
+          order.payments.some((r) => r.reversesId === payment.id)
+        )
+          continue;
+        const positive = payment.kind === "receipt";
+        push({
+          id: "preorder:" + payment.id,
+          kind: positive ? "sale" : "refund",
+          at: payment.occurredAt,
+          eventId: "",
+          eventName: "預售款項（尚未交付不認列銷售）",
+          saleId: "",
+          saleCode: order.code,
+          collectorId: payment.partyId,
+          partyName: partyName(payment.partyId),
+          amount: (positive
+            ? BigInt(payment.amount)
+            : -BigInt(payment.amount)
+          ).toString(),
+          description:
+            payment.kind === "receipt"
+              ? "預售實收款（不另計交付成交現金）"
+              : payment.kind === "refund"
+                ? "預售實際退款"
+                : "預售誤記收款沖銷（非實際支出）",
+        });
+      }
   let receipts = 0n,
     payouts = 0n;
   for (const e of entries) {

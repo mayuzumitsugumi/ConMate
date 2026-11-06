@@ -277,7 +277,7 @@ it("migrates Dexie16 to17 preserving IDs and money", async () => {
   const db = new ConMateDatabase(name);
   try {
     const next = await db.catalogs.get(x.s.workspaceId);
-    expect(next?.schemaVersion).toBe(21);
+    expect(next?.schemaVersion).toBe(22);
     expect(next?.costs).toEqual(x.s.costs);
     expect(next?.internalAgreements).toEqual([]);
   } finally {

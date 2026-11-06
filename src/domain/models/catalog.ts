@@ -1,3 +1,4 @@
+import type { Preorder } from "../preorder/types";
 import type { Consignment } from "../consignment/types";
 import type { HandoffRecord, ActivityMergeRecord } from "../activity/types";
 import type { Workspace } from "./workspace";
@@ -86,7 +87,8 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 21;
+  schemaVersion: 22;
+  preorders: Preorder[];
   consignments: Consignment[];
   exchanges: ExchangeRecord[];
   physicalUnits: PhysicalUnit[];
@@ -279,6 +281,7 @@ export interface SaleLine extends SaleLineInput {
   movementId: string;
 }
 export interface SaleRecord extends NamedRecord {
+  preorderId?: string;
   consignmentId?: string;
   consignmentReportedAt?: string;
   exchangeId?: string;
@@ -385,6 +388,7 @@ export interface RefundLine extends RefundLineInput {
   movementId: string;
 }
 export interface RefundRecord extends NamedRecord {
+  preorderId?: string;
   exchangeId?: string;
   operationId: string;
   saleId: string;

@@ -1,3 +1,4 @@
+import * as preorderOps from "../domain/preorder/operations";
 import * as consign from "../domain/consignment/operations";
 import { completeExchange } from "../domain/sales/exchanges";
 import type { ExchangeInput } from "../domain/models/catalog";
@@ -474,7 +475,115 @@ export const useCatalogStore = defineStore("catalog", () => {
     mutate((s) => {
       consign.reopenConsignment(s, id, reason);
     });
+  const createPreorder = (
+    ...args: Parameters<typeof preorderOps.createPreorder> extends [
+      unknown,
+      ...infer R,
+    ]
+      ? R
+      : never
+  ) =>
+    mutate((s) => {
+      preorderOps.createPreorder(s, ...args);
+    });
+  const receivePreorder = (
+    ...args: Parameters<typeof preorderOps.receivePreorder> extends [
+      unknown,
+      ...infer R,
+    ]
+      ? R
+      : never
+  ) =>
+    mutate((s) => {
+      preorderOps.receivePreorder(s, ...args);
+    });
+  const refundPreorderPayment = (
+    ...args: Parameters<typeof preorderOps.refundPreorderPayment> extends [
+      unknown,
+      ...infer R,
+    ]
+      ? R
+      : never
+  ) =>
+    mutate((s) => {
+      preorderOps.refundPreorderPayment(s, ...args);
+    });
+  const reversePreorderReceipt = (
+    ...args: Parameters<typeof preorderOps.reversePreorderReceipt> extends [
+      unknown,
+      ...infer R,
+    ]
+      ? R
+      : never
+  ) =>
+    mutate((s) => {
+      preorderOps.reversePreorderReceipt(s, ...args);
+    });
+  const fulfillPreorder = (
+    ...args: Parameters<typeof preorderOps.fulfillPreorder> extends [
+      unknown,
+      ...infer R,
+    ]
+      ? R
+      : never
+  ) =>
+    mutate((s) => {
+      preorderOps.fulfillPreorder(s, ...args);
+    });
+  const cancelPreorder = (
+    ...args: Parameters<typeof preorderOps.cancelPreorder> extends [
+      unknown,
+      ...infer R,
+    ]
+      ? R
+      : never
+  ) =>
+    mutate((s) => {
+      preorderOps.cancelPreorder(s, ...args);
+    });
+  const returnPreorderGoods = (
+    ...args: Parameters<typeof preorderOps.returnPreorderGoods> extends [
+      unknown,
+      ...infer R,
+    ]
+      ? R
+      : never
+  ) =>
+    mutate((s) => {
+      preorderOps.returnPreorderGoods(s, ...args);
+    });
+  const closePreorder = (
+    ...args: Parameters<typeof preorderOps.closePreorder> extends [
+      unknown,
+      ...infer R,
+    ]
+      ? R
+      : never
+  ) =>
+    mutate((s) => {
+      preorderOps.closePreorder(s, ...args);
+    });
+  const reopenPreorder = (
+    ...args: Parameters<typeof preorderOps.reopenPreorder> extends [
+      unknown,
+      ...infer R,
+    ]
+      ? R
+      : never
+  ) =>
+    mutate((s) => {
+      preorderOps.reopenPreorder(s, ...args);
+    });
   return {
+    createPreorder,
+    receivePreorder,
+    refundPreorderPayment,
+    reversePreorderReceipt,
+    fulfillPreorder,
+    cancelPreorder,
+    returnPreorderGoods,
+    closePreorder,
+    reopenPreorder,
     saveConsignment,
     deliverConsignment,
     reportConsignmentSale,

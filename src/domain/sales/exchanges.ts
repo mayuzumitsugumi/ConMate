@@ -65,6 +65,8 @@ export function completeExchange(
   s: CatalogSnapshot,
   raw: ExchangeInput,
 ): ExchangeRecord {
+  if (s.sales.find((r) => r.id === raw.saleId)?.preorderId)
+    throw new Error("預售交付請由原訂單退貨與重訂，不適用一般換購。");
   const input = normalize(raw),
     previous = s.exchanges.find((r) => r.operationId === input.operationId);
   if (previous) {

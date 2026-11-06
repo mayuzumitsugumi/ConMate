@@ -1,3 +1,4 @@
+import { preorderSummary } from "../../domain/preorder/operations";
 import { consignmentSummary } from "../../domain/consignment/operations";
 import { internalSummary } from "../../domain/finance/internal-pricing";
 import { batchCostReport } from "../../domain/finance/batch-costs";
@@ -7,7 +8,7 @@ import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.19.0";
+export const PROJECT_VERSION = "2.20.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -1217,6 +1218,177 @@ export async function buildProjectWorkbook(snapshot: CatalogSnapshot) {
           r.reason,
           r.createdAt,
         ]);
+    }
+  }
+  if (snapshot.preorders.length) {
+    const orders = sheet("43_預售訂單", [
+      "訂單編號",
+      "名稱",
+      "顧客參考",
+      "原約定總額",
+      "取消未交金額",
+      "交付退回折抵",
+      "有效約定總額",
+      "已交付淨營收",
+      "實際淨收款",
+      "待收差額（負值待退款核對）",
+      "建立時間",
+      "結束時間",
+      "備註",
+    ]);
+    const lines = sheet("44_預售品項", [
+      "訂單編號",
+      "明細ID",
+      "商品",
+      "約定數量",
+      "約定單價",
+      "已交付數量",
+      "取消未交數量",
+      "尚未交付數量",
+    ]);
+    for (const order of snapshot.preorders) {
+      const result = preorderSummary(snapshot, order);
+      orders.addRow([
+        order.code,
+        order.name,
+        order.customerReference,
+        result.total,
+        result.cancelledValue,
+        result.returnCredit,
+        result.activeTotal,
+        result.netDeliveredValue,
+        result.netPaid,
+        result.balance,
+        order.createdAt,
+        order.closedAt,
+        order.notes,
+      ]);
+      for (const line of result.lines)
+        lines.addRow([
+          order.code,
+          line.id,
+          line.productName,
+          line.quantity,
+          line.unitPrice,
+          line.deliveredQuantity,
+          line.cancelledQuantity,
+          line.remainingQuantity,
+        ]);
+    }
+    if (snapshot.preorders.some((order) => order.payments.length)) {
+      const payments = sheet("45_預售實際收退", [
+        "訂單編號",
+        "紀錄ID",
+        "類型",
+        "實際金額",
+        "收付對象",
+        "實際時間",
+        "沖銷來源",
+        "原因",
+        "紀錄時間",
+      ]);
+      const labels = {
+        receipt: "實際收款",
+        refund: "實際退款",
+        "receipt-reversal": "收款誤記沖銷",
+      };
+      for (const order of snapshot.preorders)
+        for (const row of order.payments)
+          payments.addRow([
+            order.code,
+            row.id,
+            labels[row.kind],
+            row.amount,
+            snapshot.parties.find((party) => party.id === row.partyId)?.name ||
+              "未記錄",
+            row.occurredAt,
+            row.reversesId,
+            row.reason,
+            row.createdAt,
+          ]);
+    }
+    if (snapshot.preorders.some((order) => order.fulfillments.length)) {
+      const deliveries = sheet("46_預售交付", [
+        "訂單編號",
+        "交付ID",
+        "成交編號",
+        "商品",
+        "交付數量",
+        "單件標記",
+        "交付時間",
+      ]);
+      for (const order of snapshot.preorders)
+        for (const delivery of order.fulfillments)
+          for (const row of delivery.lines) {
+            const sale = snapshot.sales.find(
+                (sale) => sale.id === delivery.saleId,
+              ),
+              line = sale?.lines.find((line) => line.id === row.saleLineId);
+            deliveries.addRow([
+              order.code,
+              delivery.id,
+              sale?.code || delivery.saleId,
+              line?.productName ||
+                order.lines.find((line) => line.id === row.orderLineId)
+                  ?.productName ||
+                "",
+              row.quantity,
+              (line?.unitIds || [])
+                .map(
+                  (id) =>
+                    snapshot.physicalUnits.find((unit) => unit.id === id)
+                      ?.label || id,
+                )
+                .join("、"),
+              delivery.createdAt,
+            ]);
+          }
+    }
+    if (snapshot.preorders.some((order) => order.cancellations.length)) {
+      const cancellations = sheet("47_預售取消", [
+        "訂單編號",
+        "取消ID",
+        "商品",
+        "取消未交數量",
+        "原因",
+        "紀錄時間",
+      ]);
+      for (const order of snapshot.preorders)
+        for (const cancellation of order.cancellations)
+          for (const row of cancellation.lines)
+            cancellations.addRow([
+              order.code,
+              cancellation.id,
+              order.lines.find((line) => line.id === row.orderLineId)
+                ?.productName || row.orderLineId,
+              row.quantity,
+              cancellation.reason,
+              cancellation.createdAt,
+            ]);
+    }
+    if (snapshot.preorders.some((order) => order.returnIds.length)) {
+      const returns = sheet("48_預售交付退回", [
+        "訂單編號",
+        "退回編號",
+        "原成交",
+        "折減交付營收（非實際退款）",
+        "原因",
+        "紀錄時間",
+      ]);
+      for (const order of snapshot.preorders)
+        for (const id of order.returnIds) {
+          const row = snapshot.refunds.find((refund) => refund.id === id);
+          if (row)
+            returns.addRow([
+              order.code,
+              row.code,
+              snapshot.sales.find((sale) => sale.id === row.saleId)?.code ||
+                row.saleId,
+              row.total,
+              row.reason,
+              row.createdAt,
+            ]);
+        }
     }
   }
   const raw = sheet("_ConMate資料", ["項目", "資料"]);

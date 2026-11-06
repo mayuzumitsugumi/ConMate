@@ -33,6 +33,7 @@ function sum(ns: number[]) {
   return ns.reduce((a, b) => whole(a + whole(b)), 0);
 }
 const arrayKeys = [
+  "preorders",
   "consignments",
   "parties",
   "projects",
@@ -745,6 +746,7 @@ function validateShape(p: ActivityPacket) {
     if (s.activityHandoffs.length || s.activityMerges.length)
       fail("活動檔不得包含其他交接歷史。");
     for (const k of [
+      "preorders",
       "consignments",
       "costs",
       "advances",
@@ -757,7 +759,7 @@ function validateShape(p: ActivityPacket) {
       "onlineListings",
       "stocktakes",
     ] as const)
-      if (s[k].length) fail("活動工作資料不得混入私人財務或非本活動歷史。");
+      if (s[k]?.length) fail("活動工作資料不得混入私人財務或非本活動歷史。");
     if (
       s.locations.length !== 1 ||
       s.locations[0]?.id !== p.locationId ||

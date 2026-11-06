@@ -1,3 +1,4 @@
+import PreordersPage from "../ui/pages/PreordersPage.vue";
 import ConsignmentsPage from "../ui/pages/ConsignmentsPage.vue";
 import ActivitiesPage from "../ui/pages/ActivitiesPage.vue";
 import ReportsPage from "../ui/pages/ReportsPage.vue";
@@ -17,6 +18,7 @@ import DataPage from "../ui/pages/DataPage.vue";
 import UpcomingPage from "../ui/pages/UpcomingPage.vue";
 
 export const sections = [
+  { path: "/preorders", label: "預售與交付", icon: "bag", ready: true },
   { path: "/", label: "工作區總覽", icon: "grid", ready: true },
   {
     path: "/activities",
@@ -77,35 +79,37 @@ export const router = createRouter({
     ...sections.map((section) => ({
       path: section.path,
       component:
-        section.path === "/consignments"
-          ? ConsignmentsPage
-          : section.path === "/reports"
-            ? ReportsPage
-            : section.path === "/activities"
-              ? ActivitiesPage
-              : section.path === "/activity"
-                ? ActivityPage
-                : section.path === "/creators"
-                  ? MasterDataPage
-                  : section.path === "/"
-                    ? OverviewPage
-                    : section.path === "/help"
-                      ? HelpPage
-                      : section.path === "/templates"
-                        ? DataPage
-                        : section.path === "/sales"
-                          ? SalesPage
-                          : section.path === "/finance"
-                            ? FinancePage
-                            : section.path === "/inventory"
-                              ? InventoryPage
-                              : section.path === "/projects"
-                                ? ProjectsPage
-                                : section.path === "/products"
-                                  ? ProductsPage
-                                  : section.path === "/customize"
-                                    ? CustomizationPage
-                                    : UpcomingPage,
+        section.path === "/preorders"
+          ? PreordersPage
+          : section.path === "/consignments"
+            ? ConsignmentsPage
+            : section.path === "/reports"
+              ? ReportsPage
+              : section.path === "/activities"
+                ? ActivitiesPage
+                : section.path === "/activity"
+                  ? ActivityPage
+                  : section.path === "/creators"
+                    ? MasterDataPage
+                    : section.path === "/"
+                      ? OverviewPage
+                      : section.path === "/help"
+                        ? HelpPage
+                        : section.path === "/templates"
+                          ? DataPage
+                          : section.path === "/sales"
+                            ? SalesPage
+                            : section.path === "/finance"
+                              ? FinancePage
+                              : section.path === "/inventory"
+                                ? InventoryPage
+                                : section.path === "/projects"
+                                  ? ProjectsPage
+                                  : section.path === "/products"
+                                    ? ProductsPage
+                                    : section.path === "/customize"
+                                      ? CustomizationPage
+                                      : UpcomingPage,
       meta: { title: section.label },
     })),
     {

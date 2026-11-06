@@ -102,7 +102,7 @@ it("migrates v0.2 catalog records without changing IDs, custom values or revisio
   old.close();
   const upgraded = new ConMateDatabase(name);
   const result = await upgraded.catalogs.get(workspace.id);
-  expect(result?.schemaVersion).toBe(21);
+  expect(result?.schemaVersion).toBe(22);
   expect(result?.revision).toBe(7);
   expect(result?.products).toEqual(raw.products.map(p=>({...p,ownerId:""})));
   expect(result?.projects[0]).toEqual({

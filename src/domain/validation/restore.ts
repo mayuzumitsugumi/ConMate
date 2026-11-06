@@ -1,3 +1,4 @@
+import { validatePreorders } from "../preorder/operations";
 import { validateConsignments } from "../consignment/operations";
 import { validateExchanges } from "../sales/exchanges";
 import { validatePhysicalUnits } from "../inventory/units";
@@ -154,7 +155,8 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     s = { ...s, schemaVersion: 19, physicalUnits: [] };
   if (s.schemaVersion === 19) s = { ...s, schemaVersion: 20, exchanges: [] };
   if (s.schemaVersion === 20) s = { ...s, schemaVersion: 21, consignments: [] };
-  if (s.schemaVersion !== 21) fail("目前僅支援網站資料版本 3 至 21。");
+  if (s.schemaVersion === 21) s = { ...s, schemaVersion: 22, preorders: [] };
+  if (s.schemaVersion !== 22) fail("目前僅支援網站資料版本 3 至 22。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -591,7 +593,18 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
     integer(sale.total);
     integer(sale.cashReceived);
     integer(sale.change);
-    if (sale.exchangeId !== undefined) {
+    if (sale.preorderId !== undefined) {
+      str(sale.preorderId, "預售來源", 100, true);
+      if (
+        sale.cashReceived ||
+        sale.change ||
+        sale.exchangeId ||
+        sale.exchangeCredit !== undefined ||
+        sale.consignmentId ||
+        sale.replacesRefundId
+      )
+        fail("預售交付不可重複認列現金或混用交易來源。");
+    } else if (sale.exchangeId !== undefined) {
       str(sale.exchangeId, "換購來源ID", 100, true);
       integer(sale.exchangeCredit);
       if (
@@ -1059,5 +1072,6 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   validatePhysicalUnits(s as unknown as CatalogSnapshot);
   validateExchanges(s as unknown as CatalogSnapshot);
   validateConsignments(s as unknown as CatalogSnapshot);
+  validatePreorders(s as unknown as CatalogSnapshot);
   return s as unknown as CatalogSnapshot;
 }

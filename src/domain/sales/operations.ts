@@ -18,6 +18,7 @@ export function completeSale(
   s: CatalogSnapshot,
   input: SaleInput,
   exchange?: { id: string; credit: number },
+  preorder?: { id: string },
 ) {
   const operationId = text(input.operationId, "操作識別", 100);
   // Retrying the same command must not create a second sale or deduct stock twice.
@@ -26,6 +27,7 @@ export function completeSale(
     if (prior.cancelledAt)
       throw new Error("此操作的原交易已取消，請清空購物車後建立新交易。");
     const same =
+      prior.preorderId === preorder?.id &&
       prior.exchangeId === exchange?.id &&
       prior.exchangeCredit === exchange?.credit &&
       prior.replacesRefundId === input.replacesRefundId &&
@@ -71,18 +73,21 @@ export function completeSale(
   }
   const total = saleTotal(input.lines);
   const cashReceived = whole(input.cashReceived, "收到金額");
-  if (!exchange && cashReceived < total)
+  if (!exchange && !preorder && cashReceived < total)
     throw new Error("收到金額不足，尚未成交。");
   const credit = exchange ? whole(exchange.credit, "換購折抵額") : 0;
-  if (BigInt(cashReceived) + BigInt(credit) < BigInt(total))
+  if (!preorder && BigInt(cashReceived) + BigInt(credit) < BigInt(total))
     throw new Error("收到金額與換購折抵不足，尚未成交。");
-  const change = safeAmount(
-    BigInt(cashReceived) + BigInt(credit) - BigInt(total),
-  );
+  if (preorder && (exchange || cashReceived !== 0))
+    throw new Error("預售交付不得重複收款或使用換購折抵。");
+  const change = preorder
+    ? 0
+    : safeAmount(BigInt(cashReceived) + BigInt(credit) - BigInt(total));
   const notes = input.notes.trim();
   if (notes.length > 2000) throw new Error("備註最多2000字。");
   const sale: SaleRecord = {
     ...record(s, "SAL", "攤位交易"),
+    ...(preorder ? { preorderId: preorder.id } : {}),
     ...(exchange ? { exchangeId: exchange.id, exchangeCredit: credit } : {}),
     operationId,
     ...(input.replacesRefundId
@@ -180,6 +185,8 @@ export function cancelSale(s: CatalogSnapshot, id: string, reason: string) {
     );
   const sale = s.sales.find((r) => r.id === id);
   if (!sale || sale.cancelledAt) throw new Error("交易不存在，或已經取消。");
+  if (sale.preorderId)
+    throw new Error("預售交付請在預售頁追加退貨，不可直接取消。");
   if (sale.consignmentId)
     throw new Error("寄賣回報須在寄賣頁追加退款或更正，不可直接取消舊紀錄。");
   if (sale.exchangeId)
