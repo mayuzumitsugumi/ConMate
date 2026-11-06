@@ -114,7 +114,7 @@ export function preorderSummary(s: CatalogSnapshot, o: Preorder) {
     activeTotal,
     deliveredValue,
     netDeliveredValue,
-    received,
+    received: received - reversed,
     refunded,
     netPaid,
     balance: activeTotal - netPaid,
@@ -487,6 +487,11 @@ export function validatePreorders(s: CatalogSnapshot) {
       if (!p.id || rowIds.has(p.id)) fail("款項識別重複。");
       rowIds.add(p.id);
       whole(p.amount, "款項", true);
+      if (
+        p.confirmedOutstanding !== undefined &&
+        typeof p.confirmedOutstanding !== "boolean"
+      )
+        fail("未收款確認格式不正確。");
       at(p.occurredAt);
       if (!Number.isFinite(Date.parse(p.createdAt)))
         fail("款項登記時間不正確。");
@@ -659,6 +664,7 @@ function validateOrderOperations(s: CatalogSnapshot, o: Preorder) {
     status = 0;
   const total = BigInt(preorderSummary(s, o).total);
   let created = false;
+  let isClosed = false;
   const claim = (id: string) => {
     if (used.has(id)) fail("訂單操作重複引用同一結果。");
     used.add(id);
@@ -688,6 +694,8 @@ function validateOrderOperations(s: CatalogSnapshot, o: Preorder) {
       continue;
     }
     if (!created) fail("訂單操作缺少建立來源。");
+    if (isClosed && ["receipt", "fulfill", "cancel"].includes(op.kind))
+      fail("訂單結束後須先明確重開才能新增作業。");
     if (["receipt", "refund", "receipt-reversal"].includes(op.kind)) {
       const r = o.payments.find((r) => r.id === op.resultId);
       if (!r || r.kind !== op.kind) fail("款項操作缺少結果。");
@@ -698,6 +706,7 @@ function validateOrderOperations(s: CatalogSnapshot, o: Preorder) {
         paid -= BigInt(r.amount);
       } else {
         if (
+          q.confirmedOutstanding !== r.confirmedOutstanding ||
           q.amount !== r.amount ||
           q.partyId !== r.partyId ||
           at(q.occurredAt) !== r.occurredAt ||
@@ -775,6 +784,7 @@ function validateOrderOperations(s: CatalogSnapshot, o: Preorder) {
       credited += BigInt(r.total);
     } else {
       const h = o.statusHistory[status++];
+      isClosed = op.kind === "close";
       if (
         op.resultId !== o.id ||
         !h ||

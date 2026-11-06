@@ -75,7 +75,7 @@ test("preorder receipts, partial delivery, cancellation and original goods retur
   await deliver("第二次交付1件");
   await page.getByText("已交付商品退貨", { exact: true }).click();
   await page.getByLabel("原交付明細").selectOption({ index: 1 });
-  await page.getByLabel("可售退回數量").fill("1");
+  await page.getByLabel("可售退回數量", { exact: true }).fill("1");
   await page.getByLabel("可售退回庫位").selectOption({ label: "出貨架" });
   await page.getByLabel("實物退貨原因").fill("原件可售退回");
   await page.getByLabel("我確認所填商品已退回，並核對可售／不可售狀態").check();

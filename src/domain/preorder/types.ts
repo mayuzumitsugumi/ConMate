@@ -53,6 +53,7 @@ export interface Preorder extends NamedRecord {
   payments: {
     id: string;
     kind: "receipt" | "refund" | "receipt-reversal";
+    confirmedOutstanding?: boolean;
     amount: number;
     partyId: string;
     occurredAt: string;

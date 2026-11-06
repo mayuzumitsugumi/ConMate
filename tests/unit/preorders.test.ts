@@ -129,6 +129,7 @@ it("creating an order requires no stock and posts neither receipt, sale nor inve
   expect(summary(x)).toMatchObject({
     total: 300,
     netPaid: 0,
+    received: 0,
     balance: 300,
     deliveredValue: 0,
   });
@@ -259,6 +260,7 @@ it("receipt mistake reversal reveals unpaid delivery but cannot erase money alre
   });
   expect(summary(x)).toMatchObject({
     netPaid: 0,
+    received: 0,
     balance: 300,
     netDeliveredValue: 100,
   });
@@ -424,6 +426,7 @@ it("explicit unpaid fulfillment records real delivery without inventing payment 
   });
   expect(summary(x)).toMatchObject({
     netPaid: 0,
+    received: 0,
     balance: 300,
     netDeliveredValue: 100,
   });
@@ -475,4 +478,33 @@ it("restore rejects orphaned fulfillment and forged payment values instead of ch
   expect(() => validateRestoreSnapshot(forged)).toThrow();
   const original = structuredClone(x.s);
   expect(validateRestoreSnapshot(original)).toEqual(x.s);
+});
+
+it("allows an optional blank customer reference without storing private contact information", () => {
+  const x = setup(0);
+  const o = pre.createPreorder(x.s, {
+    ...x.request,
+    operationId: op(),
+    customerReference: "",
+  });
+  expect(o.customerReference).toBe("");
+  expect(validateRestoreSnapshot(x.s).preorders).toHaveLength(2);
+});
+it("preserves the original acknowledgment for an actual refund leaving outstanding balance", () => {
+  const x = setup();
+  receive(x, 100);
+  pre.refundPreorderPayment(x.s, x.orderId, {
+    operationId: op(),
+    amount: 50,
+    partyId: "",
+    occurredAt: time(),
+    reason: "實際退款但訂單仍有效",
+    confirmedOutstanding: true,
+  });
+  const forged = structuredClone(x.s);
+  forged.preorders[0]!.payments.find(
+    (p) => p.kind === "refund",
+  )!.confirmedOutstanding = false;
+  expect(() => validateRestoreSnapshot(forged)).toThrow(/原確認/);
+  expect(summary(x).balance).toBe(250);
 });

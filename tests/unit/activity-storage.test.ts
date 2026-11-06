@@ -399,3 +399,81 @@ it("continues original schema17 packets after upgrade without mistaking normaliz
     (await readActivity(p.handoffId)).snapshot.inventoryReservations,
   ).toEqual([]);
 });
+
+function withoutPreorders(
+  packet: import("../../src/domain/activity/types").ActivityPacket,
+) {
+  const old = structuredClone(packet) as any;
+  for (const snapshot of [old.baseline, old.snapshot]) {
+    snapshot.schemaVersion = 21;
+    delete snapshot.preorders;
+  }
+  return old;
+}
+
+it("continues a schema21 activity saved on an older device without treating the added empty orders as a fork", async () => {
+  const { w, p, productId } = await fixture();
+  const old = withoutPreorders(p);
+  await database.activityPackets.put(old);
+  const parent = await database.catalogs.get(w.id);
+  parent!.activityHandoffs[0]!.packet = old;
+  await database.catalogs.put(parent!);
+  const { applyActivityCommand } =
+    await import("../../src/domain/activity/operations");
+  const incoming = withoutPreorders(
+    applyActivityCommand(old, {
+      type: "decrease",
+      productId,
+      quantity: 1,
+      kind: "free",
+      reason: "舊裝置續作",
+    }),
+  );
+  incoming.lineage = [await packetFingerprint(old)];
+  expect((await previewActivityImport(incoming)).canImport).toBe(true);
+  await saveImportedActivity(incoming, old.revision);
+  const restored = await readActivity(p.handoffId);
+  expect(restored.snapshot.preorders).toEqual([]);
+  expect(restored.revision).toBe(1);
+  expect(balance(restored.snapshot, productId, p.locationId)).toBe(3);
+});
+
+it("keeps schema21 closed and previously merged activities idempotent after the preorder upgrade", async () => {
+  const { w, p, productId } = await fixture();
+  const next = await changeActivity(p.handoffId, 0, {
+    type: "decrease",
+    productId,
+    quantity: 1,
+    kind: "free",
+    reason: "原活動紀錄",
+  });
+  const closed = await closeActivity(
+    p.handoffId,
+    next.revision,
+    [{ productId, actual: 3, reason: "" }],
+    "舊版已結案",
+  );
+  let snapshot = await catalogRepository.read(w.id);
+  await mergeActivity(w.id, snapshot.revision, p.handoffId, {});
+  snapshot = await catalogRepository.read(w.id);
+  snapshot.activityHandoffs[0]!.packet = withoutPreorders(p);
+  snapshot.activityHandoffs[0]!.localPacket = withoutPreorders(closed);
+  snapshot.activityMerges[0]!.packetContent = JSON.stringify(
+    withoutPreorders(closed),
+  );
+  await database.catalogs.put(snapshot);
+  await database.activityPackets.put(withoutPreorders(closed));
+  const { validateRestoreSnapshot } =
+    await import("../../src/domain/validation/restore");
+  expect(
+    validateRestoreSnapshot(structuredClone(snapshot)).activityMerges,
+  ).toHaveLength(1);
+  const movements = structuredClone(snapshot.movements);
+  const revision = snapshot.revision;
+  await mergeActivity(w.id, revision, p.handoffId, {});
+  const result = await catalogRepository.read(w.id);
+  expect(result.movements).toEqual(movements);
+  expect(result.revision).toBe(revision);
+  expect(result.activityMerges).toHaveLength(1);
+  expect(await database.recoverySnapshots.count()).toBe(1);
+});
