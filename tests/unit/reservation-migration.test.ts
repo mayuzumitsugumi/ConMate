@@ -45,7 +45,7 @@ it("upgrades schema17 without changing inventory, identifiers, revisions or reco
   try {
     expect(await upgraded.catalogs.get(workspace.id)).toEqual({
       ...old,
-      schemaVersion: 22,
+      schemaVersion: 23,
       exchanges: [],
       inventoryReservations: [],
       physicalUnits: [],

@@ -488,7 +488,7 @@ it("actual installed Dexie21 upgrades to22 preserving original IDs, revision, ca
   const next = new ConMateDatabase(name);
   try {
     const got = await next.catalogs.get(data.workspaceId);
-    expect(got).toEqual({ ...data, schemaVersion: 22, consignments: [] });
+    expect(got).toEqual({ ...data, schemaVersion: 23, consignments: [] });
     expect((await next.recoverySnapshots.get("old"))!.snapshot).toEqual(data);
   } finally {
     await next.delete();

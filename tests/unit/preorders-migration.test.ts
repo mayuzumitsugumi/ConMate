@@ -53,7 +53,7 @@ it("upgrades schema21 into schema22 without inventing orders or changing origina
   const next = new ConMateDatabase(name);
   try {
     const got = await next.catalogs.get(workspace.id);
-    expect(got).toEqual({ ...old, schemaVersion: 22, preorders: [] });
+    expect(got).toEqual({ ...old, schemaVersion: 23, preorders: [] });
     expect(got!.products[0]!.id).toBe(product.id);
     expect(got!.parties[0]!.id).toBe(owner.id);
     expect(
@@ -61,7 +61,7 @@ it("upgrades schema21 into schema22 without inventing orders or changing origina
     ).toEqual(old);
     expect(validateRestoreSnapshot(structuredClone(old))).toEqual({
       ...old,
-      schemaVersion: 22,
+      schemaVersion: 23,
       preorders: [],
     });
   } finally {

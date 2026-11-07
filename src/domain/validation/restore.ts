@@ -1,3 +1,7 @@
+import {
+  validateThumbnailBudget,
+  validateProductMedia,
+} from "../catalog/product-media";
 import { validatePreorders } from "../preorder/operations";
 import { validateConsignments } from "../consignment/operations";
 import { validateExchanges } from "../sales/exchanges";
@@ -156,7 +160,8 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
   if (s.schemaVersion === 19) s = { ...s, schemaVersion: 20, exchanges: [] };
   if (s.schemaVersion === 20) s = { ...s, schemaVersion: 21, consignments: [] };
   if (s.schemaVersion === 21) s = { ...s, schemaVersion: 22, preorders: [] };
-  if (s.schemaVersion !== 22) fail("目前僅支援網站資料版本 3 至 22。");
+  if (s.schemaVersion === 22) s = { ...s, schemaVersion: 23 };
+  if (s.schemaVersion !== 23) fail("目前僅支援網站資料版本 3 至 23。");
   str(s.workspaceId, "工作區ID", 100, true);
   const w = obj(s.workspace);
   if (
@@ -268,7 +273,9 @@ export function validateRestoreSnapshot(input: unknown): CatalogSnapshot {
       ids.add(o.id);
     }
   }
+  validateThumbnailBudget(s.products);
   for (const p of s.products) {
+    validateProductMedia(p);
     bool(p.archived);
     time(p.createdAt);
     time(p.updatedAt);

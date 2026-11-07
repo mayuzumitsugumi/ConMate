@@ -67,7 +67,7 @@ it("upgrades schema18 with empty unit identities without changing existing quant
   const upgraded = new ConMateDatabase(name);
   try {
     const restored = await upgraded.catalogs.get(workspace.id);
-    expect(restored).toEqual({ ...old, schemaVersion: 22, physicalUnits: [], exchanges: [] });
+    expect(restored).toEqual({ ...old, schemaVersion: 23, physicalUnits: [], exchanges: [] });
     expect(restored?.movements).toEqual(current.movements);
     expect(restored?.products[0]?.id).toBe(product.id);
     expect(restored?.revision).toBe(42);

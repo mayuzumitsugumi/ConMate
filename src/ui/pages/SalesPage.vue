@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BarcodePicker from "../components/BarcodePicker.vue";
 import { salesDraftRepository } from "../../application/sales-drafts";
 import type { SalesDraft } from "../../application/sales-drafts";
 import { onBeforeRouteLeave } from "vue-router";
@@ -78,7 +79,9 @@ const products = computed(
       (p) =>
         !p.archived &&
         (!selectedPlan.value || selectedPlan.value.productIds.includes(p.id)) &&
-        (!search.value || p.name.includes(search.value)),
+        (!search.value ||
+          p.name.includes(search.value) ||
+          p.code === search.value),
     ) || [],
 );
 const recent = computed(() => [...(catalog.snapshot?.sales || [])].reverse());
@@ -457,6 +460,17 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
       <div class="sales-layout">
         <section class="section-block">
           <h2>選擇交付商品</h2>
+          <BarcodePicker
+            :products="
+              catalog.snapshot.products.filter(
+                (p) =>
+                  !p.archived &&
+                  (!selectedPlan || selectedPlan.productIds.includes(p.id)),
+              )
+            "
+            :disabled="catalog.busy"
+            @select="(p) => (search = p.code)"
+          />
           <div class="field">
             <label for="sales-search">搜尋商品</label
             ><input id="sales-search" type="search" v-model="search" />
@@ -466,6 +480,15 @@ const named = (key: "locations" | "events" | "parties", id: string) =>
           </p>
           <div class="product-grid">
             <article v-for="p in products" :key="p.id" class="business-panel">
+              <img
+                v-if="p.thumbnail"
+                :src="p.thumbnail"
+                :alt="p.name + '縮圖'"
+                width="64"
+                height="64"
+                loading="lazy"
+                style="object-fit: contain"
+              />
               <h3>{{ p.name }}</h3>
               <p>{{ p.code }} · 目前庫位現存 {{ physicalStock(p.id) }}</p>
               <p>

@@ -39,10 +39,12 @@ test("split activity handoff is private, resumes offline, closes immutably and m
   await waitNotice(page, "已保存在這台裝置");
   await page.goto("#/products");
   await page.getByLabel("商品名稱（必填）").fill("甲徽章");
+  await page.getByLabel("條碼（選填，最多80字）").fill("001-ACTIVITY");
   await page.getByLabel("新創作者名稱").fill("甲");
   await page.getByRole("button", { name: "建立商品", exact: true }).click();
   await waitNotice(page, "商品已建立");
   await page.getByLabel("商品名稱（必填）").fill("私人未參售商品");
+  await page.getByLabel("條碼（選填，最多80字）").fill("PRIVATE-CODE");
   await page.getByLabel("備註", { exact: true }).fill("不得交付的私人資料");
   await page.getByRole("button", { name: "建立商品", exact: true }).click();
   await waitNotice(page, "商品已建立");
@@ -207,7 +209,20 @@ test("split activity handoff is private, resumes offline, closes immutably and m
     await fresh
       .getByLabel("販售方案", { exact: true })
       .selectOption({ index: 1 });
-    await fresh.getByLabel("實際交付商品").selectOption({ index: 1 });
+    const scanner = fresh.getByLabel("條碼／商品代碼（掃碼槍或手動輸入）");
+    await scanner.fill("PRIVATE-CODE");
+    await scanner.press("Enter");
+    await expect(
+      fresh.getByText("查無符合商品。", { exact: true }),
+    ).toBeVisible();
+    await scanner.fill("001-ACTIVITY");
+    await scanner.press("Enter");
+    await expect(
+      fresh.getByText("找到商品，請選取。", { exact: true }),
+    ).toBeVisible();
+    await expect(fresh.getByLabel("實際交付商品")).toHaveValue("");
+    await fresh.getByRole("button", { name: /活動限定徽章 · SKU/ }).click();
+    await expect(fresh.getByLabel("實際交付商品")).not.toHaveValue("");
     await fresh
       .getByRole("button", { name: "加入購物車", exact: true })
       .click();
@@ -285,6 +300,9 @@ test("split activity handoff is private, resumes offline, closes immutably and m
     await fresh.getByRole("button", { name: "快速販售", exact: true }).click();
     await expect(
       fresh.getByRole("button", { name: "加入購物車", exact: true }),
+    ).toBeDisabled();
+    await expect(
+      fresh.getByLabel("條碼／商品代碼（掃碼槍或手動輸入）"),
     ).toBeDisabled();
     await fresh.reload();
     await expect(

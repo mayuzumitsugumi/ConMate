@@ -145,7 +145,7 @@ export async function inspectActivity(bytes: ArrayBuffer) {
   });
   if (
     meta.get("format") !== ACTIVITY_FORMAT ||
-    meta.get("version") !== ACTIVITY_VERSION ||
+    !["1.0.0", ACTIVITY_VERSION].includes(meta.get("version") || "") ||
     meta.get("payloadEncoding") !== "utf8-base64"
   )
     reject("不支援此活動檔格式版本。");
@@ -187,7 +187,7 @@ export async function inspectActivity(bytes: ArrayBuffer) {
   return packet;
 }
 export const ACTIVITY_FORMAT = "ConMate活動專案";
-export const ACTIVITY_VERSION = "1.0.0";
+export const ACTIVITY_VERSION = "1.1.0";
 async function digest(bytes: Uint8Array) {
   return [
     ...new Uint8Array(
@@ -413,6 +413,14 @@ export async function exportActivity(
 ): Promise<ArrayBuffer> {
   const bytes = await (await buildActivityWorkbook(packet)).xlsx.writeBuffer();
   const result = Uint8Array.from(bytes as unknown as Uint8Array).buffer;
-  if (result.byteLength > MAX_FILE) reject("活動專案檔超過10 MB，無法匯出。");
+  if (result.byteLength > MAX_FILE)
+    reject("活動檔超出可還原的 10 MB 限制，未建立下載檔；請保留本機資料。");
+  try {
+    checkZip(result);
+  } catch (error) {
+    throw new Error(
+      `活動檔超出可還原的容器限制，未建立下載檔；請保留本機資料。${error instanceof Error ? error.message : ""}`,
+    );
+  }
   return result;
 }

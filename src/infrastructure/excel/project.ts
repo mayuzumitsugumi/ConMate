@@ -1,3 +1,4 @@
+import { assertProjectFileBudget } from "./restore";
 import { preorderSummary } from "../../domain/preorder/operations";
 import { consignmentSummary } from "../../domain/consignment/operations";
 import { internalSummary } from "../../domain/finance/internal-pricing";
@@ -8,7 +9,7 @@ import { balance } from "../../domain/inventory/operations";
 import ExcelJS from "exceljs";
 import type { CatalogSnapshot, CustomValue } from "../../domain/models/catalog";
 export const PROJECT_FORMAT = "ConMate網站專案";
-export const PROJECT_VERSION = "2.20.0";
+export const PROJECT_VERSION = "2.21.0";
 const font = {
   name: "Microsoft JhengHei",
   size: 12,
@@ -1435,5 +1436,13 @@ export async function exportProject(
   const buffer = await (
     await buildProjectWorkbook(snapshot)
   ).xlsx.writeBuffer();
-  return Uint8Array.from(buffer as unknown as Uint8Array).buffer;
+  const bytes = Uint8Array.from(buffer as unknown as Uint8Array).buffer;
+  try {
+    assertProjectFileBudget(bytes);
+  } catch (error) {
+    throw new Error(
+      `備份超出可還原的檔案限制，未建立下載檔，也未標記完成備份。請保留本機資料，不要清除網站資料。${error instanceof Error ? error.message : ""}`,
+    );
+  }
+  return bytes;
 }

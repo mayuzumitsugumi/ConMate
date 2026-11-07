@@ -38,7 +38,6 @@ jobs:
     needs: check-build
     runs-on: ubuntu-latest
     permissions:
-      actions: read
       pages: write
       id-token: write
     environment:
@@ -48,42 +47,6 @@ jobs:
       - uses: actions/configure-pages@v5
         with:
           enablement: true
-      # One-time repair for the verified timed-out v0.28 deployment. Remove with
-      # the next feature change; never cancel a discovered/current deployment.
-      - name: Clear verified stale Pages deployment
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const deploymentId = 'f34929241fcc1b9323808dc2db4ac651e5e2f913'
-            const runId = 42251407589
-            const repo = context.repo
-            const original = await github.rest.actions.getWorkflowRun({ ...repo, run_id: runId })
-            if (original.data.head_sha !== deploymentId || original.data.status !== 'completed' || original.data.conclusion !== 'failure') {
-              throw new Error('The recorded stale deployment is not a completed failed run; refusing cancellation.')
-            }
-            const route = '/repos/{owner}/{repo}/pages/deployments/{deployment_id}'
-            const params = { ...repo, deployment_id: deploymentId }
-            const readStatus = async () => {
-              try {
-                const result = await github.request(`GET ${route}`, params)
-                return result.data.status
-              } catch (error) {
-                if (error.status === 404) return 'not_found'
-                throw error
-              }
-            }
-            const initial = await readStatus()
-            core.info(`Recorded stale deployment status: ${initial}`)
-            if (initial === 'succeed' || initial === 'not_found') return
-            await github.request(`POST ${route}/cancel`, params)
-            const terminal = new Set(['succeed', 'deployment_failed', 'deployment_content_failed', 'deployment_cancelled', 'deployment_lost', 'not_found'])
-            for (let attempt = 0; attempt < 12; attempt++) {
-              await new Promise(resolve => setTimeout(resolve, 5000))
-              const status = await readStatus()
-              core.info(`Recorded stale deployment after cancellation: ${status}`)
-              if (terminal.has(status)) return
-            }
-            throw new Error('The verified old Pages deployment did not finish cancellation; refusing another deployment.')
       - name: Publish website
         id: deployment
         uses: actions/deploy-pages@v4

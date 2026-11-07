@@ -43,6 +43,8 @@ export interface CustomField extends NamedRecord {
   archived: boolean;
 }
 export interface CatalogItem extends NamedRecord {
+  barcode?: string;
+  thumbnail?: string;
   ownerId: string;
   creatorId: string;
   projectId: string;
@@ -87,7 +89,7 @@ export interface EventInput {
   projectIds: string[];
 }
 export interface CatalogSnapshot {
-  schemaVersion: 22;
+  schemaVersion: 23;
   preorders: Preorder[];
   consignments: Consignment[];
   exchanges: ExchangeRecord[];
@@ -129,6 +131,8 @@ export interface CatalogSnapshot {
   expensePayments: ExpensePaymentRecord[];
 }
 export interface ProductInput {
+  barcode?: string;
+  thumbnail?: string;
   name: string;
   ownerId?: string;
   artworkId?: string;

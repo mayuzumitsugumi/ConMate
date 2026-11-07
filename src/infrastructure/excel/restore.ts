@@ -61,11 +61,15 @@ function checkZip(bytes: ArrayBuffer) {
   }
   if (at !== end) reject("壓縮目錄長度不一致。");
 }
+// Apply the same bounded ZIP contract to generated backups before download.
+export function assertProjectFileBudget(bytes: ArrayBuffer): void {
+  if (bytes.byteLength > MAX_FILE) reject("目前支援最大 10 MB 的網站專案檔。");
+  checkZip(bytes);
+}
 export async function loadSafeWorkbook(
   bytes: ArrayBuffer,
 ): Promise<ExcelJS.Workbook> {
-  if (bytes.byteLength > MAX_FILE) reject("目前支援最大 10 MB 的網站專案檔。");
-  checkZip(bytes);
+  assertProjectFileBudget(bytes);
   const zip = await JSZip.loadAsync(bytes);
   if (!zip.file("[Content_Types].xml") || !zip.file("xl/workbook.xml"))
     reject("缺少 XLSX 必要結構。");
@@ -171,11 +175,12 @@ export async function inspectProject(bytes: ArrayBuffer) {
       "2.18.0",
       "2.19.0",
       "2.20.0",
+      "2.21.0",
     ].includes(meta.get("version") || "") ||
     meta.get("payloadEncoding") !== "utf8-base64"
   )
     reject(
-      "目前僅支援 ConMate 網站專案 2.1.0、2.2.0、2.3.0、2.4.0 、2.5.0 、2.6.0 、2.7.0 、2.8.0 、2.9.0 、2.10.0 、2.11.0 、2.12.0 、2.13.0 、2.14.0 、2.15.0 、2.16.0 、2.17.0、2.18.0、2.19.0 或 2.20.0。",
+      "目前僅支援 ConMate 網站專案 2.1.0、2.2.0、2.3.0、2.4.0 、2.5.0 、2.6.0 、2.7.0 、2.8.0 、2.9.0 、2.10.0 、2.11.0 、2.12.0 、2.13.0 、2.14.0 、2.15.0 、2.16.0 、2.17.0、2.18.0、2.19.0 、2.20.0 或 2.21.0。",
     );
   const chunks = [...meta.keys()]
     .filter((k) => k.startsWith("payload-"))
@@ -234,6 +239,7 @@ export async function inspectProject(bytes: ArrayBuffer) {
     "2.18.0": 20,
     "2.19.0": 21,
     "2.20.0": 22,
+    "2.21.0": 23,
   }[meta.get("version") as "2.1.0"];
   if (input?.schemaVersion !== expectedSchema)
     reject("專案格式版本與資料版本不一致。");

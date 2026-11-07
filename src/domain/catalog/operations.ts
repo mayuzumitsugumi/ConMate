@@ -1,3 +1,4 @@
+import { validateThumbnailBudget, validateProductMedia } from "./product-media";
 import type {
   CatalogSnapshot,
   CatalogItem,
@@ -136,6 +137,12 @@ export function putProduct(
 ): CatalogItem {
   const old = id ? s.products.find((p) => p.id === id) : undefined;
   if (id && !old) throw new Error("找不到商品。");
+  const media = {
+    barcode: input.barcode ?? old?.barcode ?? "",
+    thumbnail: input.thumbnail ?? old?.thumbnail ?? "",
+  };
+  validateProductMedia(media);
+  validateThumbnailBudget([...s.products.filter((p) => p.id !== id), media]);
   const name = text(input.name, "商品名稱");
   const creatorId =
     input.creatorId || input.creatorName?.trim()
@@ -289,6 +296,7 @@ export function putProduct(
   const item: CatalogItem = {
     ...(old || record(s, "SKU", name)),
     name,
+    ...media,
     creatorId,
     ownerId,
     projectId,

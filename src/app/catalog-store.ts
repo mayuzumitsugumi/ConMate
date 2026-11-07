@@ -59,7 +59,11 @@ import type {
   ArtworkAllocationInput,
   ExpensePaymentInput,
 } from "../domain/models/catalog";
-import { putProductNames } from "../domain/catalog/bulk";
+import {
+  applyProductNotes,
+  type ProductNotesPreview,
+  putProductNames,
+} from "../domain/catalog/bulk";
 import { refundSale as putRefund } from "../domain/sales/refunds";
 import type { RefundInput } from "../domain/models/catalog";
 import {
@@ -309,6 +313,10 @@ export const useCatalogStore = defineStore("catalog", () => {
       const c = s.consignments.find((c) => c.saleIds.includes(input.saleId));
       if (c) consign.recordConsignmentRefund(s, c.id, input);
       else putRefund(s, input);
+    });
+  const bulkUpdateProductNotes = (preview: ProductNotesPreview) =>
+    mutate((s) => {
+      applyProductNotes(s, preview);
     });
   const bulkSaveProducts = (names: string[]) =>
     mutate((s) => {
@@ -622,6 +630,7 @@ export const useCatalogStore = defineStore("catalog", () => {
     recordExpensePayment,
     undoExpensePayment,
     bulkSaveProducts,
+    bulkUpdateProductNotes,
     recordRefund,
     startStocktake,
     updateStocktake,

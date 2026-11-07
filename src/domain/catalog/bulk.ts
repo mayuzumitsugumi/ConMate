@@ -22,3 +22,45 @@ export function putProductNames(s: CatalogSnapshot, input: string[]) {
     }),
   );
 }
+
+export interface ProductNotesPreview {
+  revision: number;
+  rows: { id: string; name: string; before: string; after: string }[];
+}
+export function previewProductNotes(
+  s: CatalogSnapshot,
+  ids: string[],
+  notes: string,
+): ProductNotesPreview {
+  if (!ids.length || ids.length > 100 || new Set(ids).size !== ids.length)
+    throw new Error("每次請選擇1至100項商品。");
+  if (notes.trim().length > 2000) throw new Error("備註最多2,000字。");
+  return {
+    revision: s.revision,
+    rows: ids.map((id) => {
+      const p = s.products.find((p) => p.id === id && !p.archived);
+      if (!p) throw new Error("商品不存在或已封存，請重新預覽。");
+      return { id, name: p.name, before: p.notes, after: notes.trim() };
+    }),
+  };
+}
+export function applyProductNotes(
+  s: CatalogSnapshot,
+  preview: ProductNotesPreview,
+) {
+  if (s.revision !== preview.revision)
+    throw new Error("資料已變更，請重新預覽。");
+  const checked = previewProductNotes(
+    s,
+    preview.rows.map((r) => r.id),
+    preview.rows[0]?.after ?? "",
+  );
+  if (JSON.stringify(checked) !== JSON.stringify(preview))
+    throw new Error("預覽已失效，請重新預覽。");
+  const now = new Date().toISOString();
+  for (const row of checked.rows) {
+    const p = s.products.find((p) => p.id === row.id)!;
+    p.notes = row.after;
+    p.updatedAt = now;
+  }
+}

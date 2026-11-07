@@ -4,6 +4,66 @@ import { useWorkspaceStore } from "../../app/workspace-store";
 import { useCatalogStore } from "../../app/catalog-store";
 import type { CatalogItem, ProductInput } from "../../domain/models/catalog";
 import CustomFieldInput from "../components/CustomFieldInput.vue";
+import { makeThumbnail } from "../../infrastructure/images/thumbnail";
+import {
+  previewProductNotes,
+  type ProductNotesPreview,
+} from "../../domain/catalog/bulk";
+const selectedIds = ref<string[]>([]),
+  batchNotes = ref("");
+const notesPreview = ref<ProductNotesPreview>();
+function previewNotes() {
+  try {
+    notesPreview.value = previewProductNotes(
+      catalog.snapshot!,
+      [...selectedIds.value],
+      batchNotes.value,
+    );
+  } catch (e) {
+    localError.value = (e as Error).message;
+  }
+}
+async function applyNotes() {
+  try {
+    await catalog.bulkUpdateProductNotes(notesPreview.value!);
+    notesPreview.value = undefined;
+    selectedIds.value = [];
+    notice.value = "商品備註已整批更新。";
+  } catch (e) {
+    localError.value = (e as Error).message;
+    notesPreview.value = undefined;
+  }
+}
+let imageRequest = 0;
+const imageBusy = ref(false);
+function removeImage() {
+  imageRequest++;
+  imageBusy.value = false;
+  form.thumbnail = "";
+}
+async function chooseImage(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  const request = ++imageRequest;
+  imageBusy.value = true;
+  const workspaceId = workspaces.activeWorkspaceId,
+    productId = editingId.value;
+  try {
+    const thumbnail = await makeThumbnail(file);
+    if (
+      request === imageRequest &&
+      workspaceId === workspaces.activeWorkspaceId &&
+      productId === editingId.value
+    )
+      form.thumbnail = thumbnail;
+  } catch (e) {
+    if (request === imageRequest) localError.value = (e as Error).message;
+  } finally {
+    if (request === imageRequest) imageBusy.value = false;
+  }
+  input.value = "";
+}
 const workspaces = useWorkspaceStore();
 const catalog = useCatalogStore();
 const editingId = ref<string>();
@@ -33,6 +93,8 @@ const notice = ref("");
 const localError = ref("");
 const nameInput = ref<HTMLInputElement>();
 const form = reactive<ProductInput>({
+  barcode: "",
+  thumbnail: "",
   name: "",
   ownerId: "",
   artworkId: "",
@@ -56,6 +118,7 @@ const products = computed(
           [
             item.name,
             item.code,
+            item.barcode,
             item.specification,
             item.artwork,
             item.notes,
@@ -73,8 +136,12 @@ const products = computed(
     ) ?? [],
 );
 function reset() {
+  imageRequest++;
+  imageBusy.value = false;
   editingId.value = undefined;
   Object.assign(form, {
+    barcode: "",
+    thumbnail: "",
     name: "",
     ownerId: "",
     artworkId: "",
@@ -95,6 +162,8 @@ watch(
   () => workspaces.activeWorkspaceId,
   async (id) => {
     reset();
+    selectedIds.value = [];
+    notesPreview.value = undefined;
     bulkNames.value = "";
     productSearch.value = "";
     archiveId.value = undefined;
@@ -115,6 +184,8 @@ async function edit(item: CatalogItem) {
   editingId.value = item.id;
   Object.assign(form, {
     name: item.name,
+    barcode: item.barcode || "",
+    thumbnail: item.thumbnail || "",
     creatorId: item.creatorId,
     ownerId: item.ownerId,
     artworkId: item.artworkId || "",
@@ -133,7 +204,7 @@ async function edit(item: CatalogItem) {
   nameInput.value?.scrollIntoView({ block: "center" });
 }
 async function save() {
-  if (catalog.busy || !catalog.snapshot) return;
+  if (catalog.busy || imageBusy.value || !catalog.snapshot) return;
   localError.value = "";
   notice.value = "";
   try {
@@ -283,6 +354,42 @@ async function archive() {
                 maxlength="80"
                 placeholder="例如：星空壓克力吊飾"
               />
+            </div>
+            <div class="field">
+              <label for="product-barcode">條碼（選填，最多80字）</label
+              ><input
+                id="product-barcode"
+                v-model="form.barcode"
+                maxlength="80"
+              />
+              <small>保留前導零；可重複，但現場遇到重複碼時須自行選擇。</small>
+              <label for="product-thumbnail">本機商品縮圖</label
+              ><input
+                id="product-thumbnail"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                @change="chooseImage"
+              />
+              <small
+                >限5
+                MiB、2,400萬像素；轉為最長160px縮圖並移除原檔中繼資料。縮圖會包含在完整備份與活動交接檔；不使用外部圖片網址。單張最多24,000字元，工作區縮圖合計最多4,000,000字元。</small
+              >
+              <img
+                v-if="form.thumbnail"
+                :src="form.thumbnail"
+                alt="商品縮圖預覽"
+                width="80"
+                height="80"
+                style="object-fit: contain"
+              />
+              <button
+                v-if="form.thumbnail"
+                type="button"
+                class="button secondary"
+                @click="removeImage"
+              >
+                移除縮圖
+              </button>
             </div>
             <div class="form-grid">
               <div class="field">
@@ -482,7 +589,7 @@ async function archive() {
               取消編輯</button
             ><button
               class="button primary"
-              :disabled="catalog.busy || !form.name.trim()"
+              :disabled="catalog.busy || imageBusy || !form.name.trim()"
             >
               {{
                 catalog.busy ? "儲存中…" : editingId ? "儲存變更" : "建立商品"
@@ -508,6 +615,39 @@ async function archive() {
         <p v-if="!products.length" class="info-banner">
           目前沒有符合條件的商品，可從上方表單建立商品。
         </p>
+        <details class="catalog-panel">
+          <summary>大量更新已選商品備註（{{ selectedIds.length }}項）</summary>
+          <p>
+            最多100項，整批取代備註（留白會清空）。不變更庫存或財務；先預覽再確認。
+          </p>
+          <label for="batch-notes">共同備註</label
+          ><textarea
+            id="batch-notes"
+            v-model="batchNotes"
+            maxlength="2000"
+            @input="notesPreview = undefined"
+          ></textarea>
+          <button
+            class="button secondary"
+            :disabled="catalog.busy || !selectedIds.length"
+            @click="previewNotes"
+          >
+            預覽變更
+          </button>
+          <template v-if="notesPreview">
+            <p v-for="row in notesPreview.rows" :key="row.id">
+              {{ row.name }}：{{ row.before || "（空白）" }} →
+              {{ row.after || "（清空）" }}
+            </p>
+            <button
+              class="button primary"
+              :disabled="catalog.busy"
+              @click="applyNotes"
+            >
+              確認整批更新備註
+            </button>
+          </template>
+        </details>
         <div class="product-list">
           <article
             v-for="item in products"
@@ -515,7 +655,26 @@ async function archive() {
             class="catalog-panel product-card"
           >
             <div>
-              <span class="soft-label">{{ item.code }}</span>
+              <label v-if="!item.archived" class="check-option"
+                ><input
+                  type="checkbox"
+                  v-model="selectedIds"
+                  :value="item.id"
+                  :disabled="catalog.busy"
+                  @change="notesPreview = undefined"
+                />選取</label
+              >
+              <img
+                v-if="item.thumbnail"
+                :src="item.thumbnail"
+                :alt="item.name + '縮圖'"
+                width="64"
+                height="64"
+                loading="lazy"
+                style="object-fit: contain"
+              />
+              <span class="soft-label">{{ item.code }}</span
+              ><span v-if="item.barcode"> · 條碼 {{ item.barcode }}</span>
               <h3>
                 {{ item.name
                 }}<span v-if="item.archived" class="soft-label">已封存</span>

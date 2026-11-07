@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BarcodePicker from "../components/BarcodePicker.vue";
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useWorkspaceStore } from "../../app/workspace-store";
@@ -825,6 +826,21 @@ function time(value: string) {
       />
       <fieldset :disabled="busy || !!packet.closure">
         <legend>新增交易</legend>
+        <BarcodePicker
+          :products="products"
+          :disabled="busy || !!packet.closure"
+          @select="
+            (p) => {
+              if (
+                !busy &&
+                packet &&
+                !packet.closure &&
+                products.some((item) => item.id === p.id)
+              )
+                saleForm.productId = p.id;
+            }
+          "
+        />
         <div class="grid">
           <div class="field">
             <label for="activity-plan">販售方案</label

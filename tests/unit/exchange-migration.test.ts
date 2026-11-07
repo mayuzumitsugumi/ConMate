@@ -43,13 +43,13 @@ it("upgrades schema19 without inventing exchanges or modifying existing recovery
   try {
     expect(await upgraded.catalogs.get(workspace.id)).toEqual({
       ...old,
-      schemaVersion: 22,
+      schemaVersion: 23,
       exchanges: [],
     });
     expect(await upgraded.recoverySnapshots.get(recovery.id)).toEqual(recovery);
     expect(validateRestoreSnapshot(structuredClone(old))).toEqual({
       ...old,
-      schemaVersion: 22,
+      schemaVersion: 23,
       exchanges: [],
     });
   } finally {
