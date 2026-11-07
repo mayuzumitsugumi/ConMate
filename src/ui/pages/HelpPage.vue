@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
+import { nextTick, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { helpTopics } from "../content/help";
+import { helpTopics, helpTopicGroups } from "../content/help";
 const route = useRoute();
-const search = ref("");
 const selected = ref("start");
 watch(
   () => route.query.topic,
@@ -12,27 +11,10 @@ watch(
       typeof topic === "string" && helpTopics.some((t) => t.id === topic)
         ? topic
         : "start";
-    search.value = "";
   },
   { immediate: true },
 );
-const topics = computed(() => {
-  const words = search.value
-    .trim()
-    .toLocaleLowerCase("zh-TW")
-    .split(/\s+/)
-    .filter(Boolean);
-  return helpTopics.filter((t) =>
-    words.every((word) =>
-      [t.title, t.intro, ...t.steps, t.note]
-        .join(" ")
-        .toLocaleLowerCase("zh-TW")
-        .includes(word),
-    ),
-  );
-});
 async function choose(id: string) {
-  search.value = "";
   selected.value = id;
   await nextTick();
   const section = document.getElementById(
@@ -61,45 +43,39 @@ async function choose(id: string) {
       >前往專案檔與備份 →</RouterLink
     >
   </aside>
-  <section class="help-tools" aria-labelledby="help-search-title">
-    <h2 id="help-search-title">想了解哪一部分？</h2>
-    <label for="help-search">搜尋說明</label>
-    <input
-      id="help-search"
-      v-model="search"
-      type="search"
-      placeholder="例如：封存、退款、柄圖、換裝置"
-    />
-    <p class="search-result" role="status">
-      {{
-        search.trim()
-          ? `找到 ${topics.length} 個主題`
-          : "選一個主題，或輸入遇到的問題。"
-      }}
-    </p>
-    <nav class="topic-links" aria-label="說明主題">
-      <button
-        v-for="topic in helpTopics"
-        :key="topic.id"
-        type="button"
-        class="topic-button"
-        :class="{ chosen: selected === topic.id && !search.trim() }"
-        @click="choose(topic.id)"
+  <section class="help-tools" aria-labelledby="help-topics-title">
+    <h2 id="help-topics-title">選一個主題</h2>
+    <p>依照目前需要的功能選擇主題，下方會開啟對應說明。</p>
+    <nav aria-label="說明主題">
+      <div
+        v-for="group in helpTopicGroups"
+        :key="group.title"
+        class="topic-group"
       >
-        {{ topic.title.split("：")[0] }}
-      </button>
+        <h3>{{ group.title }}</h3>
+        <div class="topic-links">
+          <button
+            v-for="topic in group.topics"
+            :key="topic.id"
+            type="button"
+            class="topic-button"
+            :class="{ chosen: selected === topic.id }"
+            :aria-pressed="selected === topic.id"
+            @click="choose(topic.id)"
+          >
+            {{ topic.title.split("：")[0] }}
+          </button>
+        </div>
+      </div>
     </nav>
   </section>
-  <p v-if="!topics.length" class="help-callout">
-    找不到符合的說明。試試較短的詞，例如「庫存」或「備份」，也可清空搜尋查看所有主題。
-  </p>
   <section class="help-topics" aria-label="操作指南">
     <details
-      v-for="topic in topics"
+      v-for="topic in helpTopics"
       :id="`help-${topic.id}`"
       :key="topic.id"
       class="help-topic"
-      :open="!!search.trim() || selected === topic.id"
+      :open="selected === topic.id"
     >
       <summary>{{ topic.title }}</summary>
       <div class="topic-body">
@@ -126,7 +102,7 @@ async function choose(id: string) {
       </li>
       <li>系統隨機抽獎、保底、預售金流／物流與寄賣平台自動串接。</li>
       <li>
-        圖片及條碼掃描（特殊單件可用實物標記選取，入庫來源數量採批次追蹤）。換購差額可登記核對，實際收退款仍由使用者完成。
+        相機掃碼及條碼標籤列印尚未提供；目前可保存商品縮圖，使用掃碼槍或手動輸入條碼查找商品。換購差額可登記核對，實際收退款仍由使用者完成。
       </li>
       <li>自動套用分潤規則優先序、跨工作表自動抵付、實際匯款及正式會計帳。</li>
       <li>
@@ -166,29 +142,19 @@ li {
 p {
   margin: 10px 0;
 }
-.help-tools label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 8px;
+.topic-group + .topic-group {
+  margin-top: 20px;
 }
-.help-tools input {
-  width: 100%;
-  min-height: 46px;
-  border: 1px solid #94a58b;
-  border-radius: 7px;
-  padding: 11px 12px;
-  background: #fcfdf9;
-  font: inherit;
-  color: var(--text);
-}
-.search-result {
+.topic-group h3 {
+  font-size: 16px;
   color: #52634e;
+  margin: 0 0 8px;
 }
 .topic-links {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 8px;
 }
 .topic-button {
   font: inherit;

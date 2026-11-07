@@ -39,7 +39,7 @@ npm run test:e2e
 - [活動工作台](https://mayuzumitsugumi.github.io/ConMate/#/activity)：只需範圍限定的活動檔即可販售、盤點、結案及預覽合回；剩餘實物另外確認退回。
 
 - 選配 GitHub 個人備份：使用者自己設定專用私有儲存庫，權杖只留在目前頁面記憶體；確認後才上傳，遠端變更會阻擋提交，還原仍需驗證預覽。
-- [使用說明](https://mayuzumitsugumi.github.io/ConMate/#/help)：不需工作區即可閱讀，支援搜尋、主題導覽與從當前頁面開啟對應說明。
+- [使用說明](https://mayuzumitsugumi.github.io/ConMate/#/help)：不需工作區即可閱讀，依入門、創作商品、庫存、販售、帳務及備份分組導覽，並可從當前頁面開啟對應說明。
 
 - [創作者與柄圖](https://mayuzumitsugumi.github.io/ConMate/#/creators)：獨立新增、改名、封存／恢復；作者明確多選，商品創作者、擁有者與柄圖作者不互相推定。
 - [企劃與場次分頁](https://mayuzumitsugumi.github.io/ConMate/#/projects)：新增、編輯、封存／恢復，支援同企劃跨多場、同場多企劃。

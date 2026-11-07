@@ -7,7 +7,7 @@ export interface HelpTopic {
   path: string;
   action: string;
 }
-export const helpTopics: HelpTopic[] = [
+const topicDefinitions: HelpTopic[] = [
   {
     id: "preorders",
     title: "預售：訂單、訂金／尾款、分批交付與退款",
@@ -312,3 +312,24 @@ export const helpTopics: HelpTopic[] = [
     action: "查看備份與儲存狀態",
   },
 ];
+
+// Navigation and the detailed guide share one thematic order.
+export const helpTopicGroups = [
+  { title: "開始使用", ids: ["start", "activities", "activity"] },
+  { title: "創作與商品", ids: ["creators", "projects", "products"] },
+  { title: "庫存與盤點", ids: ["inventory", "physical-units", "stocktake"] },
+  {
+    title: "販售與交付",
+    ids: ["sales", "refunds", "preorders", "consignments"],
+  },
+  { title: "成本與帳務", ids: ["finance", "settlement", "reports"] },
+  { title: "備份與離線", ids: ["templates", "cloud", "offline"] },
+].map(({ title, ids }) => ({
+  title,
+  topics: ids.map((id) => {
+    const topic = topicDefinitions.find((item) => item.id === id);
+    if (!topic) throw new Error(`Missing help topic: ${id}`);
+    return topic;
+  }),
+}));
+export const helpTopics = helpTopicGroups.flatMap((group) => group.topics);
